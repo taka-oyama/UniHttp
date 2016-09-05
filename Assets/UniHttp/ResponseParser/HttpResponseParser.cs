@@ -7,6 +7,7 @@ using System.Text;
 using System.Timers;
 using UnityEngine;
 using System.Threading;
+using System.Globalization;
 
 namespace UniHttp
 {
@@ -85,7 +86,7 @@ namespace UniHttp
 						tempStream.WriteByte((byte)b);
 						b = inputStream.ReadByte();
 					}
-					return true;
+					return false;
 				},
 				doneCallback: bytes => {
 					doneCallback(Encoding.UTF8.GetString(bytes).Trim());
@@ -95,25 +96,43 @@ namespace UniHttp
 
 		void ReadMessageBody(Action nextAction)
 		{
-			int contentLength = 0;
+			if(response.Headers ["Transfer-Encoding"].Contains("chunked")) {
+				ReadMessageBodyWithChunk(nextAction);
+			} else if(response.Headers.Exist("content-length")) {
+				int length = int.Parse(response.Headers["content-length"][0]);
+				ReadMessageBodyWithLength(length, nextAction);
+			}
+		}
+
+		void ReadMessageBodyWithChunk(Action nextAction)
+		{
+			int readBytes = 0;
+			byte[] buffer = new byte[bufferSize];
+			MemoryStream tempStream = new MemoryStream(0);
+			ReadTo(LF, msg => {
+				int nextBytes = int.Parse(msg, NumberStyles.HexNumber);
+			});
+		}
+
+		void ReadMessageBodyWithLength(int totalBytes, Action nextAction)
+		{
 			int readBytes = 0;
 			byte[] buffer = new byte[bufferSize];
 
-			if(response.Headers.Exist("content-length")) {
-				contentLength = int.Parse(response.Headers["content-length"][0]);
-			}
+			this.readAction = readAction;
+			this.doneCallback = doneCallback;
+			timer.Start();
 
 			ScheduleRead(
-				streamSize: contentLength,
+				streamSize: totalBytes,
 				readAction: tempStream => {
 					readBytes = inputStream.Read(buffer, 0, buffer.Length);
-					if(readBytes > 0) {
-						tempStream.Write(buffer, 0, readBytes);
-						return true;
-					} else {
-						return false;
-					}
+					totalBytes-= readBytes;
+					tempStream.Write(buffer, 0, readBytes);
+					return totalBytes > 0;
 				}, doneCallback: bytes => {
+					Debug.Log(Encoding.UTF8.GetString(bytes));
+					Debug.Log(bytes.Length);
 					response.MessageBody = bytes;
 					nextAction();
 				}
@@ -135,20 +154,16 @@ namespace UniHttp
 		void EachTimer(object sender, ElapsedEventArgs evt)
 		{
 			try {
-				if(inputStream.DataAvailable) {
-					timer.Stop();
-					if(readAction(tempStream)) {
-						tempStream.Dispose();
-						doneCallback(tempStream.ToArray());
-					} else {
-						timer.Start();
-					}
-				} else {
+				timer.Stop();
+				if(readAction(tempStream)) {
 					timer.Start();
+				} else {
+					timer.Stop();
+					tempStream.Dispose();
+					doneCallback(tempStream.ToArray());
 				}
 			}
 			catch(Exception exception) {
-				Debug.Log(exception.ToString());
 				context.Send(e => {
 					Dispose();
 					tempStream.Dispose();

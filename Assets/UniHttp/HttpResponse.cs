@@ -23,6 +23,7 @@ namespace UniHttp
 			sb.Append(Headers.ToString());
 			sb.Append(HttpRequest.CRLF);
 			if(includeBody && IsStringableContentType()) {
+				sb.Append(HttpRequest.CRLF);
 				sb.Append(Encoding.UTF8.GetString(MessageBody));
 				sb.Append(HttpRequest.CRLF);
 			}
@@ -31,8 +32,7 @@ namespace UniHttp
 
 		bool IsStringableContentType()
 		{
-			Debug.Log(Headers["Content-Type"][0]);
-			if(Headers.Exist("Content-Type")) return false;
+			if(Headers.NotExist("Content-Type")) return false;
 			if(Headers["Content-Type"][0].Contains("text/")) return true;
 			if(Headers["Content-Type"][0].Contains("application/json")) return true;
 			if(Headers["Content-Type"][0].Contains("application/xml")) return true;

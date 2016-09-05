@@ -24,6 +24,11 @@ namespace UniHttp
 			return fields.ContainsKey(name.ToLower());
 		}
 
+		public bool NotExist(string name)
+		{
+			return !Exist(name);
+		}
+
 		internal void Append(string name, string value)
 		{
 			name = name.ToLower();
