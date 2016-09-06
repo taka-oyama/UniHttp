@@ -14,12 +14,15 @@ namespace UniHttp
 		public Methods Method { get; private set; } 
 		public Uri Uri { get; private set; }
 		public string Version { get { return "1.1"; } }
-		public HttpRequestHeaders Headers;
+		public HttpRequestHeaders Headers { get; private set; }
+
+		string appInfo = Application.bundleIdentifier + "/" + Application.version;
+		string osInfo = SystemInfo.operatingSystem;
 
 		// Header Options
 		public bool KeepAlive = true;
 
-		public Action<string> OnComplete;
+		public Action<HttpResponse> OnComplete;
 
 		public const string SPACE = " ";
 		public const string CRLF = "\r\n";
@@ -29,6 +32,8 @@ namespace UniHttp
 			this.Uri = uri;
 			this.Method = method;
 			this.Headers = new HttpRequestHeaders();
+			Headers.Add("Host", GenerateHost());
+			Headers.Add("User-Agent", GenerateUserAgent());
 		}
 
 		public void Send()
@@ -38,33 +43,18 @@ namespace UniHttp
 			socket.Connect(Uri.Host, Uri.Port);
 			stream = socket.GetStream();
 
-			var data = GenerateData();
-			stream.Write(data, 0, data.Length);
-			stream.Flush();
-
 			ExecuteOnThread(() => {
-				new HttpResponseParser(this, stream, 1024).Parse(res => {
-					Debug.Log(res.ToString());
-				});
+				var data = ToBytes();
+				Debug.Log(ToString());
+				stream.Write(data, 0, data.Length);
+				stream.Flush();
+				var response = new HttpResponseBuilder(this, stream, socket.ReceiveBufferSize).Parse();
+				Debug.Log(response.ToString());
+				if(OnComplete != null) OnComplete(response);
 			});
 		}
 
-		void AddDefaultHeaders()
-		{
-			AddHeaderIfNotExist("Host", GenerateHost());
-			AddHeaderIfNotExist("User-Agent", GenerateUserAgent());
-
-			// https://tools.ietf.org/html/rfc7230#section-6.3
-			// In HTTP 1.1, all connections are considered persistent unless declared otherwise
-			if(!KeepAlive) Headers.AddOrReplace("Connection", "close");
-		}
-
-		void AddHeaderIfNotExist(string key, string value)
-		{
-			if(!Headers.Exist(key)) Headers.Add(key, value);
-		}
-
-		byte[] GenerateData()
+		byte[] ToBytes()
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(GenerateHeaderString());
@@ -74,7 +64,9 @@ namespace UniHttp
 
 		string GenerateHeaderString()
 		{
-			AddDefaultHeaders();
+			// https://tools.ietf.org/html/rfc7230#section-6.3
+			// In HTTP 1.1, all connections are considered persistent unless declared otherwise
+			if(!KeepAlive) Headers.AddOrReplace("Connection", "close");
 
 			StringBuilder sb = new StringBuilder();
 			sb.Append(Method.ToString().ToUpper());
@@ -102,28 +94,36 @@ namespace UniHttp
 
 		string GenerateUserAgent()
 		{
-			string appInfo = Application.bundleIdentifier + "/" + Application.version;
-			string osInfo = SystemInfo.operatingSystem;
 			return string.Format("{0} ({1}) UniHttp/1.0", appInfo, osInfo);
 		}
 
 		void ExecuteOnThread(Action action)
 		{
-			Scheduler.ThreadPool.Schedule(() => {
-				try 
-				{
+			Scheduler.ThreadPool.Schedule(TimeSpan.FromSeconds(2), () => {
+				try  {
 					action();
 				}
-				catch(Exception e)
-				{
+				catch(Exception e) {
 					Scheduler.MainThread.Schedule(() => { throw e; });
 				}
 			});
 		}
 
+		public override string ToString()
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.Append(Method.ToString().ToUpper());
+			sb.Append(" ");
+			sb.Append(Uri.ToString());
+			sb.Append("\n");
+			sb.Append(Headers.ToString());
+			sb.Append("\n");
+			return sb.ToString();
+		}
+
 		public void Dispose()
 		{
-			
+			this.OnComplete = null;
 		}
 	}
 }
