@@ -44,7 +44,7 @@ namespace UniHttp
 			stream = socket.GetStream();
 
 			ExecuteOnThread(() => {
-				var data = ToBytes();
+				var data = MessageToBytes();
 				Debug.Log(ToString());
 				stream.Write(data, 0, data.Length);
 				stream.Flush();
@@ -54,7 +54,7 @@ namespace UniHttp
 			});
 		}
 
-		byte[] ToBytes()
+		byte[] MessageToBytes()
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(GenerateHeaderString());
