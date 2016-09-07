@@ -44,13 +44,13 @@ namespace UniHttp
 		void ReadHeaders()
 		{
 			string name = reader.ReadUpTo(':', LF).Trim();
-			if(name != String.Empty) {
+			while(name != String.Empty) {
 				string valuesStr = reader.ReadUpTo(LF).Trim();
 				string[] values = valuesStr.Split(';');
 				foreach(string value in values) {
 					response.Headers.Append(name, value);
 				}
-				ReadHeaders();
+				name = reader.ReadUpTo(':', LF).Trim();
 			}
 		}
 
