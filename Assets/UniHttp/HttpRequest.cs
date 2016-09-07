@@ -34,6 +34,7 @@ namespace UniHttp
 			this.Headers = new HttpRequestHeaders();
 			Headers.Add("Host", GenerateHost());
 			Headers.Add("User-Agent", GenerateUserAgent());
+			Headers.Add("Accept-Encoding", "gzip");
 		}
 
 		public void Send()
@@ -99,7 +100,7 @@ namespace UniHttp
 
 		void ExecuteOnThread(Action action)
 		{
-			Scheduler.ThreadPool.Schedule(TimeSpan.FromSeconds(2), () => {
+			Scheduler.ThreadPool.Schedule(() => {
 				try  {
 					action();
 				}

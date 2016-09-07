@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System;
+using System.Linq;
 
 namespace UniHttp
 {
@@ -52,9 +53,14 @@ namespace UniHttp
 		{
 			List<string> fieldLines = new List<string>();
 			foreach(var kvPair in fields) {
-				fieldLines.Add(kvPair.Key + ": " + kvPair.Value);
+				fieldLines.Add(Titleize(kvPair.Key) + ": " + kvPair.Value);
 			}
 			return string.Join(HttpRequest.CRLF, fieldLines.ToArray());
+		}
+
+		string Titleize(string str)
+		{
+			return string.Join("-", str.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
 		}
 	}
 }

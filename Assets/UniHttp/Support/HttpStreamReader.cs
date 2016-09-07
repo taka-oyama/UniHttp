@@ -6,7 +6,7 @@ using System.Linq;
 using System.IO;
 using System.Timers;
 using System.Threading;
-using UniRx;
+using Unity.IO.Compression;
 
 namespace UniHttp
 {
@@ -15,7 +15,7 @@ namespace UniHttp
 		NetworkStream networkStream;
 		int bufferSize;
 
-		internal HttpStreamReader(NetworkStream networkStream, int bufferSize = 1024 * 1024)
+		internal HttpStreamReader(NetworkStream networkStream, int bufferSize = 1024)
 		{
 			this.networkStream = networkStream;
 			this.bufferSize = bufferSize;
@@ -23,14 +23,14 @@ namespace UniHttp
 
 		internal byte[] Read(int totalBytes)
 		{
-			byte[] buffer = new byte[bufferSize];
 			using(MemoryStream dataStream = new MemoryStream(totalBytes)) {
+				byte[] buffer = new byte[bufferSize];
 				int readBytes = 0;
 				while(totalBytes > 0) {
 					if(networkStream.DataAvailable) {
 						readBytes = networkStream.Read(buffer, 0, buffer.Length);
-						totalBytes -= readBytes;
 						dataStream.Write(buffer, 0, readBytes);
+						totalBytes -= readBytes;
 					} else {
 						Thread.Sleep(1);
 					}
@@ -39,6 +39,27 @@ namespace UniHttp
 			}
 		}
 
+		internal byte[] ReadAndDecompress(int totalBytes)
+		{
+			using(MemoryStream dataStream = new MemoryStream(0)) {
+				using(GZipStream gzipStream = new GZipStream(networkStream, CompressionMode.Decompress)) {
+					byte[] buffer = new byte[bufferSize];
+					int readBytes = 0;
+					while(totalBytes > 0) {
+						if(networkStream.DataAvailable) {
+							while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
+								dataStream.Write(buffer, 0, readBytes);
+								totalBytes -= readBytes;
+							}
+						} else {
+							Thread.Sleep(1);
+						}
+					}
+					return dataStream.ToArray();
+				}
+			}
+		}
+			
 		internal string ReadUpTo(params char[] stoppers)
 		{
 			while(!networkStream.DataAvailable) {

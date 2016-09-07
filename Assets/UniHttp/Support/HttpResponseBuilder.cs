@@ -65,6 +65,7 @@ namespace UniHttp
 				ReadMessageBodyWithLength(length);
 				return;
 			}
+
 			throw new Exception("Bad Response from server. Check for incorrent Transfer-Encoding.");
 		}
 
@@ -88,7 +89,16 @@ namespace UniHttp
 
 		void ReadMessageBodyWithLength(int totalBytes)
 		{
-			response.MessageBody = reader.Read(totalBytes);
+			if(IsCompressed()) {
+				response.MessageBody = reader.ReadAndDecompress(totalBytes);
+			} else {
+				response.MessageBody = reader.Read(totalBytes);
+			}
+		}
+
+		bool IsCompressed()
+		{
+			return response.Headers.Exist("Content-Encoding") && response.Headers["Content-Encoding"].Contains("gzip");
 		}
 
 		public void Dispose()
