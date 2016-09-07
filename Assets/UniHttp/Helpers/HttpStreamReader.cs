@@ -24,18 +24,19 @@ namespace UniHttp
 		internal byte[] Read(int totalBytes)
 		{
 			byte[] buffer = new byte[bufferSize];
-			MemoryStream dataStream = new MemoryStream(totalBytes);
-			int readBytes = 0;
-			if(totalBytes > 0) {
-				if(networkStream.DataAvailable) {
-					readBytes = networkStream.Read(buffer, 0, buffer.Length);
-					totalBytes -= readBytes;
-					dataStream.Write(buffer, 0, readBytes);
-				} else {
-					Thread.Sleep(TimeSpan.FromMilliseconds(1));
+			using(MemoryStream dataStream = new MemoryStream(totalBytes)) {
+				int readBytes = 0;
+				while(totalBytes > 0) {
+					if(networkStream.DataAvailable) {
+						readBytes = networkStream.Read(buffer, 0, buffer.Length);
+						totalBytes -= readBytes;
+						dataStream.Write(buffer, 0, readBytes);
+					} else {
+						Thread.Sleep(TimeSpan.FromMilliseconds(1));
+					}
 				}
+				return dataStream.ToArray();
 			}
-			return dataStream.ToArray();
 		}
 
 		internal string ReadUpTo(params char[] stoppers)
