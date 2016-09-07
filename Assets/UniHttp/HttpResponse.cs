@@ -20,6 +20,12 @@ namespace UniHttp
 		public string ToString(bool includeBody = true)
 		{
 			StringBuilder sb = new StringBuilder();
+			sb.Append(HttpVersion);
+			sb.Append(" ");
+			sb.Append(StatusCode);
+			sb.Append(" ");
+			sb.Append(StatusPhrase);
+			sb.Append(HttpRequest.CRLF);
 			sb.Append(Headers.ToString());
 			sb.Append(HttpRequest.CRLF);
 			if(includeBody && IsStringableContentType()) {
