@@ -14,7 +14,7 @@ namespace UniHttp
 		public Methods Method { get; private set; } 
 		public Uri Uri { get; private set; }
 		public string Version { get { return "1.1"; } }
-		public HttpRequestHeaders Headers { get; private set; }
+		public RequestHeaders Headers { get; private set; }
 
 		string appInfo = Application.bundleIdentifier + "/" + Application.version;
 		string osInfo = SystemInfo.operatingSystem;
@@ -31,7 +31,7 @@ namespace UniHttp
 		{
 			this.Uri = uri;
 			this.Method = method;
-			this.Headers = new HttpRequestHeaders();
+			this.Headers = new RequestHeaders();
 			Headers.Add("Host", GenerateHost());
 			Headers.Add("User-Agent", GenerateUserAgent());
 			Headers.Add("Accept-Encoding", "gzip");
@@ -49,7 +49,7 @@ namespace UniHttp
 				Debug.Log(ToString());
 				stream.Write(data, 0, data.Length);
 				stream.Flush();
-				var response = new HttpResponseBuilder(this, stream, socket.ReceiveBufferSize).Parse();
+				var response = new ResponseBuilder(this, stream, socket.ReceiveBufferSize).Parse();
 				Debug.Log(response.ToString());
 				if(OnComplete != null) OnComplete(response);
 			});

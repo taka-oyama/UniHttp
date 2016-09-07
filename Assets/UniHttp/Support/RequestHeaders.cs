@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace UniHttp
 {
-	public class HttpRequestHeaders
+	public class RequestHeaders
 	{
 		Dictionary<string, string> fields;
 
-		public HttpRequestHeaders()
+		public RequestHeaders()
 		{
 			this.fields = new Dictionary<string, string>();
 		}

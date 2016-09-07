@@ -10,12 +10,12 @@ using Unity.IO.Compression;
 
 namespace UniHttp
 {
-	public class HttpStreamReader : IDisposable
+	public class StreamReader : IDisposable
 	{
 		NetworkStream networkStream;
 		int bufferSize;
 
-		internal HttpStreamReader(NetworkStream networkStream, int bufferSize = 1024)
+		internal StreamReader(NetworkStream networkStream, int bufferSize = 1024)
 		{
 			this.networkStream = networkStream;
 			this.bufferSize = bufferSize;

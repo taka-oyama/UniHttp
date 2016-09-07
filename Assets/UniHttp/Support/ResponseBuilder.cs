@@ -11,17 +11,17 @@ using System.Globalization;
 
 namespace UniHttp
 {
-	internal class HttpResponseBuilder : IDisposable
+	internal class ResponseBuilder : IDisposable
 	{
 		const char LF = '\n';
 
-		HttpStreamReader reader;
+		StreamReader reader;
 		HttpResponse response;
 
-		public HttpResponseBuilder(HttpRequest request, NetworkStream networkStream, int bufferSize)
+		public ResponseBuilder(HttpRequest request, NetworkStream networkStream, int bufferSize)
 		{
 			this.response = new HttpResponse(request);
-			this.reader = new HttpStreamReader(networkStream, bufferSize);
+			this.reader = new StreamReader(networkStream, bufferSize);
 		}
 
 		public HttpResponse Parse()
@@ -56,13 +56,17 @@ namespace UniHttp
 
 		void ReadMessageBody()
 		{
+			var bodyReader = new MessageBodyReader(reader);
+			var decompress = response.Headers.Exist("Content-Encoding") && response.Headers["Content-Encoding"].Contains("gzip");
+
 			if(response.Headers.Exist("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")) {
-				ReadMessageBodyWithChunk();
+				response.MessageBody = bodyReader.ReadChunks(decompress);
 				return;
 			}
+
 			if(response.Headers.Exist("Content-Length")) {
 				int length = int.Parse(response.Headers["Content-Length"][0]);
-				ReadMessageBodyWithLength(length);
+				response.MessageBody = bodyReader.Read(length, decompress);
 				return;
 			}
 
@@ -85,20 +89,6 @@ namespace UniHttp
 		{
 			string hexStr = reader.ReadUpTo(LF).Trim();
 			return int.Parse(hexStr, NumberStyles.HexNumber);
-		}
-
-		void ReadMessageBodyWithLength(int totalBytes)
-		{
-			if(IsCompressed()) {
-				response.MessageBody = reader.ReadAndDecompress(totalBytes);
-			} else {
-				response.MessageBody = reader.Read(totalBytes);
-			}
-		}
-
-		bool IsCompressed()
-		{
-			return response.Headers.Exist("Content-Encoding") && response.Headers["Content-Encoding"].Contains("gzip");
 		}
 
 		public void Dispose()

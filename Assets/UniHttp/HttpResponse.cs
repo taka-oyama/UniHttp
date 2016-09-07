@@ -9,12 +9,12 @@ namespace UniHttp
 		public string HttpVersion { get; internal set; }
 		public int StatusCode { get; internal set; }
 		public string StatusPhrase { get; internal set; }
-		public HttpResponseHeaders Headers { get; private set; }
+		public ResponseHeaders Headers { get; private set; }
 		public byte[] MessageBody { get; internal set; }
 
 		public HttpResponse(HttpRequest request) {
 			this.Request = request;
-			this.Headers = new HttpResponseHeaders();
+			this.Headers = new ResponseHeaders();
 		}
 
 		public string ToString(bool includeBody = true)
