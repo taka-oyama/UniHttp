@@ -32,7 +32,7 @@ namespace UniHttp
 						totalBytes -= readBytes;
 						dataStream.Write(buffer, 0, readBytes);
 					} else {
-						Thread.Sleep(TimeSpan.FromMilliseconds(1));
+						Thread.Sleep(1);
 					}
 				}
 				return dataStream.ToArray();
@@ -42,7 +42,7 @@ namespace UniHttp
 		internal string ReadUpTo(params char[] stoppers)
 		{
 			while(!networkStream.DataAvailable) {
-				Thread.Sleep(TimeSpan.FromMilliseconds(1000));
+				Thread.Sleep(1);
 			}
 			using(MemoryStream dataStream = new MemoryStream(0)) {
 				int b = networkStream.ReadByte();
