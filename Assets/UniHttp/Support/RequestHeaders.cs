@@ -55,7 +55,7 @@ namespace UniHttp
 			foreach(var kvPair in fields) {
 				fieldLines.Add(Titleize(kvPair.Key) + ": " + kvPair.Value);
 			}
-			return string.Join(HttpRequest.CRLF, fieldLines.ToArray());
+			return string.Join("\n", fieldLines.ToArray());
 		}
 
 		string Titleize(string str)

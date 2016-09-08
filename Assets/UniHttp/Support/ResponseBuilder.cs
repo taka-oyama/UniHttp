@@ -18,13 +18,13 @@ namespace UniHttp
 		StreamReader reader;
 		HttpResponse response;
 
-		public ResponseBuilder(HttpRequest request, NetworkStream networkStream, int bufferSize)
+		public ResponseBuilder(HttpRequest request, Stream networkStream, int bufferSize = 1024)
 		{
 			this.response = new HttpResponse(request);
 			this.reader = new StreamReader(networkStream, bufferSize);
 		}
 
-		public HttpResponse Parse()
+		public HttpResponse Build()
 		{
 			ReadStatusLine();
 			ReadHeaders();
@@ -71,24 +71,6 @@ namespace UniHttp
 			}
 
 			throw new Exception("Bad Response from server. Check for incorrent Transfer-Encoding.");
-		}
-
-		void ReadMessageBodyWithChunk()
-		{
-			MemoryStream chunk = new MemoryStream(0);
-			int chunkSize = NextChunkSize();
-			while(chunkSize > 0) {
-				byte[] bytes = reader.Read(chunkSize);
-				chunk.Write(bytes, 0, bytes.Length);
-				chunkSize = NextChunkSize();
-			}
-			response.MessageBody = chunk.ToArray();
-		}
-
-		int NextChunkSize()
-		{
-			string hexStr = reader.ReadUpTo(LF).Trim();
-			return int.Parse(hexStr, NumberStyles.HexNumber);
 		}
 
 		public void Dispose()

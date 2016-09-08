@@ -12,10 +12,10 @@ namespace UniHttp
 {
 	public class StreamReader : IDisposable
 	{
-		NetworkStream networkStream;
+		Stream networkStream;
 		int bufferSize;
 
-		internal StreamReader(NetworkStream networkStream, int bufferSize = 1024)
+		internal StreamReader(Stream networkStream, int bufferSize = 1024)
 		{
 			this.networkStream = networkStream;
 			this.bufferSize = bufferSize;
@@ -27,13 +27,9 @@ namespace UniHttp
 				byte[] buffer = new byte[bufferSize];
 				int readBytes = 0;
 				while(totalBytes > 0) {
-					if(networkStream.DataAvailable) {
-						readBytes = networkStream.Read(buffer, 0, buffer.Length);
-						dataStream.Write(buffer, 0, readBytes);
-						totalBytes -= readBytes;
-					} else {
-						Thread.Sleep(1);
-					}
+					readBytes = networkStream.Read(buffer, 0, Math.Min(buffer.Length, totalBytes));
+					dataStream.Write(buffer, 0, readBytes);
+					totalBytes -= readBytes;
 				}
 				return dataStream.ToArray();
 			}
@@ -46,13 +42,9 @@ namespace UniHttp
 					byte[] buffer = new byte[bufferSize];
 					int readBytes = 0;
 					while(totalBytes > 0) {
-						if(networkStream.DataAvailable) {
-							while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
-								dataStream.Write(buffer, 0, readBytes);
-								totalBytes -= readBytes;
-							}
-						} else {
-							Thread.Sleep(1);
+						while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
+							dataStream.Write(buffer, 0, readBytes);
+							totalBytes -= readBytes;
 						}
 					}
 					return dataStream.ToArray();
@@ -62,9 +54,6 @@ namespace UniHttp
 			
 		internal string ReadUpTo(params char[] stoppers)
 		{
-			while(!networkStream.DataAvailable) {
-				Thread.Sleep(1);
-			}
 			using(MemoryStream dataStream = new MemoryStream(0)) {
 				int b = networkStream.ReadByte();
 				while(stoppers.All(s => b != (int)s) && b != -1) {

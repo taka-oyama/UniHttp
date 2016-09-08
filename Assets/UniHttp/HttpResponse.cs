@@ -25,13 +25,13 @@ namespace UniHttp
 			sb.Append(StatusCode);
 			sb.Append(" ");
 			sb.Append(StatusPhrase);
-			sb.Append(HttpRequest.CRLF);
+			sb.Append("\n");
 			sb.Append(Headers.ToString());
-			sb.Append(HttpRequest.CRLF);
+			sb.Append("\n");
 			if(includeBody && IsStringableContentType()) {
-				sb.Append(HttpRequest.CRLF);
+				sb.Append("\n");
 				sb.Append(Encoding.UTF8.GetString(MessageBody));
-				sb.Append(HttpRequest.CRLF);
+				sb.Append("\n");
 			}
 			return sb.ToString();
 		}

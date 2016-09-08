@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.IO;
 using System.Globalization;
+using System.Text;
 
 namespace UniHttp
 {
@@ -18,16 +19,18 @@ namespace UniHttp
 		public byte[] ReadChunks(bool decompress = false)
 		{
 			MemoryStream chunk = new MemoryStream(0);
-			int chunkSize = NextChunkSize(reader);
+			int chunkSize = NextChunkSize();
+
 			while(chunkSize > 0) {
-				byte[] bytes = reader.Read(chunkSize);
+				byte[] bytes = Read(chunkSize, decompress);
 				chunk.Write(bytes, 0, bytes.Length);
+				reader.ReadUpTo(LF);
 				chunkSize = NextChunkSize();
 			}
 			return chunk.ToArray();
 		}
 
-		int NextChunkSize(StreamReader reader)
+		int NextChunkSize()
 		{
 			string hexStr = reader.ReadUpTo(LF).Trim();
 			return int.Parse(hexStr, NumberStyles.HexNumber);

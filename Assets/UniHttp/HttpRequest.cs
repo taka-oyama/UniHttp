@@ -1,9 +1,11 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
+using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
-using System.IO;
 using UniRx;
+using UnityEngine;
+using System.Security.Cryptography.X509Certificates;
 
 namespace UniHttp
 {
@@ -16,86 +18,46 @@ namespace UniHttp
 		public string Version { get { return "1.1"; } }
 		public RequestHeaders Headers { get; private set; }
 
-		string appInfo = Application.bundleIdentifier + "/" + Application.version;
-		string osInfo = SystemInfo.operatingSystem;
-
-		// Header Options
 		public bool KeepAlive = true;
+		public bool Compress = true;
 
 		public Action<HttpResponse> OnComplete;
 
-		public const string SPACE = " ";
-		public const string CRLF = "\r\n";
+		SslClient sslClient;
 
 		public HttpRequest(Uri uri, Methods method)
 		{
 			this.Uri = uri;
 			this.Method = method;
-			this.Headers = new RequestHeaders();
-			Headers.Add("Host", GenerateHost());
-			Headers.Add("User-Agent", GenerateUserAgent());
-			Headers.Add("Accept-Encoding", "gzip");
+			this.Headers = new RequestHeadersDefaultBuilder(this).Build();
 		}
 
 		public void Send()
 		{
+			ExecuteOnThread(ConnectionFlow);
+		}
+
+		void ConnectionFlow()
+		{
 			TcpClient socket = new TcpClient();
-			NetworkStream stream = null;
 			socket.Connect(Uri.Host, Uri.Port);
-			stream = socket.GetStream();
+			Stream networkStream = socket.GetStream();
 
-			ExecuteOnThread(() => {
-				var data = MessageToBytes();
-				Debug.Log(ToString());
-				stream.Write(data, 0, data.Length);
-				stream.Flush();
-				var response = new ResponseBuilder(this, stream, socket.ReceiveBufferSize).Parse();
-				Debug.Log(response.ToString());
-				if(OnComplete != null) OnComplete(response);
-			});
-		}
-
-		byte[] MessageToBytes()
-		{
-			StringBuilder sb = new StringBuilder();
-			sb.Append(GenerateHeaderString());
-			sb.Append(CRLF);
-			return Encoding.UTF8.GetBytes(sb.ToString());
-		}
-
-		string GenerateHeaderString()
-		{
-			// https://tools.ietf.org/html/rfc7230#section-6.3
-			// In HTTP 1.1, all connections are considered persistent unless declared otherwise
-			if(!KeepAlive) Headers.AddOrReplace("Connection", "close");
-
-			StringBuilder sb = new StringBuilder();
-			sb.Append(Method.ToString().ToUpper());
-			sb.Append(SPACE);
-			sb.Append(Uri.PathAndQuery);
-			sb.Append(SPACE);
-			sb.Append("HTTP/" + Version);
-			sb.Append(CRLF);
-			sb.Append(Headers.ToString());
-			sb.Append(CRLF);
-
-			return sb.ToString();
-		}
-
-		string GenerateHost()
-		{
-			string host = Uri.Host;
-			if(Uri.Scheme == Uri.UriSchemeHttp && Uri.Port != 80 ||
-			   Uri.Scheme == Uri.UriSchemeHttps && Uri.Port != 443)
-			{
-				host += ":" + Uri.Port; 
+			if(Uri.Scheme == Uri.UriSchemeHttps) {
+				sslClient = new SslClient(Uri, networkStream, true);
+				networkStream = sslClient.Authenticate(SslClient.NoVerify);
 			}
-			return host;
-		}
 
-		string GenerateUserAgent()
-		{
-			return string.Format("{0} ({1}) UniHttp/1.0", appInfo, osInfo);
+			byte[] data = new RequestBuilder(this).Build();
+			Debug.Log(ToString());
+
+			networkStream.Write(data, 0, data.Length);
+			networkStream.Flush();
+
+			HttpResponse response = new ResponseBuilder(this, networkStream).Build();
+			Debug.Log(response.ToString());
+
+			if(OnComplete != null) OnComplete(response);
 		}
 
 		void ExecuteOnThread(Action action)
@@ -105,6 +67,7 @@ namespace UniHttp
 					action();
 				}
 				catch(Exception e) {
+					Dispose();
 					Scheduler.MainThread.Schedule(() => { throw e; });
 				}
 			});
@@ -124,6 +87,7 @@ namespace UniHttp
 
 		public void Dispose()
 		{
+			if(sslClient != null) sslClient.Dispose();
 			this.OnComplete = null;
 		}
 	}
