@@ -3,14 +3,14 @@ using System.Text;
 
 namespace UniHttp
 {	
-	public class RequestBuilder
+	public class RequestDataBuilder
 	{
 		internal const string SPACE = " ";
 		internal const string CRLF = "\r\n";
 
 		HttpRequest request;
 
-		public RequestBuilder(HttpRequest request)
+		public RequestDataBuilder(HttpRequest request)
 		{
 			this.request = request;
 		}

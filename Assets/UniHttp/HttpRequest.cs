@@ -32,12 +32,22 @@ namespace UniHttp
 			this.Headers = new RequestHeadersDefaultBuilder(this).Build();
 		}
 
-		public void Send()
+		public HttpRequest Send()
 		{
-			ExecuteOnThread(ConnectionFlow);
+			byte[] data = new RequestDataBuilder(this).Build();
+			Debug.Log(ToString());
+			ExecuteOnThread(() => {
+				HttpResponse response = ConnectionFlow(data);
+				Debug.Log(response.ToString());
+
+				if(OnComplete != null) {
+					Scheduler.MainThread.Schedule(() => OnComplete(response));
+				}
+			});
+			return this;
 		}
 
-		void ConnectionFlow()
+		HttpResponse ConnectionFlow(byte[] data)
 		{
 			TcpClient socket = new TcpClient();
 			socket.Connect(Uri.Host, Uri.Port);
@@ -48,16 +58,10 @@ namespace UniHttp
 				networkStream = sslClient.Authenticate(SslClient.NoVerify);
 			}
 
-			byte[] data = new RequestBuilder(this).Build();
-			Debug.Log(ToString());
-
 			networkStream.Write(data, 0, data.Length);
 			networkStream.Flush();
 
-			HttpResponse response = new ResponseBuilder(this, networkStream).Build();
-			Debug.Log(response.ToString());
-
-			if(OnComplete != null) OnComplete(response);
+			return new ResponseBuilder(this, networkStream).Build();
 		}
 
 		void ExecuteOnThread(Action action)

@@ -16,14 +16,16 @@ namespace UniHttp
 		const char LF = '\n';
 
 		StreamReader reader;
-		HttpResponse response;
+		MemoryStream messageBodyStream;
 		System.Diagnostics.Stopwatch stopwatch;
+		HttpResponse response;
 
-		public ResponseBuilder(HttpRequest request, Stream networkStream, int bufferSize = 1024)
+		public ResponseBuilder(HttpRequest request, Stream sourceStream, int bufferSize = 1024)
 		{
-			this.response = new HttpResponse(request);
-			this.reader = new StreamReader(networkStream, bufferSize);
+			this.reader = new StreamReader(sourceStream, bufferSize);
+			this.messageBodyStream = new MemoryStream(0);
 			this.stopwatch = new System.Diagnostics.Stopwatch();
+			this.response = new HttpResponse(request);
 		}
 
 		public HttpResponse Build()
@@ -42,7 +44,7 @@ namespace UniHttp
 
 		void ReadStatusLine()
 		{
-			string line = reader.ReadUpTo(LF).Trim();
+			string line = reader.ReadTo(LF).Trim();
 			string[] sliced = line.Split(' ');
 			response.HttpVersion = sliced[0];
 			response.StatusCode = int.Parse(sliced[1]);
@@ -51,14 +53,14 @@ namespace UniHttp
 
 		void ReadHeaders()
 		{
-			string name = reader.ReadUpTo(':', LF).Trim();
+			string name = reader.ReadTo(':', LF).Trim();
 			while(name != String.Empty) {
-				string valuesStr = reader.ReadUpTo(LF).Trim();
+				string valuesStr = reader.ReadTo(LF).Trim();
 				string[] values = valuesStr.Split(';');
 				foreach(string value in values) {
 					response.Headers.Append(name, value);
 				}
-				name = reader.ReadUpTo(':', LF).Trim();
+				name = reader.ReadTo(':', LF).Trim();
 			}
 		}
 
@@ -68,17 +70,17 @@ namespace UniHttp
 			var decompress = response.Headers.Exist("Content-Encoding") && response.Headers["Content-Encoding"].Contains("gzip");
 
 			if(response.Headers.Exist("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")) {
-				response.MessageBody = bodyReader.ReadChunks(decompress);
+				bodyReader.ReadChunks(messageBodyStream, decompress);
+				response.MessageBody = messageBodyStream.ToArray();
 				return;
 			}
 
 			if(response.Headers.Exist("Content-Length")) {
 				int length = int.Parse(response.Headers["Content-Length"][0]);
-				response.MessageBody = bodyReader.Read(length, decompress);
+				bodyReader.Read(messageBodyStream, length, decompress);
+				response.MessageBody = messageBodyStream.ToArray();
 				return;
 			}
-
-			throw new Exception("Bad Response from server. Check for incorrent Transfer-Encoding.");
 		}
 
 		public void Dispose()

@@ -12,53 +12,47 @@ namespace UniHttp
 {
 	public class StreamReader : IDisposable
 	{
-		Stream networkStream;
+		Stream source;
 		int bufferSize;
 
-		internal StreamReader(Stream networkStream, int bufferSize = 1024)
+		internal StreamReader(Stream source, int bufferSize = 1024)
 		{
-			this.networkStream = networkStream;
+			this.source = source;
 			this.bufferSize = bufferSize;
 		}
 
-		internal byte[] Read(int totalBytes)
+		internal void CopyTo(Stream destination, int totalBytes)
 		{
-			using(MemoryStream dataStream = new MemoryStream(totalBytes)) {
-				byte[] buffer = new byte[bufferSize];
-				int readBytes = 0;
-				while(totalBytes > 0) {
-					readBytes = networkStream.Read(buffer, 0, Math.Min(buffer.Length, totalBytes));
-					dataStream.Write(buffer, 0, readBytes);
-					totalBytes -= readBytes;
-				}
-				return dataStream.ToArray();
+			byte[] buffer = new byte[bufferSize];
+			int readBytes = 0;
+			while(totalBytes > 0) {
+				readBytes = source.Read(buffer, 0, Math.Min(buffer.Length, totalBytes));
+				destination.Write(buffer, 0, readBytes);
+				totalBytes -= readBytes;
 			}
 		}
 
-		internal byte[] ReadAndDecompress(int totalBytes)
+		internal void DecompressAndCopyTo(Stream destination, int totalBytes)
 		{
-			using(MemoryStream dataStream = new MemoryStream(0)) {
-				using(GZipStream gzipStream = new GZipStream(networkStream, CompressionMode.Decompress)) {
-					byte[] buffer = new byte[bufferSize];
-					int readBytes = 0;
-					while(totalBytes > 0) {
-						while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
-							dataStream.Write(buffer, 0, readBytes);
-							totalBytes -= readBytes;
-						}
+			using(GZipStream gzipStream = new GZipStream(source, CompressionMode.Decompress)) {
+				byte[] buffer = new byte[bufferSize];
+				int readBytes = 0;
+				while(totalBytes > 0) {
+					while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
+						destination.Write(buffer, 0, readBytes);
+						totalBytes -= readBytes;
 					}
-					return dataStream.ToArray();
 				}
 			}
 		}
-			
-		internal string ReadUpTo(params char[] stoppers)
+
+		internal string ReadTo(params char[] stoppers)
 		{
 			using(MemoryStream dataStream = new MemoryStream(0)) {
-				int b = networkStream.ReadByte();
+				int b = source.ReadByte();
 				while(stoppers.All(s => b != (int)s) && b != -1) {
 					dataStream.WriteByte((byte)b);
-					b = networkStream.ReadByte();
+					b = source.ReadByte();
 				}
 				return Encoding.UTF8.GetString(dataStream.ToArray()).Trim();
 			}
@@ -66,7 +60,7 @@ namespace UniHttp
 
 		public void Dispose()
 		{
-			networkStream.Flush();
+			source.Flush();
 		}
 	}
 }
