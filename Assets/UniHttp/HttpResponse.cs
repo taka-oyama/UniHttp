@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Text;
+using System;
 
 namespace UniHttp
 {
@@ -11,6 +12,7 @@ namespace UniHttp
 		public string StatusPhrase { get; internal set; }
 		public ResponseHeaders Headers { get; private set; }
 		public byte[] MessageBody { get; internal set; }
+		public TimeSpan RoundTripTime { get; internal set; }
 
 		public HttpResponse(HttpRequest request) {
 			this.Request = request;

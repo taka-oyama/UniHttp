@@ -17,18 +17,26 @@ namespace UniHttp
 
 		StreamReader reader;
 		HttpResponse response;
+		System.Diagnostics.Stopwatch stopwatch;
 
 		public ResponseBuilder(HttpRequest request, Stream networkStream, int bufferSize = 1024)
 		{
 			this.response = new HttpResponse(request);
 			this.reader = new StreamReader(networkStream, bufferSize);
+			this.stopwatch = new System.Diagnostics.Stopwatch();
 		}
 
 		public HttpResponse Build()
 		{
+			stopwatch.Start();
+
 			ReadStatusLine();
 			ReadHeaders();
 			ReadMessageBody();
+
+			stopwatch.Stop();
+			response.RoundTripTime = stopwatch.Elapsed;
+
 			return response;
 		}
 
