@@ -60,10 +60,10 @@ namespace UniHttp
 		HttpResponse BuildErrorResponse(Exception exception)
 		{
 			HttpResponse response = new HttpResponse(request);
-			response.HttpVersion = "";
+			response.HttpVersion = "Unknown";
 			response.StatusCode = 0;
-			response.StatusPhrase = exception.GetType().Name;
-			response.MessageBody = Encoding.UTF8.GetBytes(exception.Message);
+			response.StatusPhrase = exception.Message.Trim();
+			response.MessageBody = Encoding.UTF8.GetBytes(exception.StackTrace);
 			return response;
 		}
 

@@ -13,6 +13,11 @@ namespace UniHttp
 			this.fields = new Dictionary<string, string>();
 		}
 
+		public int Length
+		{
+			get { return fields.Count; }
+		}
+
 		public bool Exist(string name)
 		{
 			name = name.ToLower();

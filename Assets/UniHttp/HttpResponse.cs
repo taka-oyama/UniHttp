@@ -21,6 +21,11 @@ namespace UniHttp
 
 		public override string ToString()
 		{
+			return ToString(IsStringableContentType());
+		}
+
+		public string ToString(bool showMessageBody = false)
+		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(HttpVersion);
 			sb.Append(" ");
@@ -28,9 +33,11 @@ namespace UniHttp
 			sb.Append(" ");
 			sb.Append(StatusPhrase);
 			sb.Append("\n");
-			sb.Append(Headers.ToString());
-			sb.Append("\n");
-			if(IsStringableContentType()) {
+			if(Headers.Length > 0) {
+				sb.Append(Headers.ToString());
+				sb.Append("\n");
+			}
+			if(showMessageBody) {
 				sb.Append("\n");
 				sb.Append(Encoding.UTF8.GetString(MessageBody));
 				sb.Append("\n");

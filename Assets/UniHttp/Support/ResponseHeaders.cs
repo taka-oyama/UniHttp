@@ -19,6 +19,11 @@ namespace UniHttp
 			get { return fields[name.ToLower()]; }
 		}
 
+		public int Length
+		{
+			get { return fields.Count; }
+		}
+
 		public bool Exist(string name)
 		{
 			return fields.ContainsKey(name.ToLower());
