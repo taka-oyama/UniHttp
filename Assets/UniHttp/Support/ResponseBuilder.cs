@@ -15,18 +15,18 @@ namespace UniHttp
 	{
 		const char LF = '\n';
 
+		HttpResponse response;
 		Stream sourceStream;
 		System.Diagnostics.Stopwatch stopwatch;
-		HttpResponse response;
 
-		public ResponseBuilder(HttpRequest request, Stream sourceStream, int bufferSize = 1024)
+		internal ResponseBuilder(HttpRequest request, Stream sourceStream)
 		{
+			this.response = new HttpResponse(request);
 			this.sourceStream = sourceStream;
 			this.stopwatch = new System.Diagnostics.Stopwatch();
-			this.response = new HttpResponse(request);
 		}
 
-		public HttpResponse Build()
+		internal HttpResponse Build()
 		{
 			stopwatch.Start();
 
@@ -78,7 +78,7 @@ namespace UniHttp
 			throw new Exception("Could not determine how to read message body!");
 		}
 
-		internal byte[] ReadMessageBodyChunked()
+		byte[] ReadMessageBodyChunked()
 		{
 			using(MemoryStream destination = new MemoryStream()) 
 			{
@@ -92,7 +92,7 @@ namespace UniHttp
 			}
 		}
 
-		internal byte[] ReadMessageBodyWithLength(int contentLength)
+		byte[] ReadMessageBodyWithLength(int contentLength)
 		{
 			using(MemoryStream destination = new MemoryStream()) 
 			{

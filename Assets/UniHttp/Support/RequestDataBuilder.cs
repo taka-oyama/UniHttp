@@ -25,11 +25,6 @@ namespace UniHttp
 
 		string GenerateHeaderString()
 		{
-			// https://tools.ietf.org/html/rfc7230#section-6.3
-			// In HTTP 1.1, all connections are considered persistent unless declared otherwise
-			if(!request.KeepAlive) request.Headers.AddOrReplace("Connection", "close");
-			if(request.Compress) request.Headers.Add("Accept-Encoding", "gzip");
-
 			StringBuilder sb = new StringBuilder();
 			sb.Append(request.Method.ToString().ToUpper());
 			sb.Append(SPACE);

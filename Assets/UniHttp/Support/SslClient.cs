@@ -14,7 +14,7 @@ namespace UniHttp
 
 		SslStream sslStream;
 
-		internal SslClient(Uri uri, Stream networkStream, bool leaveInnerStreamOpen = true)
+		internal SslClient(Uri uri, Stream networkStream, bool leaveInnerStreamOpen = false)
 		{
 			this.uri = uri;
 			this.networkStream = networkStream;
@@ -54,7 +54,7 @@ namespace UniHttp
 		public void Dispose()
 		{
 			if(sslStream != null) {
-				sslStream.Close();
+				sslStream.Dispose();
 			}
 		}
 	}

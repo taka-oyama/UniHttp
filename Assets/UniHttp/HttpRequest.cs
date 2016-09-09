@@ -7,70 +7,25 @@ using UnityEngine;
 
 namespace UniHttp
 {
-	public class HttpRequest : IDisposable
+	public class HttpRequest
 	{
 		public HttpMethod Method { get; private set; } 
 		public Uri Uri { get; private set; }
 		public string Version { get { return "1.1"; } }
 		public RequestHeaders Headers { get; private set; }
 
-		public bool KeepAlive = true;
-		public bool Compress = true;
-
 		public Action<HttpResponse> OnComplete;
 
-		SslClient sslClient;
-
-		public HttpRequest(Uri uri, HttpMethod method)
+		public HttpRequest(Uri uri, HttpMethod method, RequestHeaders headers = null)
 		{
 			this.Uri = uri;
 			this.Method = method;
-			this.Headers = new RequestHeadersDefaultBuilder(this).Build();
+			this.Headers = headers ?? new RequestHeadersDefaultBuilder(this).Build();
 		}
 
-		public HttpRequest Send()
+		public IDisposable Send(Action<HttpResponse> onComplete)
 		{
-			byte[] data = new RequestDataBuilder(this).Build();
-			Debug.Log(ToString());
-			ExecuteOnThread(() => {
-				HttpResponse response = ConnectionFlow(data);
-				Debug.Log(response.ToString());
-
-				if(OnComplete != null) {
-					Scheduler.MainThread.Schedule(() => OnComplete(response));
-				}
-			});
-			return this;
-		}
-
-		HttpResponse ConnectionFlow(byte[] data)
-		{
-			TcpClient socket = new TcpClient();
-			socket.Connect(Uri.Host, Uri.Port);
-			Stream networkStream = socket.GetStream();
-
-			if(Uri.Scheme == Uri.UriSchemeHttps) {
-				sslClient = new SslClient(Uri, networkStream, true);
-				networkStream = sslClient.Authenticate(SslClient.NoVerify);
-			}
-
-			networkStream.Write(data, 0, data.Length);
-			networkStream.Flush();
-
-			return new ResponseBuilder(this, networkStream).Build();
-		}
-
-		void ExecuteOnThread(Action action)
-		{
-			Scheduler.ThreadPool.Schedule(() => {
-				try  {
-					action();
-				}
-				catch(Exception e) {
-					Dispose();
-					Scheduler.MainThread.Schedule(() => { throw e; });
-				}
-			});
+			return new HttpConnection(this).Send(onComplete);
 		}
 
 		public override string ToString()
@@ -83,12 +38,6 @@ namespace UniHttp
 			sb.Append(Headers.ToString());
 			sb.Append("\n");
 			return sb.ToString();
-		}
-
-		public void Dispose()
-		{
-			if(sslClient != null) sslClient.Dispose();
-			this.OnComplete = null;
 		}
 	}
 }

@@ -7,7 +7,7 @@ using Unity.IO.Compression;
 
 namespace UniHttp
 {
-	public class StreamHelper
+	internal class StreamHelper
 	{
 		internal static void CopyTo(Stream source, Stream destination, int count, int bufferSize = 1024, bool decompress = false)
 		{

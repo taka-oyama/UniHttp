@@ -19,6 +19,7 @@ namespace UniHttp
 
 		internal RequestHeaders Build()
 		{
+			headers.AddOrReplace("Accept-Encoding", "gzip");
 			headers.AddOrReplace("Host", GenerateHost());
 			headers.AddOrReplace("User-Agent", GenerateUserAgent());
 			return headers;
