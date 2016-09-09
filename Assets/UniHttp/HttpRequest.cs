@@ -1,19 +1,15 @@
 ﻿using System;
 using System.IO;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using UniRx;
 using UnityEngine;
-using System.Security.Cryptography.X509Certificates;
 
 namespace UniHttp
 {
 	public class HttpRequest : IDisposable
 	{
-		public enum Methods : byte { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS }
-
-		public Methods Method { get; private set; } 
+		public HttpMethod Method { get; private set; } 
 		public Uri Uri { get; private set; }
 		public string Version { get { return "1.1"; } }
 		public RequestHeaders Headers { get; private set; }
@@ -25,7 +21,7 @@ namespace UniHttp
 
 		SslClient sslClient;
 
-		public HttpRequest(Uri uri, Methods method)
+		public HttpRequest(Uri uri, HttpMethod method)
 		{
 			this.Uri = uri;
 			this.Method = method;
