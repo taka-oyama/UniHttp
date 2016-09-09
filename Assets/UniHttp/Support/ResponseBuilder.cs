@@ -96,10 +96,11 @@ namespace UniHttp
 
 		int ReadChunkSize()
 		{
-			MemoryStream destination = new MemoryStream(0);
-			StreamHelper.ReadTo(sourceStream, destination, LF);
-			string hexStr = Encoding.ASCII.GetString(destination.ToArray()).Trim();
-			return int.Parse(hexStr, NumberStyles.HexNumber);
+			using(MemoryStream destination = new MemoryStream(0)) {
+				StreamHelper.ReadTo(sourceStream, destination, LF);
+				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).Trim();
+				return int.Parse(hexStr, NumberStyles.HexNumber);
+			}
 		}
 
 		string ReadTo(params char[] stoppers)
