@@ -8,9 +8,6 @@ namespace UniHttp
 		HttpRequest request;
 		RequestHeaders headers;
 
-		static string appInfo = Application.bundleIdentifier + "/" + Application.version;
-		static string osInfo = SystemInfo.operatingSystem;
-
 		internal RequestHeadersDefaultBuilder(HttpRequest request)
 		{
 			this.request = request;
@@ -21,7 +18,7 @@ namespace UniHttp
 		{
 			headers.AddOrReplace("Accept-Encoding", "gzip");
 			headers.AddOrReplace("Host", GenerateHost());
-			headers.AddOrReplace("User-Agent", GenerateUserAgent());
+			headers.AddOrReplace("User-Agent", "UniHttp/1.0");
 			return headers;
 		}
 
@@ -33,11 +30,6 @@ namespace UniHttp
 				host += ":" + uri.Port; 
 			}
 			return host;
-		}
-
-		string GenerateUserAgent()
-		{
-			return string.Format("{0} ({1}) UniHttp/1.0", appInfo, osInfo);
 		}
 	}
 }
