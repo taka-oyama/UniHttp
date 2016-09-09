@@ -19,7 +19,7 @@ namespace UniHttp
 			this.Headers = new ResponseHeaders();
 		}
 
-		public string ToString(bool includeBody = true)
+		public override string ToString()
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(HttpVersion);
@@ -30,7 +30,7 @@ namespace UniHttp
 			sb.Append("\n");
 			sb.Append(Headers.ToString());
 			sb.Append("\n");
-			if(includeBody && IsStringableContentType()) {
+			if(IsStringableContentType()) {
 				sb.Append("\n");
 				sb.Append(Encoding.UTF8.GetString(MessageBody));
 				sb.Append("\n");

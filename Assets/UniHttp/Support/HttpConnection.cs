@@ -1,40 +1,32 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
-using UniRx;
 using System.Net.Sockets;
 using System.IO;
+using System.Text;
 
 namespace UniHttp
 {
-	public class HttpConnection : IDisposable
+	public class HttpConnection
 	{
 		HttpRequest request;
-		CompositeDisposable disposables;
+		SslClient sslClient;
 
 		internal HttpConnection(HttpRequest request)
 		{
 			this.request = request;
-			this.disposables = new CompositeDisposable();
 		}
 
-		internal HttpConnection Send(Action<HttpResponse> onComplete)
+		internal HttpResponse Send()
 		{
-			Debug.Log(request.ToString());
-
-			Scheduler.ThreadPool.Schedule(() => {
-				try  {
-					HttpResponse response = Transmit();
-					Debug.Log(response.ToString());
-					Scheduler.MainThread.Schedule(() => onComplete(response));
-				}
-				catch(Exception e) {
-					Dispose();
-					Scheduler.MainThread.Schedule(() => { throw e; });
-				}
-			});
-
-			return this;
+			try {
+				return Transmit();
+			}
+			catch(Exception exception) {
+				return BuildErrorResponse(exception);
+			}
+			finally {
+				Dispose();
+			}
 		}
 
 		HttpResponse Transmit()
@@ -43,7 +35,9 @@ namespace UniHttp
 			Stream networkStream = SetupStream();
 			networkStream.Write(data, 0, data.Length);
 			networkStream.Flush();
-			return new ResponseBuilder(request, networkStream).Build();
+			HttpResponse response = new ResponseBuilder(request, networkStream).Build();
+			Dispose();
+			return response;
 		}
 
 		Stream SetupStream()
@@ -52,18 +46,32 @@ namespace UniHttp
 			socket.Connect(request.Uri.Host, request.Uri.Port);
 			Stream stream = socket.GetStream();
 
-			if(request.Uri.Scheme == Uri.UriSchemeHttps) {
-				SslClient sslClient = new SslClient(request.Uri, stream, true);
-				disposables.Add(sslClient);
-				return sslClient.Authenticate(SslClient.NoVerify);
-			} else {
-				return stream;
-			}
+			if(request.Uri.Scheme == Uri.UriSchemeHttp ) return stream;
+			if(request.Uri.Scheme == Uri.UriSchemeHttps) return SetupSslStream(stream);
+			throw new Exception("Unsupported Scheme:" + request.Uri.Scheme);
+		}
+
+		Stream SetupSslStream(Stream stream)
+		{
+			this.sslClient = new SslClient(request.Uri, stream, true);
+			return sslClient.Authenticate(SslClient.NoVerify);
+		}
+
+		HttpResponse BuildErrorResponse(Exception exception)
+		{
+			HttpResponse response = new HttpResponse(request);
+			response.HttpVersion = "";
+			response.StatusCode = 0;
+			response.StatusPhrase = exception.GetType().Name;
+			response.MessageBody = Encoding.UTF8.GetBytes(exception.Message);
+			return response;
 		}
 
 		public void Dispose()
 		{
-			disposables.Dispose();
+			if(sslClient != null) {
+				sslClient.Dispose();
+			}
 		}
 	}
 }

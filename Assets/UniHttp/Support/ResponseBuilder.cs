@@ -1,41 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
-using System.Timers;
 using UnityEngine;
-using System.Threading;
 using System.Globalization;
 
 namespace UniHttp
 {
-	internal class ResponseBuilder : IDisposable
+	internal class ResponseBuilder
 	{
 		const char LF = '\n';
 
 		HttpResponse response;
 		Stream sourceStream;
-		System.Diagnostics.Stopwatch stopwatch;
 
 		internal ResponseBuilder(HttpRequest request, Stream sourceStream)
 		{
 			this.response = new HttpResponse(request);
 			this.sourceStream = sourceStream;
-			this.stopwatch = new System.Diagnostics.Stopwatch();
 		}
 
 		internal HttpResponse Build()
 		{
-			stopwatch.Start();
+			DateTime then = DateTime.Now;
 
 			SetStatusLine();
 			SetHeaders();
 			SetMessageBody();
 
-			stopwatch.Stop();
-			response.RoundTripTime = stopwatch.Elapsed;
+			response.RoundTripTime = DateTime.Now - then;
 
 			return response;
 		}
@@ -120,11 +113,6 @@ namespace UniHttp
 		bool IsGzipped()
 		{
 			return response.Headers.Exist("Content-Encoding") && response.Headers["Content-Encoding"].Contains("gzip");
-		}
-
-		public void Dispose()
-		{
-			stopwatch.Stop();
 		}
 	}
 }

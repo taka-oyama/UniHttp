@@ -23,9 +23,9 @@ namespace UniHttp
 			this.Headers = headers ?? new RequestHeadersDefaultBuilder(this).Build();
 		}
 
-		public IDisposable Send(Action<HttpResponse> onComplete)
+		public HttpResponse Send()
 		{
-			return new HttpConnection(this).Send(onComplete);
+			return new HttpConnection(this).Send();
 		}
 
 		public override string ToString()
