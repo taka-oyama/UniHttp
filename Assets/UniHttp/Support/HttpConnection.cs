@@ -21,7 +21,7 @@ namespace UniHttp
 			try {
 				return Transmit();
 			}
-			catch(Exception exception) {
+			catch(SocketException exception) {
 				return BuildErrorResponse(exception);
 			}
 			finally {

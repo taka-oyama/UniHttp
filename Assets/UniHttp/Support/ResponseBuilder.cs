@@ -13,11 +13,13 @@ namespace UniHttp
 
 		HttpResponse response;
 		Stream sourceStream;
+		int bufferSize;
 
-		internal ResponseBuilder(HttpRequest request, Stream sourceStream)
+		internal ResponseBuilder(HttpRequest request, Stream sourceStream, int bufferSize = 1024)
 		{
 			this.response = new HttpResponse(request);
 			this.sourceStream = sourceStream;
+			this.bufferSize = bufferSize;
 		}
 
 		internal HttpResponse Build()
@@ -73,11 +75,11 @@ namespace UniHttp
 
 		byte[] ReadMessageBodyChunked()
 		{
-			using(MemoryStream destination = new MemoryStream()) 
+			using(MemoryStream destination = new MemoryStream())
 			{
 				int chunkSize = ReadChunkSize();
 				while(chunkSize > 0) {
-					StreamHelper.CopyTo(sourceStream, destination, chunkSize, 1024, IsGzipped());
+					StreamHelper.CopyTo(sourceStream, destination, chunkSize, bufferSize, IsGzipped());
 					StreamHelper.SkipTo(sourceStream, LF);
 					chunkSize = ReadChunkSize();
 				}
@@ -87,9 +89,9 @@ namespace UniHttp
 
 		byte[] ReadMessageBodyWithLength(int contentLength)
 		{
-			using(MemoryStream destination = new MemoryStream()) 
+			using(MemoryStream destination = new MemoryStream())
 			{
-				StreamHelper.CopyTo(sourceStream, destination, contentLength, 1024, IsGzipped());
+				StreamHelper.CopyTo(sourceStream, destination, contentLength, bufferSize, IsGzipped());
 				return destination.ToArray();
 			}
 		}

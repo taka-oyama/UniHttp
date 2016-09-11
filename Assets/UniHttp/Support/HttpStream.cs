@@ -10,19 +10,17 @@ namespace UniHttp
 	public class HttpStream : Stream
 	{
 		SslClient sslClient;
-		NetworkStream networkStream;
 		Stream stream;
 
 		public HttpStream(TcpClient tcpClient, Uri uri)
 		{
-			this.networkStream = tcpClient.GetStream();
+			this.stream = tcpClient.GetStream();
 
-			if(uri.Scheme == Uri.UriSchemeHttp) {				
-				this.stream = networkStream;
+			if(uri.Scheme == Uri.UriSchemeHttp) {
 				return;
 			}
 			if(uri.Scheme == Uri.UriSchemeHttps) {
-				this.sslClient = new SslClient(uri, networkStream, true);
+				this.sslClient = new SslClient(uri, stream, true);
 				this.stream = sslClient.Authenticate(SslClient.NoVerify);
 				return;
 			}
