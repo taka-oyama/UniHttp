@@ -12,6 +12,10 @@ public class Test : MonoBehaviour {
 			Debug.Log(request);
 			var response = request.Send();
 			Debug.Log(response.ToString(true));
+
+			Debug.Log(request);
+			response = request.Send();
+			Debug.Log(response.ToString(true));
 		});
 	}
 }
