@@ -45,9 +45,6 @@ namespace UniHttp
 
 		public override int Read(byte[] buffer, int offset, int count)
 		{
-			if(!networkStream.DataAvailable) {
-				Thread.Sleep(1);
-			}
 			return stream.Read(buffer, 0, count);
 		}
 
