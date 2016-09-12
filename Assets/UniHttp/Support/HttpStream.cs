@@ -9,7 +9,7 @@ namespace UniHttp
 {
 	public class HttpStream : Stream
 	{
-		SslClient sslClient;
+		SslStream sslStream;
 		Stream stream;
 
 		public HttpStream(TcpClient tcpClient, Uri uri)
@@ -20,8 +20,9 @@ namespace UniHttp
 				return;
 			}
 			if(uri.Scheme == Uri.UriSchemeHttps) {
-				this.sslClient = new SslClient(uri, stream, true);
-				this.stream = sslClient.Authenticate(SslClient.NoVerify);
+				this.sslStream = new SslStream(stream, true, HttpDispatcher.SslVerifier.Verify);
+				this.stream = sslStream;
+				sslStream.AuthenticateAsClient(uri.Host);
 				return;
 			}
 			throw new Exception("Unsupported Scheme:" + uri.Scheme);
@@ -64,8 +65,8 @@ namespace UniHttp
 		protected override void Dispose(bool disposing)
 		{
 			if(disposing) {
-				if(sslClient != null) {
-					sslClient.Dispose();
+				if(sslStream != null) {
+					sslStream.Dispose();
 				}
 			}
 			base.Dispose(disposing);
