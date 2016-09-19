@@ -23,11 +23,6 @@ namespace UniHttp
 			this.Payload = payload;
 		}
 
-		public HttpResponse Send()
-		{
-			return new HttpConnection(this).Send();
-		}
-
 		public override string ToString()
 		{
 			StringBuilder sb = new StringBuilder();

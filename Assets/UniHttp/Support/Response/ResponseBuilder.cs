@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.Globalization;
+using Unity.IO.Compression;
 
 namespace UniHttp
 {
@@ -49,10 +50,7 @@ namespace UniHttp
 			string name = ReadTo(':', LF);
 			while(name != String.Empty) {
 				string valuesStr = ReadTo(LF);
-				string[] values = valuesStr.Split(';');
-				foreach(string value in values) {
-					response.Headers.Append(name.TrimEnd(':'), value.Trim());
-				}
+				response.Headers.Append(name.TrimEnd(':'), valuesStr.Trim());
 				name = ReadTo(':', LF).Trim();
 			}
 		}
@@ -79,8 +77,8 @@ namespace UniHttp
 			{
 				int chunkSize = ReadChunkSize();
 				while(chunkSize > 0) {
-					StreamHelper.CopyTo(sourceStream, destination, chunkSize, bufferSize, IsGzipped());
-					StreamHelper.SkipTo(sourceStream, LF);
+					CopyTo(destination, chunkSize, bufferSize, IsGzipped());
+					SkipTo(LF);
 					chunkSize = ReadChunkSize();
 				}
 				return destination.ToArray();
@@ -91,7 +89,7 @@ namespace UniHttp
 		{
 			using(MemoryStream destination = new MemoryStream())
 			{
-				StreamHelper.CopyTo(sourceStream, destination, contentLength, bufferSize, IsGzipped());
+				CopyTo(destination, contentLength, bufferSize, IsGzipped());
 				return destination.ToArray();
 			}
 		}
@@ -99,23 +97,71 @@ namespace UniHttp
 		int ReadChunkSize()
 		{
 			using(MemoryStream destination = new MemoryStream(0)) {
-				StreamHelper.ReadTo(sourceStream, destination, LF);
+				ReadTo(destination, LF);
 				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).Trim();
 				return int.Parse(hexStr, NumberStyles.HexNumber);
-			}
-		}
-
-		string ReadTo(params char[] stoppers)
-		{
-			using(MemoryStream destination = new MemoryStream()) {
-				StreamHelper.ReadTo(sourceStream, destination, stoppers);
-				return Encoding.UTF8.GetString(destination.ToArray());
 			}
 		}
 
 		bool IsGzipped()
 		{
 			return response.Headers.Exist("Content-Encoding") && response.Headers["Content-Encoding"].Contains("gzip");
+		}
+
+		string ReadTo(params char[] stoppers)
+		{
+			using(MemoryStream destination = new MemoryStream()) {
+				return ReadTo(destination, stoppers);
+			}
+		}
+
+		string ReadTo(MemoryStream destination, params char[] stoppers)
+		{
+			int b;
+			int count = 0;
+			do {
+				b = sourceStream.ReadByte();
+				destination.WriteByte((byte)b);
+				if(b == -1) break;
+				count += 1;
+			} while(stoppers.All(s => b != (int)s));
+			return Encoding.UTF8.GetString(destination.ToArray());
+		}
+
+		int SkipTo(params char[] stoppers)
+		{
+			int b;
+			int count = 0;
+			do {
+				b = sourceStream.ReadByte();
+				if(b == -1) break;
+				count += 1;
+			} while(stoppers.All(s => b != (int)s));
+			return count;
+		}
+
+		void CopyTo(Stream destination, int count, int bufferSize = 1024, bool decompress = false)
+		{
+			byte[] buffer = new byte[bufferSize];
+			int remainingBytes = count;
+			int readBytes = 0;
+
+			if(decompress) {
+				using(GZipStream gzipStream = new GZipStream(sourceStream, CompressionMode.Decompress)) {
+					while(remainingBytes > 0) {
+						while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
+							destination.Write(buffer, 0, readBytes);
+							remainingBytes -= readBytes;
+						}
+					}
+				}
+			} else {
+				while(remainingBytes > 0) {
+					readBytes = sourceStream.Read(buffer, 0, Math.Min(buffer.Length, remainingBytes));
+					destination.Write(buffer, 0, readBytes);
+					remainingBytes -= readBytes;
+				}
+			}
 		}
 	}
 }

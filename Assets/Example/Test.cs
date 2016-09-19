@@ -9,18 +9,26 @@ public class Test : MonoBehaviour {
 		MainThreadDispatcher.Initialize();
 		HttpDispatcher.Initalize();
 
+		HttpClient client = new HttpClient();
+
 		Scheduler.ThreadPool.Schedule(() => {
-			var uri = new Uri("https://ec2-54-178-214-152.ap-northeast-1.compute.amazonaws.com/active_admin/login");
-			var payload = new TestClass() { level = 10 };
+			try {
+				var uri = new Uri("http://ec2-54-178-214-152.ap-northeast-1.compute.amazonaws.com/active_admin/login");
+				var payload = new TestClass() { level = 10 };
 
-			var request = new HttpRequest(uri, HttpMethod.GET, null, payload);
-			Debug.Log(request);
-			var response = request.Send();
-			Debug.Log(response.ToString(true));
+				var request = new HttpRequest(uri, HttpMethod.GET, null, null);
+				Debug.Log(request);
+				var response = client.Send(request);
+				Debug.Log(response.ToString(true));
 
-			Debug.Log(request);
-			response = request.Send();
-			Debug.Log(response.ToString(true));
+				request = new HttpRequest(uri, HttpMethod.GET, null, payload);
+				Debug.Log(request);
+				response = client.Send(request);
+				Debug.Log(response.ToString(true));
+			}
+			catch(Exception e) {
+				Scheduler.MainThread.Schedule(() => { throw e; });
+			}
 		});
 	}
 }

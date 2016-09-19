@@ -18,6 +18,11 @@ namespace UniHttp
 			get { return fields.Count; }
 		}
 
+		public string this[string name]
+		{
+			get { return fields[name.ToLower()]; }
+		}
+
 		public bool Exist(string name)
 		{
 			name = name.ToLower();
@@ -32,7 +37,7 @@ namespace UniHttp
 		public void Add(string name, string value)
 		{
 			name = name.ToLower();
-			if(fields.ContainsKey(name)) throw new KeyNotFoundException("Key with name '" + name + "' does not exist.");
+			if(fields.ContainsKey(name)) throw new KeyNotFoundException("Key with name '" + name + "' already exists.");
 			fields.Add(name, value);
 		}
 
@@ -44,12 +49,6 @@ namespace UniHttp
 			} else {
 				Add(name, value);
 			}
-		}
-
-		public void Append(string name, string value)
-		{
-			name = name.ToLower();
-			fields[name] = string.Join(",", new string[] { fields[name], value });
 		}
 
 		public void Remove(string name)
