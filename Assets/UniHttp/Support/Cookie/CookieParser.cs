@@ -34,6 +34,7 @@ namespace UniHttp
 
 			cookie.Name = kvPair[0];
 			cookie.Value = kvPair[1];
+			cookie.CreatedAt = DateTime.Now;
 
 			foreach(var attr in attributes.Skip(1)) {
 				kvPair = attr.Split('=');

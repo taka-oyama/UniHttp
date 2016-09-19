@@ -15,8 +15,10 @@ namespace UniHttp
 		public bool Secure;
 		public bool HttpOnly;
 
-		// set when domain is not defined
-		// for more details see link below
+		// not part of spec but exists for determining when to cleanup.
+		public DateTime CreatedAt;
+
+		// Set true when domain is not defined. See link below for details.
 		// https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
 		public bool ExactMatchOnly;
 
