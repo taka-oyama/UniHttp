@@ -30,7 +30,6 @@ namespace UniHttp
 			var response = new HttpConnection(request).Send();
 			if(UseCookies) {
 				cookieJar.AddRange(new CookieParser(response).Parse());
-				cookieJar.SaveToFile();
 			}
 			return response;
 		}

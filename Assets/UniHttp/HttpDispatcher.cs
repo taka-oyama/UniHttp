@@ -6,7 +6,7 @@ namespace UniHttp
 	{
 		static GameObject go;
 
-		public static string CachePath = Application.temporaryCachePath;
+		public static string CachePath = Application.temporaryCachePath + "/UniHttp";
 		public static IJsonSerializer JsonSerializer = new DefaultJsonSerializer();
 		public static ISslVerifier SslVerifier = new NoSslVerifier();
 		internal static CookieJar CookieJar;
@@ -16,7 +16,7 @@ namespace UniHttp
 			CookieJar = new CookieJar(CachePath + "/Cookie.bin");
 
 			if(go == null) {
-				go = new GameObject("HttpMaintenance");
+				go = new GameObject("HttpContext");
 				go.AddComponent<HttpContext>();
 				GameObject.DontDestroyOnLoad(go);
 			}

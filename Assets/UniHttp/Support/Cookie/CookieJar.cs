@@ -47,6 +47,13 @@ namespace UniHttp
 			Monitor.Exit(cookies);
 		}
 
+		internal void CleanUp()
+		{
+			foreach(string key in cookies.Keys) {
+				cookies[key].RemoveAll(c => c.IsExpired);
+			}
+		}
+
 		internal void Clear()
 		{
 			Monitor.Enter(cookies);
@@ -73,11 +80,9 @@ namespace UniHttp
 		List<Cookie> Fetch(Uri uri, string key)
 		{
 			var relevants = new List<Cookie>();
-			var now = DateTime.Now;
-
 			if(cookies.ContainsKey(key)) {
 				cookies[key].ForEach(c => {
-					if(c.Expires.HasValue && c.Expires < now) {
+					if(c.IsExpired) {
 						return;
 					}
 
@@ -95,20 +100,25 @@ namespace UniHttp
 
 		public void SaveToFile()
 		{
+			CleanUp();
+			var saveable = new Dictionary<string, List<Cookie>>();
+			foreach(string key in cookies.Keys) {
+				saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
+			}
+			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 			using(Stream stream = File.Open(filePath, FileMode.Create)) {
-				new BinaryFormatter().Serialize(stream, cookies);
+				new BinaryFormatter().Serialize(stream, saveable);
 			}
 		}
 
 		public Dictionary<string, List<Cookie>> ReadFromFile()
 		{
-			if(File.Exists(filePath)) {
-				using(Stream stream = File.OpenRead(filePath)) {
-					var binaryFormatter = new BinaryFormatter();
-					return binaryFormatter.Deserialize(stream) as Dictionary<string, List<Cookie>>;
-				}
-			} else {
+			if(!File.Exists(filePath)) {
 				return new Dictionary<string, List<Cookie>>();
+			}
+			using(Stream stream = File.OpenRead(filePath)) {
+				var binaryFormatter = new BinaryFormatter();
+				return binaryFormatter.Deserialize(stream) as Dictionary<string, List<Cookie>>;
 			}
 		}
 

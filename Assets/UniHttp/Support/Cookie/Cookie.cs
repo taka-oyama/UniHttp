@@ -18,6 +18,9 @@ namespace UniHttp
 
 		internal bool ExactMatchOnly;
 
+		public bool IsSession { get { return Expires == null; } }
+		public bool IsExpired { get { return Expires.HasValue && Expires < DateTime.Now; } }
+
 		public override string ToString()
 		{
 			List<string> list = new List<string>();
