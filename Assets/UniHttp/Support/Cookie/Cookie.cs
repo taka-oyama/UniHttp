@@ -9,14 +9,16 @@ namespace UniHttp
 	{
 		public string Name;
 		public string Value;
-
 		public string Domain;
 		public string Path;
 		public DateTime? Expires;
 		public bool Secure;
 		public bool HttpOnly;
 
-		internal bool ExactMatchOnly;
+		// set when domain is not defined
+		// for more details see link below
+		// https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
+		public bool ExactMatchOnly;
 
 		public bool IsSession { get { return Expires == null; } }
 		public bool IsExpired { get { return Expires.HasValue && Expires < DateTime.Now; } }

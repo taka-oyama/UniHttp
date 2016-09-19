@@ -80,12 +80,15 @@ namespace UniHttp
 		List<Cookie> Fetch(Uri uri, string key)
 		{
 			var relevants = new List<Cookie>();
+			bool isSsl = uri.Scheme == Uri.UriSchemeHttps;
 			if(cookies.ContainsKey(key)) {
 				cookies[key].ForEach(c => {
 					if(c.IsExpired) {
 						return;
 					}
-
+					if(c.Secure && !isSsl) {
+						return;
+					}
 					if(c.ExactMatchOnly && uri.Host != key) {
 						return;
 					}
