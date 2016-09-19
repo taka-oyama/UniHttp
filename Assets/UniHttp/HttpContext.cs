@@ -14,5 +14,10 @@ namespace UniHttp
 				HttpDispatcher.Save();
 			}
 		}
+
+		void OnApplicationQuit()
+		{
+			HttpDispatcher.Save();
+		}
 	}
 }
