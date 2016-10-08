@@ -6,8 +6,8 @@ namespace UniHttp
 	{
 		public enum Level { Debug, Info, Warning, Error, Exception }
 
-		public static Level LogLevel = LogLevel.Info;
-		public static UnityEngine.Logger logger = UnityEngine.Debug.logger;
+		public static Level LogLevel = Level.Info;
+		public static ILogger logger = UnityEngine.Debug.logger;
 		static string kTAG = "UniHttp";
 
 		#region Debug
@@ -21,12 +21,12 @@ namespace UniHttp
 			logger.Log(kTAG, message, context);
 		}
 
-		public static void DebugFormat(string format, params object objects)
+		public static void DebugFormat(string format, params object[] objects)
 		{
 			logger.Log(kTAG, string.Format(format, objects));
 		}
 
-		public static void DebugFormat(Object context, string format, params object objects)
+		public static void DebugFormat(Object context, string format, params object[] objects)
 		{
 			logger.Log(kTAG, string.Format(format, objects), context);
 		}
@@ -43,12 +43,12 @@ namespace UniHttp
 			logger.Log(kTAG, message, context);
 		}
 
-		public static void InfoFormat(string format, params object objects)
+		public static void InfoFormat(string format, params object[] objects)
 		{
 			logger.Log(kTAG, string.Format(format, objects));
 		}
 
-		public static void InfoFormat(Object context, string format, params object objects)
+		public static void InfoFormat(Object context, string format, params object[] objects)
 		{
 			logger.Log(kTAG, string.Format(format, objects), context);
 		}
@@ -65,12 +65,12 @@ namespace UniHttp
 			logger.LogWarning(kTAG, message, context);
 		}
 
-		public static void WarningFormat(string format, params object objects)
+		public static void WarningFormat(string format, params object[] objects)
 		{
 			logger.LogWarning(kTAG, string.Format(format, objects));
 		}
 
-		public static void WarningFormat(Object context, string format, params object objects)
+		public static void WarningFormat(Object context, string format, params object[] objects)
 		{
 			logger.LogWarning(kTAG, string.Format(format, objects), context);
 		}
@@ -87,36 +87,26 @@ namespace UniHttp
 			logger.LogError(kTAG, message, context);
 		}
 
-		public static void ErrorFormat(string format, params object objects)
+		public static void ErrorFormat(string format, params object[] objects)
 		{
 			logger.LogError(kTAG, string.Format(format, objects));
 		}
 
-		public static void ErrorFormat(Object context, string format, params object objects)
+		public static void ErrorFormat(Object context, string format, params object[] objects)
 		{
 			logger.LogError(kTAG, string.Format(format, objects), context);
 		}
 		#endregion
 
 		#region Exception
-		public static void Exception(object message)
+		public static void Exception(System.Exception exception)
 		{
-			logger.LogException(kTAG, message);
+			logger.LogException(exception);
 		}
 
-		public static void Exception(object message, Object context)
+		public static void Exception(System.Exception exception, Object context)
 		{
-			logger.LogException(kTAG, message, context);
-		}
-
-		public static void ExceptionFormat(string format, params object objects)
-		{
-			logger.LogException(kTAG, string.Format(format, objects));
-		}
-
-		public static void ExceptionFormat(Object context, string format, params object objects)
-		{
-			logger.LogException(kTAG, string.Format(format, objects), context);
+			logger.LogException(exception, context);
 		}
 		#endregion
 	}
