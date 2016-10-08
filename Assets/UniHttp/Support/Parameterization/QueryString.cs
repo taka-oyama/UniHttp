@@ -5,7 +5,7 @@ using System.Text;
 
 namespace UniHttp
 {
-	public class QueryString
+	public sealed class QueryString
 	{
 		string prefix;
 		string separator;

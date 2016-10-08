@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UniHttp
 {
-	public class HttpRequest
+	public sealed class HttpRequest
 	{
 		public HttpMethod Method { get; private set; } 
 		public Uri Uri { get; private set; }

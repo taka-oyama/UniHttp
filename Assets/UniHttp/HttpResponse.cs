@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UniHttp
 {
-	public class HttpResponse
+	public sealed class HttpResponse
 	{
 		public HttpRequest Request { get; private set; }
 		public string HttpVersion { get; internal set; }
