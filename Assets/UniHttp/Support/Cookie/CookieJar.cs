@@ -10,14 +10,14 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace UniHttp
 {
-	internal class CookieJar
+	internal sealed class CookieJar
 	{
-		string filePath;
+		FileInfo storage;
 		Dictionary<string, List<Cookie>> cookies;
 
-		internal CookieJar(string filePath)
+		internal CookieJar(FileInfo storage)
 		{
-			this.filePath = filePath;
+			this.storage = storage;
 			this.cookies = ReadFromFile();
 		}
 
@@ -40,7 +40,7 @@ namespace UniHttp
 			return relevants;
 		}
 
-		internal void AddRange(List<Cookie> cookies)
+		internal void AddOrReplaceRange(List<Cookie> cookies)
 		{
 			Monitor.Enter(cookies);
 			cookies.ForEach(Add);
@@ -63,16 +63,16 @@ namespace UniHttp
 
 		void Add(Cookie cookie)
 		{
-			string key = cookie.Domain;
+			string key = cookie.domain;
 
 			if(!cookies.ContainsKey(key)) {
 				cookies.Add(key, new List<Cookie>());
 			}
-			Cookie target = cookies[key].Find(c => c.Name == cookie.Name);
+			Cookie target = cookies[key].Find(c => c.name == cookie.name);
 			if(target != null) {
 				cookies[key].Remove(target);
 			}
-			if(cookie.Expires == null || cookie.Expires >= DateTime.Now) {
+			if(cookie.expires == null || cookie.expires >= DateTime.Now) {
 				cookies[key].Add(cookie);
 			}
 		}
@@ -86,14 +86,14 @@ namespace UniHttp
 					if(c.IsExpired) {
 						return;
 					}
-					if(c.Secure && !isSsl) {
+					if(c.secure && !isSsl) {
 						return;
 					}
 					if(c.ExactMatchOnly && uri.Host != key) {
 						return;
 					}
 					// add to qualification only if the path matches
-					if(uri.AbsolutePath.IndexOf(c.Path) == 0) {
+					if(uri.AbsolutePath.IndexOf(c.path) == 0) {
 						relevants.Add(c);
 					}
 				});
@@ -108,18 +108,17 @@ namespace UniHttp
 			foreach(string key in cookies.Keys) {
 				saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
 			}
-			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-			using(Stream stream = File.Open(filePath, FileMode.Create)) {
+			using(Stream stream = storage.Create()) {
 				new BinaryFormatter().Serialize(stream, saveable);
 			}
 		}
 
 		public Dictionary<string, List<Cookie>> ReadFromFile()
 		{
-			if(!File.Exists(filePath)) {
+			if(!storage.Exists) {
 				return new Dictionary<string, List<Cookie>>();
 			}
-			using(Stream stream = File.OpenRead(filePath)) {
+			using(Stream stream = storage.OpenRead()) {
 				var binaryFormatter = new BinaryFormatter();
 				return binaryFormatter.Deserialize(stream) as Dictionary<string, List<Cookie>>;
 			}

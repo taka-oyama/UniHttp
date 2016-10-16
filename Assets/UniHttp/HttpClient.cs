@@ -1,20 +1,23 @@
 ﻿using UnityEngine;
 using System;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace UniHttp
 {
 	public class HttpClient
 	{
-		CookieJar cookieJar;
+		public HttpSetting setting;
 
-		public bool UseCookies;
+		RequestPreprocessor requestProcessor;
+		ResponsePostprocessor responseProcessor;
 
-		public HttpClient()
+		public HttpClient(HttpSetting? setting = null)
 		{
-			this.cookieJar = HttpDispatcher.CookieJar;
-			this.UseCookies = true;
+			this.setting = setting.HasValue ? setting.Value : HttpSetting.Default;
+			var cookieJar = HttpDispatcher.CookieJar;
+			var cacheHandler = HttpDispatcher.CacheHandler;
+
+			this.requestProcessor = new RequestPreprocessor(this.setting, cookieJar, cacheHandler);
+			this.responseProcessor = new ResponsePostprocessor(this.setting, cookieJar, cacheHandler);
 		}
 
 		public HttpResponse Get(Uri uri, RequestHeaders headers = null, object payload = null)
@@ -24,30 +27,10 @@ namespace UniHttp
 
 		public HttpResponse Send(HttpRequest request)
 		{
-			if(UseCookies) {
-				AppendCookies(request);
-			}
+			requestProcessor.Execute(request);
 			var response = new HttpConnection(request).Send();
-			if(UseCookies) {
-				cookieJar.AddRange(new CookieParser(response).Parse());
-			}
+			responseProcessor.Execute(response);
 			return response;
-		}
-
-		void AppendCookies(HttpRequest request)
-		{
-			var cookies = new Dictionary<string, string>();
-			cookieJar.FindMatch(request.Uri).ForEach(c => cookies.Add(c.Name, c.Value));
-
-			if(request.Headers.Exist("Cookie")) {
-				foreach(var str in request.Headers["Cookie"].Split(new string[]{"; "}, StringSplitOptions.RemoveEmptyEntries)) {
-					string[] kv = str.Split('=');
-					cookies.Add(kv[0].Trim(), kv[1].Trim());
-				}
-			}
-
-			var targets = cookies.Select(kv => kv.Key + "=" + kv.Value).ToArray();
-			request.Headers.AddOrReplace("Cookie", string.Join("", targets));
 		}
 	}
 }

@@ -2,12 +2,8 @@
 
 namespace UniHttp
 {
-	public class HttpContext : MonoBehaviour
+	public class HttpManager : MonoBehaviour
 	{
-		void Awake()
-		{
-		}
-
 		void OnApplicationPause(bool isPaused)
 		{
 			if(isPaused) {

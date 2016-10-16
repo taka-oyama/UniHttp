@@ -6,7 +6,7 @@ using System.Text;
 
 namespace UniHttp
 {
-	internal class CookieParser
+	internal sealed class CookieParser
 	{
 		HttpResponse response;
 
@@ -32,28 +32,28 @@ namespace UniHttp
 			var attributes = attributeStr.Split(new[]{ "; " }, StringSplitOptions.None);
 			var kvPair = attributes[0].Split('=');
 
-			cookie.Name = kvPair[0];
-			cookie.Value = kvPair[1];
+			cookie.name = kvPair[0];
+			cookie.value = kvPair[1];
 			cookie.CreatedAt = DateTime.Now;
 
 			foreach(var attr in attributes.Skip(1)) {
 				kvPair = attr.Split('=');
 				switch(kvPair[0]) {
-				case "Domain": cookie.Domain = kvPair[1];break;
-				case "Path": cookie.Path = kvPair[1]; break;
-				case "Expires": cookie.Expires = DateTime.Parse(kvPair[1]); break;
-				case "Max-Age": cookie.Expires = DateTime.Now + TimeSpan.FromSeconds(int.Parse(kvPair[1])); break;
-				case "Secure": cookie.Secure = true; break;
-				case "HttpOnly": cookie.HttpOnly = true; break;
+				case "Domain": cookie.domain = kvPair[1];break;
+				case "Path": cookie.path = kvPair[1]; break;
+				case "Expires": cookie.expires = DateTime.Parse(kvPair[1]); break;
+				case "Max-Age": cookie.expires = DateTime.Now + TimeSpan.FromSeconds(int.Parse(kvPair[1])); break;
+				case "Secure": cookie.secure = true; break;
+				case "HttpOnly": cookie.httpOnly = true; break;
 				}
 			}
 
-			if(string.IsNullOrEmpty(cookie.Domain)) {
+			if(string.IsNullOrEmpty(cookie.domain)) {
 				cookie.ExactMatchOnly = true;
-				cookie.Domain = response.Request.Uri.Host;
+				cookie.domain = response.Request.Uri.Host;
 			}
-			if(string.IsNullOrEmpty(cookie.Path)) {
-				cookie.Path = response.Request.Uri.AbsolutePath;
+			if(string.IsNullOrEmpty(cookie.path)) {
+				cookie.path = response.Request.Uri.AbsolutePath;
 			}
 
 			return cookie;

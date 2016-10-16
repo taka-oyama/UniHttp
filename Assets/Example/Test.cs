@@ -13,7 +13,7 @@ public class Test : MonoBehaviour {
 
 		Scheduler.ThreadPool.Schedule(() => {
 			try {
-				var uri = new Uri("http://ec2-54-178-214-152.ap-northeast-1.compute.amazonaws.com/active_admin/login");
+				var uri = new Uri("http://www.google.com");
 				var payload = new TestClass() { level = 10 };
 
 				var request = new HttpRequest(uri, HttpMethod.GET, null, null);

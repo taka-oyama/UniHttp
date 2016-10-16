@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.IO;
 
 namespace UniHttp
 {
@@ -6,18 +7,23 @@ namespace UniHttp
 	{
 		static GameObject go;
 
-		public static string CachePath = Application.temporaryCachePath + "/UniHttp";
+		public static string DataPath = Application.temporaryCachePath + "/UniHttp/";
 		public static IJsonSerializer JsonSerializer = new DefaultJsonSerializer();
 		public static ISslVerifier SslVerifier = new NoSslVerifier();
+
 		internal static CookieJar CookieJar;
+		internal static CacheHandler CacheHandler;
 
 		public static void Initalize()
 		{
-			CookieJar = new CookieJar(CachePath + "/Cookie.bin");
+			Directory.CreateDirectory(DataPath);
+
+			CookieJar = new CookieJar(new FileInfo(DataPath + "Cookie.bin"));
+			CacheHandler = new CacheHandler(new DirectoryInfo(DataPath + "Cache/"));
 
 			if(go == null) {
-				go = new GameObject("HttpContext");
-				go.AddComponent<HttpContext>();
+				go = new GameObject("HttpManager");
+				go.AddComponent<HttpManager>();
 				GameObject.DontDestroyOnLoad(go);
 			}
 		}

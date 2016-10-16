@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace UniHttp
 {
-	public class HttpConnection
+	internal class HttpConnection : IDisposable
 	{
 		HttpRequest request;
 		HttpStream stream;
@@ -42,6 +42,10 @@ namespace UniHttp
 			stream.Flush();
 
 			HttpResponse response = new ResponseBuilder(request, stream).Build();
+			if(response.StatusCode == 301) {
+				
+			}
+
 			Dispose();
 			return response;
 		}
