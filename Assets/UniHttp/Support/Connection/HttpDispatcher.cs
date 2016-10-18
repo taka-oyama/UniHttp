@@ -4,49 +4,39 @@ using System.Net.Sockets;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UniHttp
 {
-	internal class HttpConnection : IDisposable
+	internal class HttpDispatcher
 	{
 		HttpRequest request;
-		HttpStream stream;
 
-		internal HttpConnection(HttpRequest request)
+		static int[] REDIRECTS = new [] {301, 302, 303, 307, 308};
+
+		internal HttpDispatcher(HttpDispatchInfo info)
 		{
-			this.request = request;
+			this.request = info.request;
 		}
 
-		internal HttpResponse Send()
+		internal HttpResponse SendWith(HttpStream stream)
 		{
 			try {
-				return Transmit();
+				return Transmit(stream);
 			}
 			catch(SocketException exception) {
 				return BuildErrorResponse(exception);
 			}
-			finally {
-				Dispose();
-			}
 		}
 
-		HttpResponse Transmit()
+		HttpResponse Transmit(HttpStream stream)
 		{
-			TcpClient tcpClient = new TcpClient();
-			tcpClient.Connect(request.Uri.Host, request.Uri.Port);
-
-			this.stream = new HttpStream(tcpClient, request.Uri);
-
 			byte[] data = new RequestDataBuilder(request).Build();
 			stream.Write(data, 0, data.Length);
 			stream.Flush();
 
 			HttpResponse response = new ResponseBuilder(request, stream).Build();
-			if(response.StatusCode == 301) {
-				
-			}
-
-			Dispose();
+			// TODO: add redirection handling
 			return response;
 		}
 
@@ -60,11 +50,14 @@ namespace UniHttp
 			return response;
 		}
 
-		public void Dispose()
+		bool IsRedirect(HttpResponse response)
 		{
-			if(stream != null) {
-				stream.Dispose();
+			for(int i = 0; i < REDIRECTS.Length; i++) {
+				if(response.StatusCode == REDIRECTS[i]) {
+					return true;
+				}
 			}
+			return false;
 		}
 	}
 }

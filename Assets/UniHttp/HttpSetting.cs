@@ -7,6 +7,7 @@ namespace UniHttp
 		public bool useCookies;
 		public bool useCache;
 		public bool followRedirects;
+		public int maxConcurrentRequests;
 
 		public static HttpSetting Default
 		{
@@ -15,6 +16,7 @@ namespace UniHttp
 					useCookies = true,
 					useCache = true,
 					followRedirects = true,
+					maxConcurrentRequests = 4,
 				};
 			}
 		}

@@ -67,17 +67,15 @@ namespace UniHttp.FileOperation
 		void Execute(Operation operation)
 		{
 			ThreadPool.QueueUserWorkItem(nil => {
-				Monitor.Enter(locker);
-				try {
-					if(operation.callback != null) {
-						operation.callback.Invoke(operation.Execute());
+				lock(locker) {
+					try {
+						if(operation.callback != null) {
+							operation.callback.Invoke(operation.Execute());
+						}
 					}
-				}
-				catch(IOException exception) {
-					ThrowOnMainThread(exception);
-				}
-				finally {
-					Monitor.Exit(locker);
+					catch(IOException exception) {
+						ThrowOnMainThread(exception);
+					}
 				}
 			});
 		}

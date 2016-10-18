@@ -26,7 +26,7 @@ namespace UniHttp
 			if(!string.IsNullOrEmpty(request.Uri.Query)) {
 				return false;
 			}
-			if(request.Headers.Exist("Cache-Control") && request.Headers["Cache-Control"].Contains("no-store")) {
+			if(request.Headers.Exist("Cache-Control", "no-store")) {
 				return false;
 			}
 			return true;

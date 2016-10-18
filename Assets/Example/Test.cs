@@ -7,28 +7,23 @@ using System.Collections.Generic;
 public class Test : MonoBehaviour {
 	void Start () {
 		MainThreadDispatcher.Initialize();
-		HttpDispatcher.Initalize();
+		HttpManager.Initalize();
 
 		HttpClient client = new HttpClient();
 
-		Scheduler.ThreadPool.Schedule(() => {
-			try {
-				var uri = new Uri("http://www.google.com");
-				var payload = new TestClass() { level = 10 };
+		var uri = new Uri("http://www.google.com");
+		var payload = new TestClass() { level = 10 };
 
-				var request = new HttpRequest(uri, HttpMethod.GET, null, null);
-				Debug.Log(request);
-				var response = client.Send(request);
-				Debug.Log(response.ToString(true));
+		var request = new HttpRequest(uri, HttpMethod.GET, null, null);
+		Debug.Log(request);
+		client.Send(request, response => {
+			Debug.Log(response.ToString(true));
 
-				request = new HttpRequest(uri, HttpMethod.GET, null, payload);
-				Debug.Log(request);
-				response = client.Send(request);
-				Debug.Log(response.ToString(true));
-			}
-			catch(Exception e) {
-				Scheduler.MainThread.Schedule(() => { throw e; });
-			}
+			request = new HttpRequest(uri, HttpMethod.GET, null, payload);
+			Debug.Log(request);
+			client.Send(request, response2 => {
+				Debug.Log(response2.ToString(true));
+			});
 		});
 	}
 }

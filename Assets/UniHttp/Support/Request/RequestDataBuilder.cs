@@ -36,7 +36,7 @@ namespace UniHttp
 			sb.Append(CRLF);
 			if(request.Payload != null) {
 				sb.Append(CRLF);
-				sb.Append(HttpDispatcher.JsonSerializer.Serialize(request.Payload));
+				sb.Append(HttpManager.JsonSerializer.Serialize(request.Payload));
 				sb.Append(CRLF);
 			}
 

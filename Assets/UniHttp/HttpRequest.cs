@@ -34,7 +34,7 @@ namespace UniHttp
 			sb.Append("\n");
 			if(Payload != null) {
 				sb.Append("\n");
-				sb.Append(HttpDispatcher.JsonSerializer.Serialize(Payload));
+				sb.Append(HttpManager.JsonSerializer.Serialize(Payload));
 				sb.Append("\n");
 			}
 			return sb.ToString();

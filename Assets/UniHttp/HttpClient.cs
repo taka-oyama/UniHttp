@@ -1,36 +1,82 @@
 ﻿using UnityEngine;
 using System;
+using System.Threading;
+using System.Collections.Generic;
+using UniRx;
 
 namespace UniHttp
 {
-	public class HttpClient
+	public sealed class HttpClient
 	{
 		public HttpSetting setting;
 
 		RequestPreprocessor requestProcessor;
 		ResponsePostprocessor responseProcessor;
+		HttpStreamPool connectionPool;
+		List<HttpRequest> ongoingRequests;
+		Queue<HttpDispatchInfo> pendingRequests;
 
 		public HttpClient(HttpSetting? setting = null)
 		{
 			this.setting = setting.HasValue ? setting.Value : HttpSetting.Default;
-			var cookieJar = HttpDispatcher.CookieJar;
-			var cacheHandler = HttpDispatcher.CacheHandler;
+
+			var cookieJar = HttpManager.CookieJar;
+			var cacheHandler = HttpManager.CacheHandler;
 
 			this.requestProcessor = new RequestPreprocessor(this.setting, cookieJar, cacheHandler);
 			this.responseProcessor = new ResponsePostprocessor(this.setting, cookieJar, cacheHandler);
+			this.connectionPool = HttpManager.TcpConnectionPool;
+			this.ongoingRequests = new List<HttpRequest>();
+			this.pendingRequests = new Queue<HttpDispatchInfo>();
 		}
 
-		public HttpResponse Get(Uri uri, RequestHeaders headers = null, object payload = null)
-		{
-			return Send(new HttpRequest(uri, HttpMethod.GET, headers, payload));
-		}
-
-		public HttpResponse Send(HttpRequest request)
+		public void Send(HttpRequest request, Action<HttpResponse> callback)
 		{
 			requestProcessor.Execute(request);
-			var response = new HttpConnection(request).Send();
-			responseProcessor.Execute(response);
-			return response;
+			pendingRequests.Enqueue(new HttpDispatchInfo(request, callback));
+			ExecuteIfPossible();
+		}
+
+		void ExecuteIfPossible()
+		{
+			if(pendingRequests.Count == 0) {
+				return;
+			}
+			if(ongoingRequests.Count < setting.maxConcurrentRequests) {
+				var info = pendingRequests.Dequeue();
+				ongoingRequests.Add(info.request);
+				SendInThread(info);
+			}
+		}
+
+		void SendInThread(HttpDispatchInfo info)
+		{
+			ThreadPool.QueueUserWorkItem(nil => {
+				try {
+					var stream = connectionPool.CheckOut(info.request);
+					var response = new HttpDispatcher(info).SendWith(stream);
+					responseProcessor.Execute(response);
+					ExecuteOnMainThread(() => {
+						if(info.callback != null) {
+							info.callback(response);
+						}
+					});
+				} catch(Exception exception) {
+					ExecuteOnMainThread(() => {
+						throw exception;
+					});
+				} finally {
+					ExecuteOnMainThread(() => {
+						ongoingRequests.Remove(info.request);
+						ExecuteIfPossible();
+					});
+				}
+			});
+		}
+
+		void ExecuteOnMainThread(Action callback)
+		{
+			HttpManager.MainThreadQueue.Enqueue(callback);
 		}
 	}
 }

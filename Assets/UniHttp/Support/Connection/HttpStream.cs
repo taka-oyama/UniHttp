@@ -9,24 +9,30 @@ namespace UniHttp
 {
 	public class HttpStream : Stream
 	{
+		TcpClient tcpClient;
 		SslStream sslStream;
 		Stream stream;
 
-		public HttpStream(TcpClient tcpClient, Uri uri)
+		public HttpStream(Uri uri)
 		{
+			this.tcpClient = new TcpClient();
+			tcpClient.Connect(uri.Host, uri.Port);
+
 			this.stream = tcpClient.GetStream();
 
 			if(uri.Scheme == Uri.UriSchemeHttp) {
 				return;
 			}
 			if(uri.Scheme == Uri.UriSchemeHttps) {
-				this.sslStream = new SslStream(stream, true, HttpDispatcher.SslVerifier.Verify);
+				this.sslStream = new SslStream(stream, false, HttpManager.SslVerifier.Verify);
 				this.stream = sslStream;
 				sslStream.AuthenticateAsClient(uri.Host);
 				return;
 			}
 			throw new Exception("Unsupported Scheme:" + uri.Scheme);
 		}
+
+		public bool Connected { get { return tcpClient.Connected; } }
 
 		public override bool CanRead { get { return stream.CanRead; } }
 		public override bool CanSeek { get { return stream.CanSeek; } }
@@ -65,11 +71,15 @@ namespace UniHttp
 		protected override void Dispose(bool disposing)
 		{
 			if(disposing) {
-				if(sslStream != null) {
-					sslStream.Dispose();
-				}
+				stream.Dispose();
 			}
 			base.Dispose(disposing);
+		}
+
+		public override void Close()
+		{
+			Dispose(true);
+			base.Close();
 		}
 	}
 }
