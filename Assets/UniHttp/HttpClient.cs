@@ -2,7 +2,6 @@
 using System;
 using System.Threading;
 using System.Collections.Generic;
-using UniRx;
 
 namespace UniHttp
 {
@@ -39,39 +38,40 @@ namespace UniHttp
 
 		void ExecuteIfPossible()
 		{
-			if(pendingRequests.Count == 0) {
-				return;
-			}
-			if(ongoingRequests.Count < setting.maxConcurrentRequests) {
-				var info = pendingRequests.Dequeue();
-				ongoingRequests.Add(info.request);
-				SendInThread(info);
+			if(pendingRequests.Count > 0) {
+				if(ongoingRequests.Count < setting.maxConcurrentRequests) {
+					var info = pendingRequests.Dequeue();
+					ongoingRequests.Add(info.request);
+					ThreadPool.QueueUserWorkItem(SendInThread, info);
+				}
 			}
 		}
 
-		void SendInThread(HttpDispatchInfo info)
+		void SendInThread(object obj)
 		{
-			ThreadPool.QueueUserWorkItem(nil => {
-				try {
-					var stream = connectionPool.CheckOut(info.request);
-					var response = new HttpDispatcher(info).SendWith(stream);
-					responseProcessor.Execute(response);
-					ExecuteOnMainThread(() => {
-						if(info.callback != null) {
-							info.callback(response);
-						}
-					});
-				} catch(Exception exception) {
-					ExecuteOnMainThread(() => {
-						throw exception;
-					});
-				} finally {
-					ExecuteOnMainThread(() => {
-						ongoingRequests.Remove(info.request);
-						ExecuteIfPossible();
-					});
-				}
-			});
+			var info = (HttpDispatchInfo)obj;
+
+			try {
+				var stream = connectionPool.CheckOut(info.request);
+				var response = new HttpDispatcher(info).SendWith(stream);
+				responseProcessor.Execute(response);
+				connectionPool.CheckIn(response, stream);
+
+				ExecuteOnMainThread(() => {
+					if(info.callback != null) {
+						info.callback(response);
+					}
+				});
+			} catch(Exception exception) {
+				ExecuteOnMainThread(() => {
+					throw exception;
+				});
+			} finally {
+				ExecuteOnMainThread(() => {
+					ongoingRequests.Remove(info.request);
+					ExecuteIfPossible();
+				});
+			}
 		}
 
 		void ExecuteOnMainThread(Action callback)

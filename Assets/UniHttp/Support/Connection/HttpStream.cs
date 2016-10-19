@@ -3,18 +3,20 @@ using System.IO;
 using System.Net.Sockets;
 using System;
 using System.Net.Security;
-using System.Threading;
 
 namespace UniHttp
 {
-	public class HttpStream : Stream
+	internal class HttpStream : Stream
 	{
+		internal string url;
 		TcpClient tcpClient;
 		SslStream sslStream;
 		Stream stream;
 
-		public HttpStream(Uri uri)
+		internal HttpStream(Uri uri)
 		{
+
+			this.url = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority); 
 			this.tcpClient = new TcpClient();
 			tcpClient.Connect(uri.Host, uri.Port);
 

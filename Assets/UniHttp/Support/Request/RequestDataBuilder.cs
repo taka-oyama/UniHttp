@@ -18,14 +18,13 @@ namespace UniHttp
 		public byte[] Build()
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.Append(GenerateHeaderString());
-			sb.Append(CRLF);
+			AppendHeaderString(sb);
+			AppendPayloadString(sb);
 			return Encoding.UTF8.GetBytes(sb.ToString());
 		}
 
-		string GenerateHeaderString()
+		void AppendHeaderString(StringBuilder sb)
 		{
-			StringBuilder sb = new StringBuilder();
 			sb.Append(request.Method.ToString().ToUpper());
 			sb.Append(SPACE);
 			sb.Append(request.Uri.PathAndQuery);
@@ -34,13 +33,15 @@ namespace UniHttp
 			sb.Append(CRLF);
 			sb.Append(request.Headers.ToString());
 			sb.Append(CRLF);
+			sb.Append(CRLF);
+		}
+
+		void AppendPayloadString(StringBuilder sb)
+		{
 			if(request.Payload != null) {
-				sb.Append(CRLF);
 				sb.Append(HttpManager.JsonSerializer.Serialize(request.Payload));
 				sb.Append(CRLF);
 			}
-
-			return sb.ToString();
 		}
 	}
 }
