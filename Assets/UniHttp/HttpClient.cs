@@ -9,14 +9,14 @@ namespace UniHttp
 	{
 		public HttpSetting setting;
 
-		HttpTransfer dispatcher;
+		HttpTransport transport;
 		List<HttpRequest> ongoingRequests;
 		Queue<HttpDispatchInfo> pendingRequests;
 
 		public HttpClient(HttpSetting? setting = null)
 		{
 			this.setting = setting.HasValue ? setting.Value : HttpSetting.Default;
-			this.dispatcher = new HttpTransfer(this.setting);
+			this.transport = new HttpTransport(this.setting);
 			this.ongoingRequests = new List<HttpRequest>();
 			this.pendingRequests = new Queue<HttpDispatchInfo>();
 		}
@@ -41,7 +41,7 @@ namespace UniHttp
 		void SendInThread(HttpDispatchInfo info)
 		{
 			try {
-				var response = dispatcher.Send(info.request);
+				var response = transport.Send(info.request);
 
 				ExecuteOnMainThread(() => {
 					if(info.callback != null) {
