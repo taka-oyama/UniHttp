@@ -15,7 +15,6 @@ namespace UniHttp
 
 		internal HttpStream(Uri uri)
 		{
-
 			this.url = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority); 
 			this.tcpClient = new TcpClient();
 			tcpClient.Connect(uri.Host, uri.Port);
