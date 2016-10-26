@@ -32,32 +32,39 @@ namespace UniHttp
 			if(pendingRequests.Count > 0) {
 				if(ongoingRequests.Count < setting.maxConcurrentRequests) {
 					var info = pendingRequests.Dequeue();
-					ongoingRequests.Add(info.request);
-					ThreadPool.QueueUserWorkItem(_ => SendInThread(info));
+					ongoingRequests.Add(info.Request);
+					SendInThread(info);
 				}
 			}
 		}
 
 		void SendInThread(HttpDispatchInfo info)
 		{
-			try {
-				var response = transport.Send(info.request);
+			WrapInThread(() => {
+				try {
+					var response = transport.Send(info.Request);
 
-				ExecuteOnMainThread(() => {
-					if(info.callback != null) {
-						info.callback(response);
-					}
-				});
-			} catch(Exception exception) {
-				ExecuteOnMainThread(() => {
-					throw exception;
-				});
-			} finally {
-				ExecuteOnMainThread(() => {
-					ongoingRequests.Remove(info.request);
-					ExecuteIfPossible();
-				});
-			}
+					ExecuteOnMainThread(() => {
+						if(info.Callback != null) {
+							info.Callback(response);
+						}
+					});
+				} catch(Exception exception) {
+					ExecuteOnMainThread(() => {
+						throw exception;
+					});
+				} finally {
+					ExecuteOnMainThread(() => {
+						ongoingRequests.Remove(info.Request);
+						ExecuteIfPossible();
+					});
+				}
+			});
+		}
+
+		void WrapInThread(Action action)
+		{
+			ThreadPool.QueueUserWorkItem(_ => action());
 		}
 
 		void ExecuteOnMainThread(Action callback)

@@ -5,13 +5,13 @@ namespace UniHttp
 {
 	internal struct HttpDispatchInfo
 	{
-		internal HttpRequest request;
-		internal Action<HttpResponse> callback;
+		internal HttpRequest Request { get; private set; }
+		internal Action<HttpResponse> Callback { get; private set; }
 
 		internal HttpDispatchInfo(HttpRequest request, Action<HttpResponse> callback)
 		{
-			this.request = request;
-			this.callback = callback;
+			this.Request = request;
+			this.Callback = callback;
 		}
 	}
 }
