@@ -18,12 +18,12 @@ public class Test : MonoBehaviour {
 		Debug.Log(request);
 		client.Send(request, response => {
 			Debug.Log(response.ToString(true));
+		});
 
-			request = new HttpRequest(uri, HttpMethod.GET, null, payload);
-			Debug.Log(request);
-			client.Send(request, response2 => {
-				Debug.Log(response2.ToString(true));
-			});
+		var request2 = new HttpRequest(uri, HttpMethod.GET, null, payload);
+		Debug.Log(request2);
+		client.Send(request2, response2 => {
+			Debug.Log(response2.ToString(true));
 		});
 	}
 }

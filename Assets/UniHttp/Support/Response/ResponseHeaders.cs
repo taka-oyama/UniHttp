@@ -29,6 +29,11 @@ namespace UniHttp
 			return fields.ContainsKey(name.ToLower());
 		}
 
+		public bool Exist(string name, string value)
+		{
+			return Exist(name) && this[name].Any(each => each.Contains(value));
+		}
+
 		public bool NotExist(string name)
 		{
 			return !Exist(name);

@@ -9,29 +9,20 @@ namespace UniHttp
 	{
 		public HttpSetting setting;
 
-		RequestPreprocessor requestProcessor;
-		ResponsePostprocessor responseProcessor;
-		HttpStreamPool connectionPool;
+		HttpMessanger dispatcher;
 		List<HttpRequest> ongoingRequests;
 		Queue<HttpDispatchInfo> pendingRequests;
 
 		public HttpClient(HttpSetting? setting = null)
 		{
 			this.setting = setting.HasValue ? setting.Value : HttpSetting.Default;
-
-			var cookieJar = HttpManager.CookieJar;
-			var cacheHandler = HttpManager.CacheHandler;
-
-			this.requestProcessor = new RequestPreprocessor(this.setting, cookieJar, cacheHandler);
-			this.responseProcessor = new ResponsePostprocessor(this.setting, cookieJar, cacheHandler);
-			this.connectionPool = HttpManager.TcpConnectionPool;
+			this.dispatcher = new HttpMessanger(this.setting);
 			this.ongoingRequests = new List<HttpRequest>();
 			this.pendingRequests = new Queue<HttpDispatchInfo>();
 		}
 
 		public void Send(HttpRequest request, Action<HttpResponse> callback)
 		{
-			requestProcessor.Execute(request);
 			pendingRequests.Enqueue(new HttpDispatchInfo(request, callback));
 			ExecuteIfPossible();
 		}
@@ -42,20 +33,15 @@ namespace UniHttp
 				if(ongoingRequests.Count < setting.maxConcurrentRequests) {
 					var info = pendingRequests.Dequeue();
 					ongoingRequests.Add(info.request);
-					ThreadPool.QueueUserWorkItem(SendInThread, info);
+					ThreadPool.QueueUserWorkItem(_ => SendInThread(info));
 				}
 			}
 		}
 
-		void SendInThread(object obj)
+		void SendInThread(HttpDispatchInfo info)
 		{
-			var info = (HttpDispatchInfo)obj;
-
 			try {
-				var stream = connectionPool.CheckOut(info.request);
-				var response = new HttpDispatcher(info).SendWith(stream);
-				responseProcessor.Execute(response);
-				connectionPool.CheckIn(response, stream);
+				var response = dispatcher.Send(info.request);
 
 				ExecuteOnMainThread(() => {
 					if(info.callback != null) {

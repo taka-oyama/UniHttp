@@ -57,7 +57,7 @@ namespace UniHttp
 
 		void SetMessageBody()
 		{
-			if(response.Headers.Exist("Transfer-Encoding") && response.Headers["Transfer-Encoding"].Contains("chunked")) {
+			if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
 				response.MessageBody = ReadMessageBodyChunked();
 				return;
 			}
@@ -105,7 +105,7 @@ namespace UniHttp
 
 		bool IsGzipped()
 		{
-			return response.Headers.Exist("Content-Encoding") && response.Headers["Content-Encoding"].Contains("gzip");
+			return response.Headers.Exist("Content-Encoding", "gzip");
 		}
 
 		string ReadTo(params char[] stoppers)

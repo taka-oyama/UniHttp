@@ -8,14 +8,14 @@ namespace UniHttp
 	internal sealed class CacheHandler
 	{
 		DirectoryInfo baseDirectory;
-		FileOperation.Scheduler scheduler;
 		Dictionary<string, Cache> caches;
+		object locker;
 
 		internal CacheHandler(DirectoryInfo baseDirectory)
 		{
 			this.baseDirectory = baseDirectory;
-			this.scheduler = new FileOperation.Scheduler(baseDirectory);
 			this.caches = new Dictionary<string, Cache>();
+			this.locker = new object();
 		}
 
 		internal bool IsCachable(HttpRequest request)
@@ -23,10 +23,13 @@ namespace UniHttp
 			if(request.Method != HttpMethod.GET || request.Method != HttpMethod.HEAD) {
 				return false;
 			}
+			if(request.Headers.Exist("Cache-Control", "no-store")) {
+				return false;
+			}
 			if(!string.IsNullOrEmpty(request.Uri.Query)) {
 				return false;
 			}
-			if(request.Headers.Exist("Cache-Control", "no-store")) {
+			if(request.Payload != null) {
 				return false;
 			}
 			return true;
@@ -63,25 +66,40 @@ namespace UniHttp
 			if(!IsCachable(request)) {
 				return null;
 			}
-			if(!caches.ContainsKey(request.Uri.AbsoluteUri)) {
-				return null;
-			}
 			if(!File.Exists(request.Uri.AbsoluteUri)) {
 				return null;
 			}
-			return caches[request.Uri.AbsoluteUri];
+			lock(locker) {
+				if(caches.ContainsKey(request.Uri.AbsoluteUri)) {
+					return caches[request.Uri.AbsoluteUri];	
+				}
+			}
+			return null;
 		}
 
 		internal void CacheResponse(HttpResponse response)
 		{
-			string url = response.Request.Uri.AbsoluteUri.Split('?')[0];
-			if(scheduler.Exists(url)) {
+			string url = response.Request.Uri.AbsoluteUri;
+			WriteToFile(url, response.MessageBody);
+			UpdateDictionary(url, response);
+		}
+
+		void WriteToFile(string url, byte[] data)
+		{
+			string filePath = baseDirectory.FullName + url;
+			string tempPath = filePath + ".tmp";
+			File.WriteAllBytes(tempPath, data);
+			File.Move(tempPath, filePath);
+		}
+
+		void UpdateDictionary(string url, HttpResponse response)
+		{
+			lock(locker) {
 				if(caches.ContainsKey(url)) {
 					caches[url].Update(response);
 				} else {
 					caches.Add(url, new Cache(response));
 				}
-				scheduler.Write(url, response.MessageBody);
 			}
 		}
 
