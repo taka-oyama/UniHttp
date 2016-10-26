@@ -9,14 +9,14 @@ namespace UniHttp
 	{
 		public HttpSetting setting;
 
-		HttpMessanger dispatcher;
+		HttpTransfer dispatcher;
 		List<HttpRequest> ongoingRequests;
 		Queue<HttpDispatchInfo> pendingRequests;
 
 		public HttpClient(HttpSetting? setting = null)
 		{
 			this.setting = setting.HasValue ? setting.Value : HttpSetting.Default;
-			this.dispatcher = new HttpMessanger(this.setting);
+			this.dispatcher = new HttpTransfer(this.setting);
 			this.ongoingRequests = new List<HttpRequest>();
 			this.pendingRequests = new Queue<HttpDispatchInfo>();
 		}

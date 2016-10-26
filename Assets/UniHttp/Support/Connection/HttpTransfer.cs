@@ -5,7 +5,7 @@ using System.Text;
 
 namespace UniHttp
 {
-	internal class HttpMessanger
+	internal class HttpTransfer
 	{
 		static int[] REDIRECTS = new [] {301, 302, 303, 307, 308};
 
@@ -14,7 +14,7 @@ namespace UniHttp
 		RequestPreprocessor requestProcessor;
 		ResponsePostprocessor responseProcessor;
 
-		internal HttpMessanger(HttpSetting setting)
+		internal HttpTransfer(HttpSetting setting)
 		{
 			var cookieJar = HttpManager.CookieJar;
 			var cacheHandler = HttpManager.CacheHandler;
