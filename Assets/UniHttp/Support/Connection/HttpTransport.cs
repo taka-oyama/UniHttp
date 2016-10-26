@@ -42,20 +42,21 @@ namespace UniHttp
 		HttpResponse Transmit(HttpRequest request)
 		{
 			HttpResponse response;
-			HttpStream stream = connectionPool.CheckOut(request);
 			while(true) {
+				HttpStream stream = connectionPool.CheckOut(request);
 				byte[] data = new RequestDataBuilder(request).Build();
 				stream.Write(data, 0, data.Length);
 				stream.Flush();
 
 				response = new ResponseBuilder(request, stream).Build();
+				connectionPool.CheckIn(response, stream);
+
 				if(setting.followRedirects && IsRedirect(response)) {
 					request = ConstructRequest(response);
 				} else {
 					break;
 				}
 			}
-			connectionPool.CheckIn(response, stream);
 			return response;
 		}
 
