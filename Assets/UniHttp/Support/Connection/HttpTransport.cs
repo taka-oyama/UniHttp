@@ -92,7 +92,7 @@ namespace UniHttp
 					method = HttpMethod.GET;
 				}
 			}
-			return new HttpRequest(uri, method, request.Headers, request.Payload);
+			return new HttpRequest(uri, method, request.Headers, request.Data);
 		}
 	}
 }

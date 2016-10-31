@@ -76,8 +76,9 @@ namespace UniHttp
 			using(MemoryStream destination = new MemoryStream())
 			{
 				int chunkSize = ReadChunkSize();
+				bool isGzipped = IsGzipped();
 				while(chunkSize > 0) {
-					CopyTo(destination, chunkSize, bufferSize, IsGzipped());
+					CopyTo(destination, chunkSize, bufferSize, isGzipped);
 					SkipTo(LF);
 					chunkSize = ReadChunkSize();
 				}

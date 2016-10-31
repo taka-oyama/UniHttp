@@ -1,18 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace UniHttp
 {
-	public sealed class QueryString
+	public sealed class HttpQueryString
 	{
 		string prefix;
 		string separator;
 		string delimiter;
 		Dictionary<string, List<string>> query;
 
-		public QueryString(string separator = "&", string delimiter = "=", string prefix = "")
+		public HttpQueryString(string separator = "&", string delimiter = "=", string prefix = "")
 		{
 			this.prefix = prefix;
 			this.separator = separator;

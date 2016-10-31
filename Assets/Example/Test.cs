@@ -11,20 +11,20 @@ public class Test : MonoBehaviour {
 
 		HttpClient client = new HttpClient();
 
-		var uri = new Uri("http://www.google.com");
+		var uri = new Uri("http://localhost:3000/test/debug.json");
 		var payload = new TestClass() { level = 10 };
 
-		var request = new HttpRequest(uri, HttpMethod.GET, null, null);
+		var request = new HttpRequest(uri, HttpMethod.GET);
 		Debug.Log(request);
 		client.Send(request, response => {
 			Debug.Log(response.ToString(true));
 		});
-
-		var request2 = new HttpRequest(uri, HttpMethod.GET, null, payload);
-		Debug.Log(request2);
-		client.Send(request2, response2 => {
-			Debug.Log(response2.ToString(true));
-		});
+//
+//		var request2 = new HttpRequest(uri, HttpMethod.GET, null, payload);
+//		Debug.Log(request2);
+//		client.Send(request2, response2 => {
+//			Debug.Log(response2.ToString(true));
+//		});
 	}
 }
 

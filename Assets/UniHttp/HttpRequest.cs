@@ -13,30 +13,33 @@ namespace UniHttp
 		public Uri Uri { get; private set; }
 		public string Version { get { return "1.1"; } }
 		public RequestHeaders Headers { get; private set; }
-		public object Payload { get; private set; } 
+		public IHttpData Data { get; private set; } 
 
-		public HttpRequest(Uri uri, HttpMethod method, RequestHeaders headers = null, object payload = null)
+		public HttpRequest(Uri uri, HttpMethod method, RequestHeaders headers = null, IHttpData data = null)
 		{
 			this.Uri = uri;
 			this.Method = method;
 			this.Headers = headers ?? new RequestHeadersDefaultBuilder(this).Build();
-			this.Payload = payload;
+			this.Data = data;
 		}
 
 		public override string ToString()
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(Method.ToString().ToUpper());
-			sb.Append(" ");
-			sb.Append(Uri.ToString());
-			sb.Append("\n");
+			sb.Append(Constant.SPACE);
+			sb.Append(Uri.PathAndQuery);
+			sb.Append(Constant.SPACE);
+			sb.Append("HTTP/" + Version);
+			sb.Append(Constant.CRLF);
 			sb.Append(Headers.ToString());
-			sb.Append("\n");
-			if(Payload != null) {
-				sb.Append("\n");
-				sb.Append(HttpManager.JsonSerializer.Serialize(Payload));
-				sb.Append("\n");
+			sb.Append(Constant.CRLF);
+			if(Data != null) {
+				sb.Append(Constant.CRLF);
+				sb.Append(HttpManager.JsonSerializer.Serialize(Data));
+				sb.Append(Constant.CRLF);
 			}
+			sb.Append(Constant.CRLF);
 			return sb.ToString();
 		}
 	}

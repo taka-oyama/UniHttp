@@ -29,7 +29,7 @@ namespace UniHttp
 			if(!string.IsNullOrEmpty(request.Uri.Query)) {
 				return false;
 			}
-			if(request.Payload != null) {
+			if(request.Data != null) {
 				return false;
 			}
 			return true;
