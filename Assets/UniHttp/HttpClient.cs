@@ -43,7 +43,6 @@ namespace UniHttp
 			WrapInThread(() => {
 				try {
 					var response = transport.Send(info.Request);
-
 					ExecuteOnMainThread(() => {
 						if(info.Callback != null) {
 							info.Callback(response);

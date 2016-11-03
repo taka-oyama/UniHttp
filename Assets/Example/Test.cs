@@ -12,13 +12,10 @@ public class Test : MonoBehaviour {
 		HttpClient client = new HttpClient();
 
 		var uri = new Uri("http://localhost:3000/test/debug.json");
-		var payload = new TestClass() { level = 10 };
+		var payload = new HttpJsonData(new TestClass() { level = 10 });
 
-		var request = new HttpRequest(uri, HttpMethod.GET);
-		Debug.Log(request);
-		client.Send(request, response => {
-			Debug.Log(response.ToString(true));
-		});
+		var request = new HttpRequest(HttpMethod.GET, uri, null, payload);
+		client.Send(request, response => {});
 //
 //		var request2 = new HttpRequest(uri, HttpMethod.GET, null, payload);
 //		Debug.Log(request2);

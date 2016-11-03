@@ -29,6 +29,10 @@ namespace UniHttp
 			if(cacheHandler.IsCachable(request)) {
 				AddCacheDirectiveToRequest(request);
 			}
+			if(request.Data != null) {
+				request.Headers.AddOrReplace("Content-Type", request.Data.GetContentType());
+				request.Headers.AddOrReplace("Content-Length", request.Data.ToBytes().Length.ToString());
+			}
 		}
 
 		void AppendCookiesToRequest(HttpRequest request)

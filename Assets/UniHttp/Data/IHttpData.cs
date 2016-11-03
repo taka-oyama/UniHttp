@@ -2,7 +2,7 @@
 
 namespace UniHttp
 {
-	interface IHttpData
+	public interface IHttpData
 	{
 		string GetContentType();
 		byte[] ToBytes();

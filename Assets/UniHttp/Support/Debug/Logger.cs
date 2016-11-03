@@ -4,7 +4,7 @@ namespace UniHttp
 {
 	public class Logger
 	{
-		public enum Level { Debug, Info, Warning, Error, Exception }
+		public enum Level : byte { Debug, Info, Warning, Error, Exception, None }
 
 		public static Level LogLevel = Level.Info;
 		public static ILogger logger = UnityEngine.Debug.logger;
@@ -13,100 +13,100 @@ namespace UniHttp
 		#region Debug
 		public static void Debug(object message)
 		{
-			logger.Log(kTAG, message);
+			if(LogLevel <= Level.Debug) logger.Log(kTAG, message);
 		}
 
 		public static void Debug(object message, Object context)
 		{
-			logger.Log(kTAG, message, context);
+			if(LogLevel <= Level.Debug) logger.Log(kTAG, message, context);
 		}
 
 		public static void DebugFormat(string format, params object[] objects)
 		{
-			logger.Log(kTAG, string.Format(format, objects));
+			if(LogLevel <= Level.Debug) logger.Log(kTAG, string.Format(format, objects));
 		}
 
 		public static void DebugFormat(Object context, string format, params object[] objects)
 		{
-			logger.Log(kTAG, string.Format(format, objects), context);
+			if(LogLevel <= Level.Debug) logger.Log(kTAG, string.Format(format, objects), context);
 		}
 		#endregion
 
 		#region Info
 		public static void Info(object message)
 		{
-			logger.Log(kTAG, message);
+			if(LogLevel <= Level.Info) logger.Log(kTAG, message);
 		}
 
 		public static void Info(object message, Object context)
 		{
-			logger.Log(kTAG, message, context);
+			if(LogLevel <= Level.Info) logger.Log(kTAG, message, context);
 		}
 
 		public static void InfoFormat(string format, params object[] objects)
 		{
-			logger.Log(kTAG, string.Format(format, objects));
+			if(LogLevel <= Level.Info) logger.Log(kTAG, string.Format(format, objects));
 		}
 
 		public static void InfoFormat(Object context, string format, params object[] objects)
 		{
-			logger.Log(kTAG, string.Format(format, objects), context);
+			if(LogLevel <= Level.Info) logger.Log(kTAG, string.Format(format, objects), context);
 		}
 		#endregion
 
 		#region Warning
 		public static void Warning(object message)
 		{
-			logger.LogWarning(kTAG, message);
+			if(LogLevel <= Level.Warning) logger.LogWarning(kTAG, message);
 		}
 
 		public static void Warning(object message, Object context)
 		{
-			logger.LogWarning(kTAG, message, context);
+			if(LogLevel <= Level.Warning) logger.LogWarning(kTAG, message, context);
 		}
 
 		public static void WarningFormat(string format, params object[] objects)
 		{
-			logger.LogWarning(kTAG, string.Format(format, objects));
+			if(LogLevel <= Level.Warning) logger.LogWarning(kTAG, string.Format(format, objects));
 		}
 
 		public static void WarningFormat(Object context, string format, params object[] objects)
 		{
-			logger.LogWarning(kTAG, string.Format(format, objects), context);
+			if(LogLevel <= Level.Warning) logger.LogWarning(kTAG, string.Format(format, objects), context);
 		}
 		#endregion
 
 		#region Error
 		public static void Error(object message)
 		{
-			logger.LogError(kTAG, message);
+			if(LogLevel <= Level.Error) logger.LogError(kTAG, message);
 		}
 
 		public static void Error(object message, Object context)
 		{
-			logger.LogError(kTAG, message, context);
+			if(LogLevel <= Level.Error) logger.LogError(kTAG, message, context);
 		}
 
 		public static void ErrorFormat(string format, params object[] objects)
 		{
-			logger.LogError(kTAG, string.Format(format, objects));
+			if(LogLevel <= Level.Error) logger.LogError(kTAG, string.Format(format, objects));
 		}
 
 		public static void ErrorFormat(Object context, string format, params object[] objects)
 		{
-			logger.LogError(kTAG, string.Format(format, objects), context);
+			if(LogLevel <= Level.Error) logger.LogError(kTAG, string.Format(format, objects), context);
 		}
 		#endregion
 
 		#region Exception
 		public static void Exception(System.Exception exception)
 		{
-			logger.LogException(exception);
+			if(LogLevel <= Level.Exception) logger.LogException(exception);
 		}
 
 		public static void Exception(System.Exception exception, Object context)
 		{
-			logger.LogException(exception, context);
+			if(LogLevel <= Level.Exception) logger.LogException(exception, context);
 		}
 		#endregion
 	}

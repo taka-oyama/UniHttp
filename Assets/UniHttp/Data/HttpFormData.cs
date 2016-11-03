@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Text;
 using System.Collections.Generic;
-using System.Collections;
 using System.IO;
+using System;
 
 namespace UniHttp
 {
@@ -23,16 +23,49 @@ namespace UniHttp
 				this.contentType = contentType;
 			}
 
-			public byte[] ToByteArray()
+			public byte[] ToBytes()
 			{
 				List<byte> list = new List<byte>();
-				list.AddRange(Encoding.UTF8.GetBytes("--" + boundary + Constant.CRLF));
-				list.AddRange(Encoding.UTF8.GetBytes("Content-Disposition: form-data; name=\"" + name + "\""));
-				list.AddRange(Encoding.UTF8.GetBytes(Constant.CRLF + Constant.CRLF));
+				list.AddRange(Encoding.UTF8.GetBytes(ConstructHeader()));
 				list.AddRange(value);
-				list.AddRange(Encoding.UTF8.GetBytes(Constant.CRLF));
-				list.AddRange(Encoding.UTF8.GetBytes(boundary + "--" + Constant.CRLF));
+				list.AddRange(Encoding.UTF8.GetBytes(ConstructFooter()));
 				return list.ToArray();
+			}
+
+			public override string ToString()
+			{
+				StringBuilder sb = new StringBuilder();
+				sb.Append(ConstructHeader());
+				sb.Append(contentType == null ? Encoding.UTF8.GetString(value) : "<Binary Data>");
+				sb.Append(ConstructFooter());
+				return sb.ToString();
+			}
+
+			string ConstructHeader()
+			{
+				StringBuilder sb = new StringBuilder();
+				sb.Append("--");
+				sb.Append(boundary);
+				sb.Append(Constant.CRLF);
+				sb.AppendFormat("Content-Disposition: form-data; name=\"{0}\"", name);
+				sb.Append(Constant.CRLF);
+				if(contentType != null) {
+					sb.Append("Content-Type: ");
+					sb.Append(contentType);
+					sb.Append(Constant.CRLF);
+				}
+				sb.Append(Constant.CRLF);
+				return sb.ToString();
+			}
+
+			string ConstructFooter()
+			{
+				StringBuilder sb = new StringBuilder();
+				sb.Append(Constant.CRLF);
+				sb.Append(boundary);
+				sb.Append("--");
+				sb.Append(Constant.CRLF);
+				return sb.ToString();
 			}
 		}
 
@@ -45,22 +78,16 @@ namespace UniHttp
 			this.data = new List<Parameter>();
 		}
 
+		public HttpFormData() : this("----FormBoundary" + Guid.NewGuid().ToString("N").Substring(0, 8))
+		{
+		}
+
 		public string GetContentType()
 		{
 			return "multipart/form-data";
 		}
 
-		public bool Contains(string name)
-		{
-			for(int i = 0; i < data.Count; i++) {
-				if(data[i].name == name) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		public void Add(string name, byte[] value, string contentType = null)
+		public void Add(string name, byte[] value, string contentType = "application/octet-stream")
 		{
 			data.Add(new Parameter(boundary, name, value, contentType));
 		}
@@ -74,9 +101,18 @@ namespace UniHttp
 		{
 			List<byte> list = new List<byte>();
 			for(int i = 0; i < data.Count; i++) {
-				list.AddRange(data[i].ToByteArray());
+				list.AddRange(data[i].ToBytes());
 			}
 			return list.ToArray();
+		}
+
+		public override string ToString()
+		{
+			StringBuilder sb = new StringBuilder();
+			for(int i = 0; i < data.Count; i++) {
+				sb.Append(data[i].ToString());
+			}
+			return sb.ToString();
 		}
 	}
 }

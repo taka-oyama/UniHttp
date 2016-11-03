@@ -23,15 +23,18 @@ namespace UniHttp
 			this.connectionPool = HttpManager.TcpConnectionPool;
 			this.requestProcessor = new RequestPreprocessor(setting, cookieJar, cacheHandler);
 			this.responseProcessor = new ResponsePostprocessor(setting, cookieJar, cacheHandler);
-
 		}
 
 		internal HttpResponse Send(HttpRequest request)
 		{
 			try {
 				requestProcessor.Execute(request);
+				Logger.Info(request.ToString());
+
 				var response = Transmit(request);
 				responseProcessor.Execute(response);
+				Logger.Info(response.ToString(true));
+
 				return response;
 			}
 			catch(SocketException exception) {
@@ -44,7 +47,7 @@ namespace UniHttp
 			HttpResponse response;
 			while(true) {
 				HttpStream stream = connectionPool.CheckOut(request);
-				byte[] data = new RequestDataBuilder(request).Build();
+				byte[] data = request.ToBytes();
 				stream.Write(data, 0, data.Length);
 				stream.Flush();
 
@@ -92,7 +95,7 @@ namespace UniHttp
 					method = HttpMethod.GET;
 				}
 			}
-			return new HttpRequest(uri, method, request.Headers, request.Data);
+			return new HttpRequest(method, uri, request.Headers, request.Data);
 		}
 	}
 }
