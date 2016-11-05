@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Text;
+using System;
 
 namespace UniHttp
 {
@@ -29,7 +30,7 @@ namespace UniHttp
 
 		public byte[] ToBytes()
 		{
-			return Encoding.UTF8.GetBytes(json);
+			return Encoding.UTF8.GetBytes(ToString());
 		}
 	}
 }

@@ -6,7 +6,7 @@ using System;
 
 namespace UniHttp
 {
-	public sealed class HttpFormData : IHttpData
+	public sealed class HttpMultipartForm : IHttpData
 	{
 		public class Parameter
 		{
@@ -72,13 +72,13 @@ namespace UniHttp
 		string boundary;
 		List<Parameter> data;
 
-		public HttpFormData(string boundary)
+		public HttpMultipartForm(string boundary)
 		{
 			this.boundary = boundary;
 			this.data = new List<Parameter>();
 		}
 
-		public HttpFormData() : this("----FormBoundary" + Guid.NewGuid().ToString("N").Substring(0, 8))
+		public HttpMultipartForm() : this("----FormBoundary" + Guid.NewGuid().ToString("N").Substring(0, 8))
 		{
 		}
 

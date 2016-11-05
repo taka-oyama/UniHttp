@@ -1,17 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
 using System;
 
 namespace UniHttp
 {
-	public sealed class HttpQueryString
+	public class HttpQuery
 	{
 		string separator;
 		string delimiter;
 		Dictionary<string, List<string>> query;
 
-		public HttpQueryString(string separator = "&", string delimiter = "=")
+		public HttpQuery(string separator = "&", string delimiter = "=")
 		{
 			this.separator = separator;
 			this.delimiter = delimiter;
@@ -30,9 +29,11 @@ namespace UniHttp
 		{
 			List<string> kv = new List<string>();
 			foreach(string name in query.Keys) {
-				query[name].ForEach(value => kv.Add(string.Concat(name, delimiter, value)));
+				foreach(string value in query[name]) {
+					kv.Add(string.Concat(Uri.EscapeUriString(name), delimiter, Uri.EscapeUriString(value)));
+				}
 			}
-			return Uri.EscapeUriString(string.Join(separator, kv.ToArray()));
+			return string.Join(separator, kv.ToArray());
 		}
 	}
 }
