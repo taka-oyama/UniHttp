@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
 using System;
-using UniRx;
 using UniHttp;
 using System.Collections.Generic;
 
 public class Test : MonoBehaviour {
 	void Start () {
-		MainThreadDispatcher.Initialize();
 		HttpManager.Initalize();
 
 		HttpClient client = new HttpClient();

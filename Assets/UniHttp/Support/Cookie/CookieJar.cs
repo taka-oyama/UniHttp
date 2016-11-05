@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Text;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -12,11 +10,13 @@ namespace UniHttp
 {
 	internal sealed class CookieJar
 	{
+		object locker;
 		FileInfo storage;
 		Dictionary<string, List<Cookie>> cookies;
 
 		internal CookieJar(FileInfo storage)
 		{
+			this.locker = new object();
 			this.storage = storage;
 			this.cookies = ReadFromFile();
 		}
@@ -26,39 +26,43 @@ namespace UniHttp
 			List<Cookie> relevants = new List<Cookie>();
 			IPAddress address;
 
-			if(IPAddress.TryParse(uri.Host, out address)) {
-				relevants.AddRange(Fetch(uri, uri.Host));
-			} else {
-				string domain = uri.Host;
-				int index = 0;
-				do {
-					relevants.AddRange(Fetch(uri, domain));
-					index = domain.IndexOf('.');
-					domain = domain.Substring(index + 1);
-				} while(index >= 0);
+			lock(locker) {
+				if(IPAddress.TryParse(uri.Host, out address)) {
+					relevants.AddRange(Fetch(uri, uri.Host));
+				} else {
+					string domain = uri.Host;
+					int index = 0;
+					do {
+						relevants.AddRange(Fetch(uri, domain));
+						index = domain.IndexOf('.');
+						domain = domain.Substring(index + 1);
+					} while(index >= 0);
+				}
+				return relevants;
 			}
-			return relevants;
 		}
 
 		internal void AddOrReplaceRange(List<Cookie> cookies)
 		{
-			Monitor.Enter(cookies);
-			cookies.ForEach(Add);
-			Monitor.Exit(cookies);
+			lock(locker) {
+				cookies.ForEach(Add);
+			}
 		}
 
 		internal void CleanUp()
 		{
-			foreach(string key in cookies.Keys) {
-				cookies[key].RemoveAll(c => c.IsExpired);
+			lock(locker) {
+				foreach(string key in cookies.Keys) {
+					cookies[key].RemoveAll(c => c.IsExpired);
+				}
 			}
 		}
 
 		internal void Clear()
 		{
-			Monitor.Enter(cookies);
-			cookies.Clear();
-			Monitor.Exit(cookies);
+			lock(locker) {
+				cookies.Clear();
+			}
 		}
 
 		void Add(Cookie cookie)
@@ -103,13 +107,15 @@ namespace UniHttp
 
 		public void SaveToFile()
 		{
-			CleanUp();
-			var saveable = new Dictionary<string, List<Cookie>>();
-			foreach(string key in cookies.Keys) {
-				saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
-			}
-			using(Stream stream = storage.Create()) {
-				new BinaryFormatter().Serialize(stream, saveable);
+			lock(locker) {
+				CleanUp();
+				var saveable = new Dictionary<string, List<Cookie>>();
+				foreach(string key in cookies.Keys) {
+					saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
+				}
+				using(Stream stream = storage.Create()) {
+					new BinaryFormatter().Serialize(stream, saveable);
+				}
 			}
 		}
 
@@ -118,22 +124,26 @@ namespace UniHttp
 			if(!storage.Exists) {
 				return new Dictionary<string, List<Cookie>>();
 			}
-			using(Stream stream = storage.OpenRead()) {
-				var binaryFormatter = new BinaryFormatter();
-				return binaryFormatter.Deserialize(stream) as Dictionary<string, List<Cookie>>;
+			lock(locker) {
+				using(Stream stream = storage.OpenRead()) {
+					var binaryFormatter = new BinaryFormatter();
+					return binaryFormatter.Deserialize(stream) as Dictionary<string, List<Cookie>>;
+				}
 			}
 		}
 
 		public override string ToString()
 		{
-			StringBuilder sb = new StringBuilder();
-			foreach(string key in cookies.Keys) {
-				sb.Append(key + ":\n");
-				foreach(var cookie in cookies[key]) {
-					sb.Append("   " + cookie.ToString() + "\n");
+			lock(locker) {
+				StringBuilder sb = new StringBuilder();
+				foreach(string key in cookies.Keys) {
+					sb.Append(key + ":\n");
+					foreach(var cookie in cookies[key]) {
+						sb.Append("   " + cookie.ToString() + "\n");
+					}
 				}
+				return sb.ToString();
 			}
-			return sb.ToString();
 		}
 	}
 }
