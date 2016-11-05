@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace UniHttp
 {
-	public class RequestHeaders
+	public sealed class RequestHeaders
 	{
 		Dictionary<string, string> fields;
 

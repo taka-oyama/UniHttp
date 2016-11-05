@@ -5,7 +5,7 @@ using System;
 
 namespace UniHttp
 {
-	public class HttpManager : MonoBehaviour
+	public sealed class HttpManager : MonoBehaviour
 	{
 		static GameObject go;
 

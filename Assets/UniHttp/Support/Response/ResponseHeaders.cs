@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace UniHttp
 {
-	public class ResponseHeaders
+	public sealed class ResponseHeaders
 	{
 		Dictionary<string, List<string>> fields;
 

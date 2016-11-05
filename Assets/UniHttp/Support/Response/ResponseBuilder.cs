@@ -8,7 +8,7 @@ using Unity.IO.Compression;
 
 namespace UniHttp
 {
-	internal class ResponseBuilder
+	internal sealed class ResponseBuilder
 	{
 		const char LF = '\n';
 

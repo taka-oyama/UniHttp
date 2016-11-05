@@ -2,7 +2,7 @@
 
 namespace UniHttp
 {
-	internal class ResponsePostprocessor
+	internal sealed class ResponsePostprocessor
 	{
 		HttpSetting setting;
 		CookieJar cookieJar;

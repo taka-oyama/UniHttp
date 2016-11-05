@@ -5,7 +5,7 @@ using System.Text;
 
 namespace UniHttp
 {
-	internal class HttpTransport
+	internal sealed class HttpTransport
 	{
 		static int[] REDIRECTS = new [] {301, 302, 303, 307, 308};
 

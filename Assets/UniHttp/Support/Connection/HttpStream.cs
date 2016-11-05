@@ -6,7 +6,7 @@ using System.Net.Security;
 
 namespace UniHttp
 {
-	internal class HttpStream : Stream
+	internal sealed class HttpStream : Stream
 	{
 		internal string url;
 		TcpClient tcpClient;

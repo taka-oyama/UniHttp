@@ -2,7 +2,7 @@
 
 namespace UniHttp
 {
-	internal class Constant
+	internal sealed class Constant
 	{
 		internal const string SPACE = " ";
 		internal const string CRLF = "\r\n";

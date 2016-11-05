@@ -5,7 +5,7 @@ using System;
 
 namespace UniHttp
 {
-	internal class RequestPreprocessor
+	internal sealed class RequestPreprocessor
 	{
 		HttpSetting setting;
 		CookieJar cookieJar;

@@ -3,7 +3,7 @@ using System;
 
 namespace UniHttp
 {	
-	internal class RequestHeadersDefaultBuilder
+	internal sealed class RequestHeadersDefaultBuilder
 	{
 		HttpRequest request;
 		RequestHeaders headers;
