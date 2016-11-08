@@ -113,9 +113,13 @@ namespace UniHttp
 				foreach(string key in cookies.Keys) {
 					saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
 				}
-				using(Stream stream = storage.Create()) {
+				FileInfo temp = new FileInfo(storage.FullName + ".tmp");
+				temp.Delete();
+				using(Stream stream = temp.Create()) {
 					new BinaryFormatter().Serialize(stream, saveable);
 				}
+				storage.Delete();
+				temp.MoveTo(storage.FullName);
 			}
 		}
 
@@ -126,8 +130,7 @@ namespace UniHttp
 			}
 			lock(locker) {
 				using(Stream stream = storage.OpenRead()) {
-					var binaryFormatter = new BinaryFormatter();
-					return binaryFormatter.Deserialize(stream) as Dictionary<string, List<Cookie>>;
+					return new BinaryFormatter().Deserialize(stream) as Dictionary<string, List<Cookie>>;
 				}
 			}
 		}

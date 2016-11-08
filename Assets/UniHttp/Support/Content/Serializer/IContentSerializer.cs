@@ -2,9 +2,8 @@
 
 namespace UniHttp
 {
-	public interface IJsonSerializer
+	public interface IContentSerializer
 	{
 		string Serialize<T>(T target);
-		T Deserialize<T>(string json);
 	}
 }

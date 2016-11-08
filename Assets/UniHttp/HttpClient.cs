@@ -9,21 +9,21 @@ namespace UniHttp
 	{
 		public HttpSetting setting;
 
-		HttpTransport transport;
+		ConnectionHandler transport;
 		List<HttpRequest> ongoingRequests;
-		Queue<HttpDispatchInfo> pendingRequests;
+		Queue<DispatchInfo> pendingRequests;
 
 		public HttpClient(HttpSetting? setting = null)
 		{
 			this.setting = setting.HasValue ? setting.Value : HttpSetting.Default;
-			this.transport = new HttpTransport(this.setting);
+			this.transport = new ConnectionHandler(this.setting);
 			this.ongoingRequests = new List<HttpRequest>();
-			this.pendingRequests = new Queue<HttpDispatchInfo>();
+			this.pendingRequests = new Queue<DispatchInfo>();
 		}
 
 		public void Send(HttpRequest request, Action<HttpResponse> callback)
 		{
-			pendingRequests.Enqueue(new HttpDispatchInfo(request, callback));
+			pendingRequests.Enqueue(new DispatchInfo(request, callback));
 			ExecuteIfPossible();
 		}
 
@@ -38,7 +38,7 @@ namespace UniHttp
 			}
 		}
 
-		void SendInThread(HttpDispatchInfo info)
+		void SendInThread(DispatchInfo info)
 		{
 			WrapInThread(() => {
 				try {

@@ -7,13 +7,15 @@ namespace UniHttp
 	internal sealed class CacheHandler
 	{
 		DirectoryInfo baseDirectory;
-		Dictionary<string, Cache> caches;
+		Dictionary<string, CacheInfo> caches;
+		ICacheStorage storage;
 		object locker;
 
-		internal CacheHandler(DirectoryInfo baseDirectory)
+		internal CacheHandler(DirectoryInfo baseDirectory, ICacheStorage storage)
 		{
 			this.baseDirectory = baseDirectory;
-			this.caches = new Dictionary<string, Cache>();
+			this.caches = new Dictionary<string, CacheInfo>();
+			this.storage = storage;
 			this.locker = new object();
 		}
 
@@ -60,7 +62,7 @@ namespace UniHttp
 			return false;
 		}
 
-		internal Cache Find(HttpRequest request)
+		internal CacheInfo Find(HttpRequest request)
 		{
 			if(!IsCachable(request)) {
 				return null;
@@ -78,34 +80,23 @@ namespace UniHttp
 
 		internal void CacheResponse(HttpResponse response)
 		{
-			string url = response.Request.Uri.AbsoluteUri;
-			WriteToFile(url, response.MessageBody);
-			UpdateDictionary(url, response);
-		}
-
-		void WriteToFile(string url, byte[] data)
-		{
-			string filePath = baseDirectory.FullName + url;
-			string tempPath = filePath + ".tmp";
-			File.WriteAllBytes(tempPath, data);
-			File.Move(tempPath, filePath);
-		}
-
-		void UpdateDictionary(string url, HttpResponse response)
-		{
 			lock(locker) {
+				string url = response.Request.Uri.AbsoluteUri;
 				if(caches.ContainsKey(url)) {
 					caches[url].Update(response);
 				} else {
-					caches.Add(url, new Cache(response));
+					caches.Add(url, new CacheInfo(response));
 				}
+				storage.Write(baseDirectory, response.Request.Uri, response.MessageBody);
 			}
 		}
 
 		internal void Clear()
 		{
-			baseDirectory.Delete(true);
-			caches.Clear();
+			lock(locker) {
+				baseDirectory.Delete(true);
+				caches.Clear();
+			}
 		}
 	}
 }

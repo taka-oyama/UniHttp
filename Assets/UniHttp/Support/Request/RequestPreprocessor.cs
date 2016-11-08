@@ -62,7 +62,7 @@ namespace UniHttp
 
 		void AddCacheDirectiveToRequest(HttpRequest request)
 		{
-			Cache cache = cacheHandler.Find(request);
+			CacheInfo cache = cacheHandler.Find(request);
 			if(cache == null) {
 				return;
 			}

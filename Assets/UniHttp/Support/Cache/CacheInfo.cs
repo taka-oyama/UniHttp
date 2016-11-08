@@ -5,7 +5,7 @@ using System.Text;
 namespace UniHttp
 {
 	[Serializable]
-	internal sealed class Cache
+	internal sealed class CacheInfo
 	{
 		internal string domain;
 		internal string path;
@@ -15,13 +15,13 @@ namespace UniHttp
 		internal DateTime? lastModified;
 		internal DateTime createdAt;
 
-		internal Cache(HttpResponse response)
+		internal CacheInfo(HttpResponse response)
 		{
 			this.createdAt = DateTime.Now;
 			Update(response);
 		}
 
-		public void Update(HttpResponse response)
+		internal void Update(HttpResponse response)
 		{
 			Uri uri = response.Request.Uri;
 

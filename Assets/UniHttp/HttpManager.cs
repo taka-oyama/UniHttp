@@ -7,31 +7,42 @@ namespace UniHttp
 {
 	public sealed class HttpManager : MonoBehaviour
 	{
-		static GameObject go;
+		public string dataPath;
+		public int maxPersistentConnections;
 
-		public static int maxPersistentConnections = 6;
-		public static string DataPath = Application.temporaryCachePath + "/UniHttp/";
-		public static IJsonSerializer JsonSerializer = new DefaultJsonSerializer();
-		public static ISslVerifier SslVerifier = new NoSslVerifier();
+		public static IContentSerializer RequestBodySerializer;
+		public static ISslVerifier SslVerifier;
+		public static ICacheStorage CacheStorage;
 
 		internal static Queue<Action> MainThreadQueue;
 		internal static HttpStreamPool TcpConnectionPool;
 		internal static CookieJar CookieJar;
 		internal static CacheHandler CacheHandler;
 
-		public static void Initalize()
+		public static void Initalize(string dataPath = null, int maxPersistentConnections = 6)
 		{
-			Directory.CreateDirectory(DataPath);
+			if(GameObject.Find("HttpManager")) {
+				throw new Exception("HttpManager should not be Initialized more than once");
+			}
+			GameObject go = new GameObject("HttpManager");
+			go.AddComponent<HttpManager>().Setup(dataPath, maxPersistentConnections);
+			GameObject.DontDestroyOnLoad(go);
+		}
+
+		void Setup(string dataPath, int maxPersistentConnections)
+		{
+			this.dataPath = dataPath = dataPath ?? Application.temporaryCachePath + "/UniHttp/";
+			this.maxPersistentConnections = maxPersistentConnections;
+			Directory.CreateDirectory(dataPath);
+
+			RequestBodySerializer = new JsonSerializer();
+			SslVerifier = new DefaultSslVerifier();
+			CacheStorage = new DefaultCacheStorage(new PersistentId(new FileInfo(dataPath + "id.key")).Fetch());
+
 			MainThreadQueue = new Queue<Action>();
 			TcpConnectionPool = new HttpStreamPool(maxPersistentConnections);
-			CookieJar = new CookieJar(new FileInfo(DataPath + "Cookie.bin"));
-			CacheHandler = new CacheHandler(new DirectoryInfo(DataPath + "Cache/"));
-
-			if(go == null) {
-				go = new GameObject("HttpManager");
-				go.AddComponent<HttpManager>();
-				GameObject.DontDestroyOnLoad(go);
-			}
+			CookieJar = new CookieJar(new FileInfo(dataPath + "Cookie.bin"));
+			CacheHandler = new CacheHandler(new DirectoryInfo(dataPath + "Cache/"), CacheStorage);
 		}
 
 		void FixedUpdate()
