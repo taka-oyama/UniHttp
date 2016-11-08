@@ -45,6 +45,7 @@ namespace UniHttp
 			if(Data != null) {
 				sb.Append(Data.ToString());
 			}
+			sb.Append(Constant.CRLF);
 			return sb.ToString();
 		}
 
