@@ -39,7 +39,6 @@ namespace UniHttp
 				sb.Append(MessageBodyAsString());
 				sb.Append(Constant.CRLF);
 			}
-			sb.Append(Constant.CRLF);
 			return sb.ToString();
 		}
 
@@ -55,10 +54,12 @@ namespace UniHttp
 		string MessageBodyAsString()
 		{
 			int maxSize = 1024 * 1024;
+			int bufferSize = Math.Min(MessageBody.Length, maxSize);
 			StringBuilder sb = new StringBuilder();
+
 			if(IsStringableContentType()) {
-				byte[] buffer = new byte[maxSize];
-				Buffer.BlockCopy(MessageBody, 0, buffer, 0, Math.Min(MessageBody.Length, maxSize));
+				byte[] buffer = new byte[bufferSize];
+				Buffer.BlockCopy(MessageBody, 0, buffer, 0, bufferSize);
 				sb.Append(Encoding.UTF8.GetString(buffer));
 				if(buffer.Length == maxSize) {
 					sb.Append("...<too much data to print>");

@@ -56,6 +56,7 @@ namespace UniHttp
 
 				if(setting.followRedirects && IsRedirect(response)) {
 					request = ConstructRequest(response);
+					Logger.Info("Redirecting to " + request.ToString());
 				} else {
 					break;
 				}

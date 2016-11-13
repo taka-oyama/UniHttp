@@ -16,12 +16,14 @@ namespace UniHttp
 		HttpResponse response;
 		Stream sourceStream;
 		int bufferSize;
+		MessageBodyDecoder bodyDecoder;
 
 		internal ResponseBuilder(HttpRequest request, Stream sourceStream, int bufferSize = 1024)
 		{
 			this.response = new HttpResponse(request);
 			this.sourceStream = sourceStream;
 			this.bufferSize = bufferSize;
+			this.bodyDecoder = new MessageBodyDecoder(response, bufferSize);
 		}
 
 		internal HttpResponse Build()
@@ -77,13 +79,12 @@ namespace UniHttp
 			using(MemoryStream destination = new MemoryStream())
 			{
 				int chunkSize = ReadChunkSize();
-				bool isGzipped = IsGzipped();
 				while(chunkSize > 0) {
-					CopyTo(destination, chunkSize, bufferSize, isGzipped);
+					CopyTo(destination, chunkSize);
 					SkipTo(LF);
 					chunkSize = ReadChunkSize();
 				}
-				return destination.ToArray();
+				return bodyDecoder.Decode(destination);
 			}
 		}
 
@@ -91,8 +92,8 @@ namespace UniHttp
 		{
 			using(MemoryStream destination = new MemoryStream())
 			{
-				CopyTo(destination, contentLength, bufferSize, IsGzipped());
-				return destination.ToArray();
+				CopyTo(destination, contentLength);
+				return bodyDecoder.Decode(destination);
 			}
 		}
 
@@ -103,11 +104,6 @@ namespace UniHttp
 				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).Trim();
 				return int.Parse(hexStr, NumberStyles.HexNumber);
 			}
-		}
-
-		bool IsGzipped()
-		{
-			return response.Headers.Exist("Content-Encoding", "gzip");
 		}
 
 		string ReadTo(params char[] stoppers)
@@ -142,27 +138,15 @@ namespace UniHttp
 			return count;
 		}
 
-		void CopyTo(Stream destination, int count, int bufferSize = 1024, bool decompress = false)
+		void CopyTo(Stream destination, int count)
 		{
 			byte[] buffer = new byte[bufferSize];
 			int remainingBytes = count;
 			int readBytes = 0;
-
-			if(decompress) {
-				using(GZipStream gzipStream = new GZipStream(sourceStream, CompressionMode.Decompress)) {
-					while(remainingBytes > 0) {
-						while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
-							destination.Write(buffer, 0, readBytes);
-							remainingBytes -= readBytes;
-						}
-					}
-				}
-			} else {
-				while(remainingBytes > 0) {
-					readBytes = sourceStream.Read(buffer, 0, Math.Min(buffer.Length, remainingBytes));
-					destination.Write(buffer, 0, readBytes);
-					remainingBytes -= readBytes;
-				}
+			while(remainingBytes > 0) {
+				readBytes = sourceStream.Read(buffer, 0, Math.Min(buffer.Length, remainingBytes));
+				destination.Write(buffer, 0, readBytes);
+				remainingBytes -= readBytes;
 			}
 		}
 	}
