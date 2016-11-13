@@ -23,6 +23,7 @@ internal sealed class PersistentId
 			return id;
 		}
 		id = new Guid().ToString("N");
+		info.Directory.Create();
 		File.WriteAllText(info.FullName, id);
 		return id;
 	}

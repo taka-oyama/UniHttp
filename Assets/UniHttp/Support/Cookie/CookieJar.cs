@@ -19,6 +19,8 @@ namespace UniHttp
 			this.locker = new object();
 			this.storage = storage;
 			this.cookies = ReadFromFile();
+
+			storage.Directory.Create();
 		}
 
 		internal List<Cookie> FindMatch(Uri uri)

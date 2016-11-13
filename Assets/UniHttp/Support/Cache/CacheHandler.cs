@@ -17,11 +17,13 @@ namespace UniHttp
 			this.caches = new Dictionary<string, CacheInfo>();
 			this.storage = storage;
 			this.locker = new object();
+
+			baseDirectory.Create();
 		}
 
 		internal bool IsCachable(HttpRequest request)
 		{
-			if(request.Method != HttpMethod.GET || request.Method != HttpMethod.HEAD) {
+			if(request.Method != HttpMethod.GET && request.Method != HttpMethod.HEAD) {
 				return false;
 			}
 			if(request.Headers.Exist("Cache-Control", "no-store")) {

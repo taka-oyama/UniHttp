@@ -33,7 +33,7 @@ namespace UniHttp
 
 				var response = Transmit(request);
 				responseProcessor.Execute(response);
-				Logger.Info(response.ToString(true));
+				Logger.Info(response.ToString());
 
 				return response;
 			}

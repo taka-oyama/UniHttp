@@ -29,9 +29,9 @@ namespace UniHttp
 			GameObject.DontDestroyOnLoad(go);
 		}
 
-		void Setup(string dataPath, int maxPersistentConnections)
+		void Setup(string baseDataPath, int maxPersistentConnections)
 		{
-			this.dataPath = dataPath = dataPath ?? Application.temporaryCachePath + "/UniHttp/";
+			this.dataPath = baseDataPath ?? Application.temporaryCachePath + "/UniHttp/";
 			this.maxPersistentConnections = maxPersistentConnections;
 			Directory.CreateDirectory(dataPath);
 

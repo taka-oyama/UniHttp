@@ -2,6 +2,7 @@
 using System.Text;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace UniHttp
 {
@@ -22,27 +23,23 @@ namespace UniHttp
 
 		public override string ToString()
 		{
-			return ToString(IsStringableContentType());
-		}
-
-		public string ToString(bool showMessageBody = false)
-		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(HttpVersion);
-			sb.Append(" ");
+			sb.Append(Constant.SPACE);
 			sb.Append(StatusCode);
-			sb.Append(" ");
+			sb.Append(Constant.SPACE);
 			sb.Append(StatusPhrase);
-			sb.Append("\n");
+			sb.Append(Constant.CRLF);
 			if(Headers.Length > 0) {
 				sb.Append(Headers.ToString());
-				sb.Append("\n");
+				sb.Append(Constant.CRLF);
 			}
-			if(showMessageBody) {
-				sb.Append("\n");
-				sb.Append(Encoding.UTF8.GetString(MessageBody));
-				sb.Append("\n");
+			if(MessageBody.Length > 0) {
+				sb.Append(Constant.CRLF);
+				sb.Append(MessageBodyAsString());
+				sb.Append(Constant.CRLF);
 			}
+			sb.Append(Constant.CRLF);
 			return sb.ToString();
 		}
 
@@ -53,6 +50,23 @@ namespace UniHttp
 			if(Headers["Content-Type"][0].Contains("application/json")) return true;
 			if(Headers["Content-Type"][0].Contains("application/xml")) return true;
 			return false;
+		}
+
+		string MessageBodyAsString()
+		{
+			int maxSize = 1024 * 1024;
+			StringBuilder sb = new StringBuilder();
+			if(IsStringableContentType()) {
+				byte[] buffer = new byte[maxSize];
+				Buffer.BlockCopy(MessageBody, 0, buffer, 0, Math.Min(MessageBody.Length, maxSize));
+				sb.Append(Encoding.UTF8.GetString(buffer));
+				if(buffer.Length == maxSize) {
+					sb.Append("...<too much data to print>");
+				}
+			} else {
+				sb.AppendFormat("<Binary Data (Size: {0})>", MessageBody.Length.ToString());
+			}
+			return sb.ToString();
 		}
 	}
 }

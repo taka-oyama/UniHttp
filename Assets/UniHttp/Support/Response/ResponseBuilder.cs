@@ -11,6 +11,7 @@ namespace UniHttp
 	internal sealed class ResponseBuilder
 	{
 		const char LF = '\n';
+		const char COLON = ':';
 
 		HttpResponse response;
 		Stream sourceStream;
@@ -47,11 +48,11 @@ namespace UniHttp
 
 		void SetHeaders()
 		{
-			string name = ReadTo(':', LF);
+			string name = ReadTo(COLON, LF);
 			while(name != String.Empty) {
 				string valuesStr = ReadTo(LF);
-				response.Headers.Append(name.TrimEnd(':'), valuesStr.Trim());
-				name = ReadTo(':', LF).Trim();
+				response.Headers.Append(name.TrimEnd(COLON), valuesStr.Trim());
+				name = ReadTo(COLON, LF).Trim();
 			}
 		}
 
