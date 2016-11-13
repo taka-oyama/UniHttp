@@ -10,6 +10,7 @@ namespace UniHttp
 		public string dataPath;
 		public int maxPersistentConnections;
 
+		public static PersistentId PersistentId;
 		public static IContentSerializer RequestBodySerializer;
 		public static ISslVerifier SslVerifier;
 		public static ICacheStorage CacheStorage;
@@ -35,9 +36,10 @@ namespace UniHttp
 			this.maxPersistentConnections = maxPersistentConnections;
 			Directory.CreateDirectory(dataPath);
 
+			PersistentId = new PersistentId(new FileInfo(dataPath + "id.txt"));
 			RequestBodySerializer = new JsonSerializer();
 			SslVerifier = new DefaultSslVerifier();
-			CacheStorage = new DefaultCacheStorage(new PersistentId(new FileInfo(dataPath + "id.key")).Fetch());
+			CacheStorage = new DefaultCacheStorage(PersistentId.Fetch());
 
 			MainThreadQueue = new Queue<Action>();
 			TcpConnectionPool = new HttpStreamPool(maxPersistentConnections);

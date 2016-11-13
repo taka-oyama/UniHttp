@@ -2,7 +2,7 @@
 using System.IO;
 using System;
 
-internal sealed class PersistentId
+public sealed class PersistentId
 {
 	FileInfo info;
 	string id;
@@ -13,7 +13,7 @@ internal sealed class PersistentId
 		Fetch();
 	}
 
-	internal string Fetch()
+	public string Fetch()
 	{
 		if(id != null) {
 			return id;
@@ -22,7 +22,7 @@ internal sealed class PersistentId
 			id = File.ReadAllText(info.FullName);
 			return id;
 		}
-		id = new Guid().ToString("N");
+		id = Guid.NewGuid().ToString("N");
 		info.Directory.Create();
 		File.WriteAllText(info.FullName, id);
 		return id;

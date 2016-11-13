@@ -10,15 +10,17 @@ namespace UniHttp
 	{
 		public bool Verify(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 		{
-			#if !DEBUG
+			#if DEBUG
+			return true;
+			#else
 			if(DateTime.Parse(certificate.GetExpirationDateString()) <= DateTime.Now) {
 				return false;
 			}
 			if(sslPolicyErrors == SslPolicyErrors.None) {
 				return true;
 			}
-			#endif
 			return false;
+			#endif
 		}
 	}
 }
