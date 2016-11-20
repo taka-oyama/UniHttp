@@ -1,12 +1,17 @@
 ﻿using UnityEngine;
 using System;
 using UniHttp;
+using System.Collections;
 
 public class Test : MonoBehaviour
 {
-	void Start ()
+	void Awake()
 	{
 		HttpManager.Initalize();
+	}
+
+	void Start ()
+	{
 		HttpClient client = new HttpClient();
 
 		var uri = new Uri("http://localhost:3000/test/debug.json");

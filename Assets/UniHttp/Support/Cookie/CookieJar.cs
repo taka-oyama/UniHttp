@@ -11,16 +11,14 @@ namespace UniHttp
 	internal sealed class CookieJar
 	{
 		object locker;
-		FileInfo storage;
+		FileIO infoFile;
 		Dictionary<string, List<Cookie>> cookies;
 
-		internal CookieJar(FileInfo storage)
+		internal CookieJar(FileIO infoFile)
 		{
 			this.locker = new object();
-			this.storage = storage;
+			this.infoFile = infoFile;
 			this.cookies = ReadFromFile();
-
-			storage.Directory.Create();
 		}
 
 		internal List<Cookie> FindMatch(Uri uri)
@@ -107,7 +105,7 @@ namespace UniHttp
 			return relevants;
 		}
 
-		public void SaveToFile()
+		internal void SaveToFile()
 		{
 			lock(locker) {
 				CleanUp();
@@ -115,25 +113,17 @@ namespace UniHttp
 				foreach(string key in cookies.Keys) {
 					saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
 				}
-				FileInfo temp = new FileInfo(storage.FullName + ".tmp");
-				temp.Delete();
-				using(Stream stream = temp.Create()) {
-					new BinaryFormatter().Serialize(stream, saveable);
-				}
-				storage.Delete();
-				temp.MoveTo(storage.FullName);
+				infoFile.WriteObject(saveable);
 			}
 		}
 
-		public Dictionary<string, List<Cookie>> ReadFromFile()
+		internal Dictionary<string, List<Cookie>> ReadFromFile()
 		{
-			if(!storage.Exists) {
+			if(!infoFile.Exists) {
 				return new Dictionary<string, List<Cookie>>();
 			}
 			lock(locker) {
-				using(Stream stream = storage.OpenRead()) {
-					return new BinaryFormatter().Deserialize(stream) as Dictionary<string, List<Cookie>>;
-				}
+				return infoFile.ReadObject<Dictionary<string, List<Cookie>>>();
 			}
 		}
 

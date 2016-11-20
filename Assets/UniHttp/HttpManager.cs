@@ -9,11 +9,11 @@ namespace UniHttp
 	{
 		public string dataPath;
 		public int maxPersistentConnections;
+		public string encryptionPassword;
 
-		public static PersistentId PersistentId;
 		public static IContentSerializer RequestBodySerializer;
 		public static ISslVerifier SslVerifier;
-		public static ICacheStorage CacheStorage;
+		public static CacheStorage CacheStorage;
 
 		internal static Queue<Action> MainThreadQueue;
 		internal static HttpStreamPool TcpConnectionPool;
@@ -34,17 +34,17 @@ namespace UniHttp
 		{
 			this.dataPath = baseDataPath ?? Application.temporaryCachePath + "/UniHttp/";
 			this.maxPersistentConnections = maxPersistentConnections;
+			this.encryptionPassword = Application.bundleIdentifier;
 			Directory.CreateDirectory(dataPath);
 
-			PersistentId = new PersistentId(new FileInfo(dataPath + "id.txt"));
 			RequestBodySerializer = new JsonSerializer();
 			SslVerifier = new DefaultSslVerifier();
-			CacheStorage = new DefaultCacheStorage(PersistentId.Fetch());
+			CacheStorage = new CacheStorage(new DirectoryInfo(dataPath + "Cache/"), encryptionPassword);
 
 			MainThreadQueue = new Queue<Action>();
 			TcpConnectionPool = new HttpStreamPool(maxPersistentConnections);
-			CookieJar = new CookieJar(new FileInfo(dataPath + "Cookie.bin"));
-			CacheHandler = new CacheHandler(new DirectoryInfo(dataPath + "Cache/"), CacheStorage);
+			CookieJar = new CookieJar(new FileIO(dataPath + "Cookie.bin", encryptionPassword));
+			CacheHandler = new CacheHandler(new FileIO(dataPath + "CacheInfo.bin", encryptionPassword), CacheStorage);
 		}
 
 		void FixedUpdate()
@@ -57,6 +57,7 @@ namespace UniHttp
 		internal static void Save()
 		{
 			CookieJar.SaveToFile();
+			CacheHandler.SaveToFile();
 		}
 
 		void OnApplicationPause(bool isPaused)

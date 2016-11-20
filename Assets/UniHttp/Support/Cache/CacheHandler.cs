@@ -1,24 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace UniHttp
 {
 	internal sealed class CacheHandler
 	{
-		DirectoryInfo baseDirectory;
-		Dictionary<string, CacheInfo> caches;
-		ICacheStorage storage;
 		object locker;
+		FileIO infoFile;
+		Dictionary<string, CacheInfo> caches;
+		CacheStorage storage;
 
-		internal CacheHandler(DirectoryInfo baseDirectory, ICacheStorage storage)
+		internal CacheHandler(FileIO infoFile, CacheStorage storage)
 		{
-			this.baseDirectory = baseDirectory;
-			this.caches = new Dictionary<string, CacheInfo>();
-			this.storage = storage;
 			this.locker = new object();
-
-			baseDirectory.Create();
+			this.infoFile = infoFile;
+			this.caches = ReadFromFile();
+			this.storage = storage;
 		}
 
 		internal bool IsCachable(HttpRequest request)
@@ -69,7 +68,8 @@ namespace UniHttp
 			if(!IsCachable(request)) {
 				return null;
 			}
-			if(!File.Exists(request.Uri.AbsoluteUri)) {
+			if(!storage.Exists(request.Uri)) {
+				Debug.Log(request.Uri.ToString());
 				return null;
 			}
 			lock(locker) {
@@ -89,15 +89,32 @@ namespace UniHttp
 				} else {
 					caches.Add(url, new CacheInfo(response));
 				}
-				storage.Write(baseDirectory, response.Request.Uri, response.MessageBody);
+				storage.Write(response.Request.Uri, response.MessageBody);
 			}
 		}
 
 		internal void Clear()
 		{
 			lock(locker) {
-				baseDirectory.Delete(true);
 				caches.Clear();
+				storage.Clear();
+			}
+		}
+
+		internal void SaveToFile()
+		{
+			lock(locker) {
+				infoFile.WriteObject(caches);
+			}
+		}
+
+		internal Dictionary<string, CacheInfo> ReadFromFile()
+		{
+			if(!infoFile.Exists) {
+				return new Dictionary<string, CacheInfo>();
+			}
+			lock(locker) {
+				return infoFile.ReadObject<Dictionary<string, CacheInfo>>();
 			}
 		}
 	}

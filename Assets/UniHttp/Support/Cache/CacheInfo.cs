@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UniHttp
 {
-	[Serializable]
+	[Serializable()]
 	internal sealed class CacheInfo
 	{
 		internal string domain;
