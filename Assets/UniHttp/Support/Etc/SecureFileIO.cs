@@ -6,16 +6,16 @@ using System.Collections.Generic;
 
 namespace UniHttp
 {
-	public class FileIO
+	public class SecureFileIO
 	{
 		FileInfo info;
 		string password;
 
 		public bool Exists { get { return info.Exists; } }
 
-		public FileIO(string path, string password) : this(new FileInfo(path), password) {}
+		public SecureFileIO(string path, string password) : this(new FileInfo(path), password) {}
 
-		public FileIO(FileInfo info, string password)
+		public SecureFileIO(FileInfo info, string password)
 		{
 			this.info = info;
 			this.password = password;

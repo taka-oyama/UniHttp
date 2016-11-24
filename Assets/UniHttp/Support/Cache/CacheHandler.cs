@@ -8,11 +8,11 @@ namespace UniHttp
 	internal sealed class CacheHandler
 	{
 		object locker;
-		FileIO infoFile;
+		SecureFileIO infoFile;
 		Dictionary<string, CacheInfo> caches;
 		CacheStorage storage;
 
-		internal CacheHandler(FileIO infoFile, CacheStorage storage)
+		internal CacheHandler(SecureFileIO infoFile, CacheStorage storage)
 		{
 			this.locker = new object();
 			this.infoFile = infoFile;
@@ -69,7 +69,6 @@ namespace UniHttp
 				return null;
 			}
 			if(!storage.Exists(request.Uri)) {
-				Debug.Log(request.Uri.ToString());
 				return null;
 			}
 			lock(locker) {

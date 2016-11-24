@@ -43,8 +43,8 @@ namespace UniHttp
 
 			MainThreadQueue = new Queue<Action>();
 			TcpConnectionPool = new HttpStreamPool(maxPersistentConnections);
-			CookieJar = new CookieJar(new FileIO(dataPath + "Cookie.bin", encryptionPassword));
-			CacheHandler = new CacheHandler(new FileIO(dataPath + "CacheInfo.bin", encryptionPassword), CacheStorage);
+			CookieJar = new CookieJar(new SecureFileIO(dataPath + "Cookie.bin", encryptionPassword));
+			CacheHandler = new CacheHandler(new SecureFileIO(dataPath + "CacheInfo.bin", encryptionPassword), CacheStorage);
 		}
 
 		void FixedUpdate()

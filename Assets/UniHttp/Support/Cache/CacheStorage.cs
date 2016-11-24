@@ -26,14 +26,14 @@ namespace UniHttp
 		public virtual void Write(Uri uri, byte[] data)
 		{
 			lock(locker) {
-				new FileIO(ComputeDirectory(uri) + ComputeFileName(uri), password).Write(data);
+				new SecureFileIO(ComputeDirectory(uri) + ComputeFileName(uri), password).Write(data);
 			}
 		}
 
 		public virtual byte[] Read(Uri uri)
 		{
 			lock(locker) {
-				return new FileIO(ComputeDirectory(uri) + ComputeFileName(uri), password).Read();
+				return new SecureFileIO(ComputeDirectory(uri) + ComputeFileName(uri), password).Read();
 			}
 		}
 
