@@ -42,7 +42,7 @@ namespace UniHttp
 			if(!IsCachable(response.Request)) {
 				return false;
 			}
-			if(response.StatusCode != 200) {
+			if(response.StatusCode != 200 && response.StatusCode != 304) {
 				return false;
 			}
 			if(response.MessageBody.Length == 0) {
@@ -79,7 +79,7 @@ namespace UniHttp
 			return null;
 		}
 
-		internal void CacheResponse(HttpResponse response)
+		internal CacheInfo CacheResponse(HttpResponse response)
 		{
 			lock(locker) {
 				string url = response.Request.Uri.AbsoluteUri;
@@ -89,6 +89,7 @@ namespace UniHttp
 					caches.Add(url, new CacheInfo(response));
 				}
 				storage.Write(response.Request.Uri, response.MessageBody);
+				return caches[url];
 			}
 		}
 

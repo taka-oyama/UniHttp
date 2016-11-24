@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Text;
+using System.Collections.Generic;
 
 namespace UniHttp
 {
@@ -10,6 +11,7 @@ namespace UniHttp
 		internal string domain;
 		internal string path;
 		internal int fileSize;
+		internal List<string> contentType;
 		internal string eTag;
 		internal DateTimeOffset? expireAt;
 		internal DateTimeOffset? lastModified;
@@ -28,7 +30,9 @@ namespace UniHttp
 			this.domain = uri.Authority;
 			this.path = uri.AbsolutePath;
 			this.fileSize = response.MessageBody.Length;
-
+			if(response.Headers.Exist("Content-Type")) {
+				this.contentType = response.Headers["Content-Type"];
+			}
 			if(response.Headers.Exist("ETag")) {
 				this.eTag = response.Headers["ETag"][0];
 			}

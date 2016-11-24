@@ -15,6 +15,7 @@ namespace UniHttp
 		public ResponseHeaders Headers { get; private set; }
 		public byte[] MessageBody { get; internal set; }
 		public TimeSpan RoundTripTime { get; internal set; }
+		internal CacheInfo CacheInfo { get; set; }
 
 		public HttpResponse(HttpRequest request) {
 			this.Request = request;
@@ -44,10 +45,16 @@ namespace UniHttp
 
 		bool IsStringableContentType()
 		{
-			if(Headers.NotExist("Content-Type")) return false;
-			if(Headers["Content-Type"][0].Contains("text/")) return true;
-			if(Headers["Content-Type"][0].Contains("application/json")) return true;
-			if(Headers["Content-Type"][0].Contains("application/xml")) return true;
+			if(Headers.Exist("Content-Type")) {
+				if(Headers["Content-Type"][0].Contains("text/")) return true;
+				if(Headers["Content-Type"][0].Contains("application/json")) return true;
+				if(Headers["Content-Type"][0].Contains("application/xml")) return true;
+			}
+			if(CacheInfo != null) {
+				if(CacheInfo.contentType[0].Contains("text/")) return true;
+				if(CacheInfo.contentType[0].Contains("application/json")) return true;
+				if(CacheInfo.contentType[0].Contains("application/xml")) return true;
+			}
 			return false;
 		}
 

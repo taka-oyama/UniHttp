@@ -60,6 +60,11 @@ namespace UniHttp
 
 		void SetMessageBody()
 		{
+			if(response.StatusCode == 304) {
+				response.MessageBody = HttpManager.CacheStorage.Read(response.Request.Uri);
+				return;
+			}
+
 			if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
 				response.MessageBody = ReadMessageBodyChunked();
 				return;

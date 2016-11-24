@@ -21,7 +21,7 @@ namespace UniHttp
 				cookieJar.AddOrReplaceRange(new CookieParser(response).Parse());
 			}
 			if(setting.useCache && cacheHandler.IsCachable(response)) {
-				cacheHandler.CacheResponse(response);
+				response.CacheInfo = cacheHandler.CacheResponse(response);
 			}
 		}
 	}
