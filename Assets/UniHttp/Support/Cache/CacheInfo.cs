@@ -25,7 +25,7 @@ namespace UniHttp
 		{
 			Uri uri = response.Request.Uri;
 
-			this.domain = uri.Host;
+			this.domain = uri.Authority;
 			this.path = uri.AbsolutePath;
 			this.fileSize = response.MessageBody.Length;
 
