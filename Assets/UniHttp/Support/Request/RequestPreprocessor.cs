@@ -70,7 +70,8 @@ namespace UniHttp
 				request.Headers.Add("If-None-Match", cache.eTag);
 			}
 			if(cache.lastModified.HasValue) {
-				request.Headers.Add("If-Modified-Since", cache.lastModified.Value.ToString("r"));
+				DateTimeOffset modifiedSince = cache.lastModified.Value + cache.lastModified.Value.Offset;
+				request.Headers.Add("If-Modified-Since", modifiedSince.ToString("r"));
 			}
 		}
 	}
