@@ -31,7 +31,7 @@ namespace UniHttp
 		{
 			if(pendingRequests.Count > 0) {
 				if(ongoingRequests.Count < setting.maxConcurrentRequests) {
-					var info = pendingRequests.Dequeue();
+					DispatchInfo info = pendingRequests.Dequeue();
 					ongoingRequests.Add(info.Request);
 					SendInThread(info);
 				}
