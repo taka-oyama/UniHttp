@@ -10,7 +10,6 @@ namespace UniHttp
 	{
 		internal string domain;
 		internal string path;
-		internal int fileSize;
 		internal List<string> contentType;
 		internal string eTag;
 		internal DateTimeOffset? expireAt;
@@ -29,7 +28,6 @@ namespace UniHttp
 
 			this.domain = uri.Authority;
 			this.path = uri.AbsolutePath;
-			this.fileSize = response.MessageBody.Length;
 			if(response.Headers.Exist("Content-Type")) {
 				this.contentType = response.Headers["Content-Type"];
 			}
@@ -56,7 +54,7 @@ namespace UniHttp
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append("[Cache] ");
-			sb.AppendFormat("{0}{1} (size: {2:0.00}KB)\n", domain, path, fileSize);
+			sb.AppendFormat("{0}{1}\n", domain, path);
 			if(eTag != null) {
 				sb.AppendFormat("ETag={0}  ", eTag);
 			}
