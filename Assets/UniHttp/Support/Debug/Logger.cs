@@ -8,7 +8,7 @@ namespace UniHttp
 
 		public static Level LogLevel = Level.Info;
 		public static ILogger logger = UnityEngine.Debug.logger;
-		static string kTAG = "UniHttp";
+		public static string kTAG = "";
 
 		#region Debug
 		public static void Debug(object message)
