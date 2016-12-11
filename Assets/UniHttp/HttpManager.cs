@@ -20,14 +20,15 @@ namespace UniHttp
 		internal static CookieJar CookieJar;
 		internal static CacheHandler CacheHandler;
 
-		public static void Initalize(string dataPath = null, int maxPersistentConnections = 6)
+		public static GameObject Initalize(string dataPath = null, int maxPersistentConnections = 6)
 		{
 			if(GameObject.Find("HttpManager")) {
 				throw new Exception("HttpManager should not be Initialized more than once");
 			}
 			GameObject go = new GameObject("HttpManager");
-			go.AddComponent<HttpManager>().Setup(dataPath, maxPersistentConnections);
 			GameObject.DontDestroyOnLoad(go);
+			go.AddComponent<HttpManager>().Setup(dataPath, maxPersistentConnections);
+			return go;
 		}
 
 		void Setup(string baseDataPath, int maxPersistentConnections)
