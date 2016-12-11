@@ -29,11 +29,11 @@ namespace UniHttp
 		{
 			try {
 				requestProcessor.Execute(request);
-				Logger.Info(request.ToString());
+				LogRequest(request);
 
 				var response = Transmit(request);
 				responseProcessor.Execute(response);
-				Logger.Info(response.ToString());
+				LogResponse(response);
 
 				return response;
 			}
@@ -97,6 +97,18 @@ namespace UniHttp
 				}
 			}
 			return new HttpRequest(method, uri, request.Headers, request.Data);
+		}
+
+		void LogRequest(HttpRequest request)
+		{
+			string logText = string.Concat(request.Uri.ToString(), Constant.CRLF, request.ToString());
+			Logger.Info(logText);
+		}
+
+		void LogResponse(HttpResponse response)
+		{
+			string logText = string.Concat(response.Request.Uri.ToString(), Constant.CRLF, response.ToString());
+			Logger.Info(logText);
 		}
 	}
 }
