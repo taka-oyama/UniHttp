@@ -37,7 +37,7 @@ namespace UniHttp
 		{
 			this.dataPath = baseDataPath ?? Application.temporaryCachePath + "/UniHttp/";
 			this.maxPersistentConnections = maxPersistentConnections;
-			this.encryptionPassword = Application.bundleIdentifier;
+			this.encryptionPassword = Application.identifier;
 			Directory.CreateDirectory(dataPath);
 
 			RequestBodySerializer = new JsonSerializer();

@@ -7,7 +7,7 @@ namespace UniHttp
 		public enum Level : byte { Debug, Info, Warning, Error, Exception, None }
 
 		public static Level LogLevel = Level.Info;
-		public static ILogger logger = UnityEngine.Debug.logger;
+		public static ILogger logger = UnityEngine.Debug.unityLogger;
 
 		#region Debug
 		public static void Debug(object message)
