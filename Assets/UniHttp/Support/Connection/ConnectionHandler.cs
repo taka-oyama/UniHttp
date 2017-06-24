@@ -27,19 +27,21 @@ namespace UniHttp
 
 		internal HttpResponse Send(HttpRequest request)
 		{
+			HttpResponse response = null;
+
 			try {
 				requestProcessor.Execute(request);
 				LogRequest(request);
 
-				var response = Transmit(request);
+				response = Transmit(request);
 				responseProcessor.Execute(response);
-				LogResponse(response);
-
-				return response;
 			}
 			catch(SocketException exception) {
-				return BuildErrorResponse(request, exception);
+				response = BuildErrorResponse(request, exception);
 			}
+
+			LogResponse(response);
+			return response;
 		}
 
 		HttpResponse Transmit(HttpRequest request)

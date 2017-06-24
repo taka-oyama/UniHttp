@@ -17,7 +17,7 @@ namespace UniHttp
 		{
 			this.url = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority); 
 			this.tcpClient = new TcpClient();
-			tcpClient.Connect(uri.Host, uri.Port);
+			this.tcpClient.Connect(uri.Host, uri.Port);
 
 			this.stream = tcpClient.GetStream();
 
@@ -39,7 +39,8 @@ namespace UniHttp
 		public override bool CanSeek { get { return stream.CanSeek; } }
 		public override bool CanWrite { get { return stream.CanTimeout; } }
 		public override long Length { get { return stream.Length; } }
-		public override long Position {
+		public override long Position
+		{
 			get { return stream.Position; }
 			set { stream.Position = value; }
 		}
