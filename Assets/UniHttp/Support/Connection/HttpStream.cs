@@ -33,12 +33,31 @@ namespace UniHttp
 			throw new Exception("Unsupported Scheme:" + uri.Scheme);
 		}
 
-		public bool Connected { get { return tcpClient.Connected; } }
+		public bool Connected
+		{
+			get { return tcpClient.Connected; }
+		}
 
-		public override bool CanRead { get { return stream.CanRead; } }
-		public override bool CanSeek { get { return stream.CanSeek; } }
-		public override bool CanWrite { get { return stream.CanTimeout; } }
-		public override long Length { get { return stream.Length; } }
+		public override bool CanRead
+		{
+			get { return stream.CanRead; }
+		}
+
+		public override bool CanSeek
+		{
+			get { return stream.CanSeek; }
+		}
+
+		public override bool CanWrite
+		{
+			get { return stream.CanTimeout; }
+		}
+
+		public override long Length
+		{
+			get { return stream.Length; }
+		}
+
 		public override long Position
 		{
 			get { return stream.Position; }
