@@ -41,7 +41,9 @@ namespace UniHttp
 		public void Add(string name, string value)
 		{
 			name = name.ToLower();
-			if(fields.ContainsKey(name)) throw new KeyNotFoundException("Key with name '" + name + "' already exists.");
+			if(fields.ContainsKey(name)) {
+				throw new KeyNotFoundException("Key with name '" + name + "' already exists.");
+			}
 			fields.Add(name, value);
 		}
 
