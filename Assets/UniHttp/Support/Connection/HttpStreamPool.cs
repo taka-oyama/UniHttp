@@ -38,7 +38,7 @@ namespace UniHttp
 
 		internal void CheckIn(HttpResponse response, HttpStream stream)
 		{
-			if(!IsPersistableConnection(response)) {
+			if(!IsPersistedConnection(response)) {
 				stream.Close();
 				return;
 			}
@@ -57,7 +57,7 @@ namespace UniHttp
 			}
 		}
 
-		bool IsPersistableConnection(HttpResponse response)
+		bool IsPersistedConnection(HttpResponse response)
 		{
 			if(response.Request.Headers.Exist("Connection", "close")) {
 				return false;
