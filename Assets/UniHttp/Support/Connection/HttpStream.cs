@@ -24,12 +24,14 @@ namespace UniHttp
 			if(uri.Scheme == Uri.UriSchemeHttp) {
 				return;
 			}
+
 			if(uri.Scheme == Uri.UriSchemeHttps) {
 				this.sslStream = new SslStream(stream, false, HttpManager.SslVerifier.Verify);
 				this.stream = sslStream;
 				sslStream.AuthenticateAsClient(uri.Host);
 				return;
 			}
+
 			throw new Exception("Unsupported Scheme:" + uri.Scheme);
 		}
 
