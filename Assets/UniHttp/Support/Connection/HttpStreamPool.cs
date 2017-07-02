@@ -28,7 +28,9 @@ namespace UniHttp
 				if(index >= 0) {
 					var stream = streams[index];
 					streams.RemoveAt(index);
-					return stream;
+					if(stream.Connected) {
+						return stream;
+					}
 				}
 				return new HttpStream(request.Uri);
 			}
@@ -36,7 +38,7 @@ namespace UniHttp
 
 		internal void CheckIn(HttpResponse response, HttpStream stream)
 		{
-			if(!IsPersistentResponse(response)) {
+			if(!IsPersistableConnection(response)) {
 				stream.Close();
 				return;
 			}
@@ -55,7 +57,7 @@ namespace UniHttp
 			}
 		}
 
-		bool IsPersistentResponse(HttpResponse response)
+		bool IsPersistableConnection(HttpResponse response)
 		{
 			if(response.Request.Headers.Exist("Connection", "close")) {
 				return false;
