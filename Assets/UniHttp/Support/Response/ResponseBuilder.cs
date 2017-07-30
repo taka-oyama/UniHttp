@@ -129,7 +129,7 @@ namespace UniHttp
 			return Encoding.UTF8.GetString(destination.ToArray());
 		}
 
-		int SkipTo(params char[] stoppers)
+		int SkipTo(params char[] stopChars)
 		{
 			int b;
 			int count = 0;
@@ -137,7 +137,7 @@ namespace UniHttp
 				b = sourceStream.ReadByte();
 				if(b == -1) break;
 				count += 1;
-			} while(stoppers.All(s => b != (int)s));
+			} while(stopChars.All(s => b != (int)s));
 			return count;
 		}
 
