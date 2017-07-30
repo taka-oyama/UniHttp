@@ -41,11 +41,9 @@ namespace UniHttp
 
 		void SetStatusLine()
 		{
-			string line = ReadTo(LF).Trim();
-			string[] sliced = line.Split(' ');
-			response.HttpVersion = sliced[0];
-			response.StatusCode = int.Parse(sliced[1]);
-			response.StatusPhrase = string.Join(" ", sliced.Skip(2).ToArray());
+			response.HttpVersion = ReadTo(' ');
+			response.StatusCode = int.Parse(ReadTo(' '));
+			response.StatusPhrase = ReadTo(LF).TrimEnd();
 		}
 
 		void SetHeaders()
