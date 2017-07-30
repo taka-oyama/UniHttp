@@ -41,8 +41,8 @@ namespace UniHttp
 
 		void SetStatusLine()
 		{
-			response.HttpVersion = ReadTo(' ');
-			response.StatusCode = int.Parse(ReadTo(' '));
+			response.HttpVersion = ReadTo(' ').TrimEnd(' ');
+			response.StatusCode = int.Parse(ReadTo(' ').TrimEnd(' '));
 			response.StatusPhrase = ReadTo(LF).TrimEnd();
 		}
 
