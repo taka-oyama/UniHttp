@@ -11,6 +11,7 @@ namespace UniHttp
 	internal sealed class ResponseBuilder
 	{
 		const char LF = '\n';
+		const char CR = '\r';
 		const char COLON = ':';
 
 		HttpResponse response;
@@ -48,11 +49,11 @@ namespace UniHttp
 
 		void SetHeaders()
 		{
-			string name = ReadTo(COLON, LF);
+			string name = ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			while(name != String.Empty) {
-				string valuesStr = ReadTo(LF);
-				response.Headers.Append(name.TrimEnd(COLON), valuesStr.Trim());
-				name = ReadTo(COLON, LF).Trim();
+				string valuesStr = ReadTo(LF).TrimEnd(CR, LF);
+				response.Headers.Append(name, valuesStr);
+				name = ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			}
 		}
 
@@ -104,7 +105,7 @@ namespace UniHttp
 		{
 			using(MemoryStream destination = new MemoryStream(0)) {
 				ReadTo(destination, LF);
-				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).Trim();
+				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).TrimEnd(CR, LF);
 				return int.Parse(hexStr, NumberStyles.HexNumber);
 			}
 		}
