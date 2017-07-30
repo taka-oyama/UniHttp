@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.Globalization;
-using System.IO.Compression;
 
 namespace UniHttp
 {
