@@ -11,14 +11,14 @@ namespace UniHttp
 
 		object locker = new object();
 		ConnectionHandler transport;
-		List<HttpRequest> ongoingRequests;
+		List<DispatchInfo> ongoingRequests;
 		Queue<DispatchInfo> pendingRequests;
 
 		public HttpClient(HttpSetting? setting = null)
 		{
 			this.setting = setting.HasValue ? setting.Value : HttpSetting.Default;
 			this.transport = new ConnectionHandler(this.setting);
-			this.ongoingRequests = new List<HttpRequest>();
+			this.ongoingRequests = new List<DispatchInfo>();
 			this.pendingRequests = new Queue<DispatchInfo>();
 		}
 
@@ -33,15 +33,15 @@ namespace UniHttp
 			if(pendingRequests.Count > 0) {
 				if(ongoingRequests.Count < setting.maxConcurrentRequests) {
 					DispatchInfo info = pendingRequests.Dequeue();
-					ongoingRequests.Add(info.Request);
-					SendInThread(info);
+					ongoingRequests.Add(info);
+					SendInWorkerThread(info);
 				}
 			}
 		}
 
-		void SendInThread(DispatchInfo info)
+		void SendInWorkerThread(DispatchInfo info)
 		{
-			WrapInThread(() => {
+			ThreadPool.QueueUserWorkItem(state => {
 				try {
 					var response = transport.Send(info.Request);
 					ExecuteOnMainThread(() => {
@@ -55,16 +55,11 @@ namespace UniHttp
 					});
 				} finally {
 					ExecuteOnMainThread(() => {
-						ongoingRequests.Remove(info.Request);
+						ongoingRequests.Remove(info);
 						ExecuteIfPossible();
 					});
 				}
 			});
-		}
-
-		void WrapInThread(Action action)
-		{
-			ThreadPool.QueueUserWorkItem(_ => action());
 		}
 
 		void ExecuteOnMainThread(Action callback)
