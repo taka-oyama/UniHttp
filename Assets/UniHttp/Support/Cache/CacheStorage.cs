@@ -61,7 +61,6 @@ namespace UniHttp
 
 		string ComputeFileName(Uri uri)
 		{
-			// return Uri.EscapeDataString(uri.AbsolutePath);
 			string data = string.Concat(password, uri.Authority, uri.AbsolutePath);
 			byte[] bytes = hash.ComputeHash(Encoding.ASCII.GetBytes(data));
 			StringBuilder sb = new StringBuilder();
