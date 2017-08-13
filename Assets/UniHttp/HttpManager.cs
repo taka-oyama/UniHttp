@@ -46,8 +46,8 @@ namespace UniHttp
 
 			MainThreadQueue = new Queue<Action>();
 			TcpConnectionPool = new HttpStreamPool(maxPersistentConnections);
-			CookieJar = new CookieJar(new ObjectFile(FileHandler, dataPath + "Cookie.bin"));
-			CacheHandler = new CacheHandler(new ObjectFile(FileHandler, dataPath + "CacheInfo.bin"), CacheStorage);
+			CookieJar = new CookieJar(new ObjectStorage(FileHandler, dataPath + "Cookie.bin"));
+			CacheHandler = new CacheHandler(new ObjectStorage(FileHandler, dataPath + "CacheInfo.bin"), CacheStorage);
 
 			return this;
 		}

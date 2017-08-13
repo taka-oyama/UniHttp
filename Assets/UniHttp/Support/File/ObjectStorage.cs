@@ -3,15 +3,15 @@ using System.IO;
 
 namespace UniHttp
 {
-	public class ObjectFile
+	public class ObjectStorage
 	{
-		public IFileHandler io;
+		public IFileHandler fileHandler;
 
 		public string path;
 
-		public ObjectFile(IFileHandler io, string path)
+		public ObjectStorage(IFileHandler fileHandler, string path)
 		{
-			this.io = io;
+			this.fileHandler = fileHandler;
 			this.path = path;
 		}
 
@@ -22,12 +22,12 @@ namespace UniHttp
 
 		public T Read<T>() where T : class
 		{
-			return io.ReadObject<T>(path);
+			return fileHandler.ReadObject<T>(path);
 		}
 
 		public void Write<T>(T obj) where T : class
 		{
-			io.WriteObject(path, obj);
+			fileHandler.WriteObject(path, obj);
 		}
 	}
 }

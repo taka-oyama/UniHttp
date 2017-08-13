@@ -11,10 +11,10 @@ namespace UniHttp
 	internal sealed class CookieJar
 	{
 		object locker;
-		ObjectFile io;
+		ObjectStorage io;
 		Dictionary<string, List<Cookie>> cookies;
 
-		internal CookieJar(ObjectFile io)
+		internal CookieJar(ObjectStorage io)
 		{
 			this.locker = new object();
 			this.io = io;
