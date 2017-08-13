@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.Globalization;
+using System.IO.Compression;
 
 namespace UniHttp
 {
@@ -17,14 +18,12 @@ namespace UniHttp
 		HttpResponse response;
 		Stream sourceStream;
 		int bufferSize;
-		MessageBodyDecoder bodyDecoder;
 
 		internal ResponseBuilder(HttpRequest request, Stream sourceStream, int bufferSize = 1024)
 		{
 			this.response = new HttpResponse(request);
 			this.sourceStream = sourceStream;
 			this.bufferSize = bufferSize;
-			this.bodyDecoder = new MessageBodyDecoder(response, bufferSize);
 		}
 
 		internal HttpResponse Build()
@@ -88,7 +87,7 @@ namespace UniHttp
 					SkipTo(LF);
 					chunkSize = ReadChunkSize();
 				}
-				return bodyDecoder.Decode(destination);
+				return DecodeMessageBody(destination);
 			}
 		}
 
@@ -97,7 +96,31 @@ namespace UniHttp
 			using(MemoryStream destination = new MemoryStream())
 			{
 				CopyTo(destination, contentLength);
-				return bodyDecoder.Decode(destination);
+				return DecodeMessageBody(destination);
+			}
+		}
+
+		byte[] DecodeMessageBody(MemoryStream source)
+		{
+			if(response.Headers.Exist("Content-Encoding", "gzip")) {
+				return DecodeMessageBodyAsGzip(source);
+			} else {
+				return source.ToArray();
+			}
+		}
+
+		byte[] DecodeMessageBodyAsGzip(MemoryStream source)
+		{
+			byte[] buffer = new byte[bufferSize];
+			int readBytes = 0;
+			source.Seek(0, SeekOrigin.Begin);
+			using(var destination = new MemoryStream()) {
+				using(var gzipStream = new GZipStream(source, CompressionMode.Decompress)) {
+					while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
+						destination.Write(buffer, 0, readBytes);
+					}
+					return destination.ToArray();
+				}
 			}
 		}
 
