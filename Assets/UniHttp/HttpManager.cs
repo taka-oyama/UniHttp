@@ -9,10 +9,10 @@ namespace UniHttp
 	{
 		public string dataPath;
 		public int maxPersistentConnections;
-		public string encryptionPassword;
 
 		public static IContentSerializer RequestBodySerializer;
 		public static ISslVerifier SslVerifier;
+		public static IFileHandler FileHandler;
 		public static CacheStorage CacheStorage;
 
 		internal static Queue<Action> MainThreadQueue;
@@ -37,17 +37,18 @@ namespace UniHttp
 		{
 			this.dataPath = baseDataPath ?? Application.temporaryCachePath + "/UniHttp/";
 			this.maxPersistentConnections = maxPersistentConnections;
-			this.encryptionPassword = Application.identifier;
 			Directory.CreateDirectory(dataPath);
 
 			RequestBodySerializer = new JsonSerializer();
 			SslVerifier = new DefaultSslVerifier();
-			CacheStorage = new CacheStorage(new DirectoryInfo(dataPath + "Cache/"), encryptionPassword);
+			FileHandler = new DefaultFileHandler();
+
+			CacheStorage = new CacheStorage(FileHandler, new DirectoryInfo(dataPath + "Cache/"));
 
 			MainThreadQueue = new Queue<Action>();
 			TcpConnectionPool = new HttpStreamPool(maxPersistentConnections);
-			CookieJar = new CookieJar(new SecureFileIO(dataPath + "Cookie.bin", encryptionPassword));
-			CacheHandler = new CacheHandler(new SecureFileIO(dataPath + "CacheInfo.bin", encryptionPassword), CacheStorage);
+			CookieJar = new CookieJar(new ObjectFile(FileHandler, dataPath + "Cookie.bin"));
+			CacheHandler = new CacheHandler(new ObjectFile(FileHandler, dataPath + "CacheInfo.bin"), CacheStorage);
 		}
 
 		void FixedUpdate()

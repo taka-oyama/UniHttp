@@ -8,14 +8,14 @@ namespace UniHttp
 	internal sealed class CacheHandler
 	{
 		object locker;
-		SecureFileIO infoFile;
+		ObjectFile file;
 		Dictionary<string, CacheInfo> caches;
 		CacheStorage storage;
 
-		internal CacheHandler(SecureFileIO infoFile, CacheStorage storage)
+		internal CacheHandler(ObjectFile file, CacheStorage storage)
 		{
 			this.locker = new object();
-			this.infoFile = infoFile;
+			this.file = file;
 			this.caches = ReadFromFile();
 			this.storage = storage;
 		}
@@ -104,17 +104,17 @@ namespace UniHttp
 		internal void SaveToFile()
 		{
 			lock(locker) {
-				infoFile.WriteObject(caches);
+				file.Write(caches);
 			}
 		}
 
 		internal Dictionary<string, CacheInfo> ReadFromFile()
 		{
-			if(!infoFile.Exists) {
+			if(!file.Exists) {
 				return new Dictionary<string, CacheInfo>();
 			}
 			lock(locker) {
-				return infoFile.ReadObject<Dictionary<string, CacheInfo>>();
+				return file.Read<Dictionary<string, CacheInfo>>();
 			}
 		}
 	}

@@ -11,36 +11,38 @@ namespace UniHttp
 		// for some reason File.Exists returns false when threading, so I'm forced to lock it.
 		object locker;
 
+		IFileHandler fileHandler;
 		DirectoryInfo baseDirectory;
 		MD5 hash;
 		string password;
 
-		public CacheStorage(DirectoryInfo baseDirectory, string password)
+		public CacheStorage(IFileHandler fileHandler, DirectoryInfo baseDirectory)
 		{
 			this.locker = new object();
+			this.fileHandler = fileHandler;
 			this.baseDirectory = baseDirectory;
 			this.hash = new MD5CryptoServiceProvider();
-			this.password = password;
+			this.password = Application.identifier;
 		}
 
 		public virtual void Write(Uri uri, byte[] data)
 		{
 			lock(locker) {
-				new SecureFileIO(ComputeDirectory(uri) + ComputeFileName(uri), password).Write(data);
+				fileHandler.Write(ComputeDirectory(uri) + ComputeFileName(uri), data);
 			}
 		}
 
 		public virtual byte[] Read(Uri uri)
 		{
 			lock(locker) {
-				return new SecureFileIO(ComputeDirectory(uri) + ComputeFileName(uri), password).Read();
+				return fileHandler.Read(ComputeDirectory(uri) + ComputeFileName(uri));
 			}
 		}
 
 		public virtual bool Exists(Uri uri)
 		{
 			lock(locker) {
-				return File.Exists(ComputeDirectory(uri) + ComputeFileName(uri));
+				return fileHandler.Exists(ComputeDirectory(uri) + ComputeFileName(uri));
 			}
 		}
 

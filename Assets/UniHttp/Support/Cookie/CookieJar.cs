@@ -11,13 +11,13 @@ namespace UniHttp
 	internal sealed class CookieJar
 	{
 		object locker;
-		SecureFileIO infoFile;
+		ObjectFile io;
 		Dictionary<string, List<Cookie>> cookies;
 
-		internal CookieJar(SecureFileIO infoFile)
+		internal CookieJar(ObjectFile io)
 		{
 			this.locker = new object();
-			this.infoFile = infoFile;
+			this.io = io;
 			this.cookies = ReadFromFile();
 		}
 
@@ -113,17 +113,17 @@ namespace UniHttp
 				foreach(string key in cookies.Keys) {
 					saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
 				}
-				infoFile.WriteObject(saveable);
+				io.Write(saveable);
 			}
 		}
 
 		internal Dictionary<string, List<Cookie>> ReadFromFile()
 		{
-			if(!infoFile.Exists) {
+			if(!io.Exists) {
 				return new Dictionary<string, List<Cookie>>();
 			}
 			lock(locker) {
-				return infoFile.ReadObject<Dictionary<string, List<Cookie>>>();
+				return io.Read<Dictionary<string, List<Cookie>>>();
 			}
 		}
 
