@@ -38,11 +38,10 @@ namespace UniHttp
 			this.maxPersistentConnections = maxPersistentConnections;
 			Directory.CreateDirectory(dataPath);
 
-			RequestBodySerializer = new JsonSerializer();
-			SslVerifier = new DefaultSslVerifier();
-			FileHandler = new DefaultFileHandler();
-
-			CacheStorage = new CacheStorage(FileHandler, new DirectoryInfo(dataPath + "Cache/"));
+			RequestBodySerializer = RequestBodySerializer ?? new JsonSerializer();
+			SslVerifier = SslVerifier ?? new DefaultSslVerifier();
+			FileHandler = FileHandler ?? new DefaultFileHandler();
+			CacheStorage = CacheStorage ?? new CacheStorage(FileHandler, new DirectoryInfo(dataPath + "Cache/"));
 
 			MainThreadQueue = new Queue<Action>();
 			TcpConnectionPool = new HttpStreamPool(maxPersistentConnections);
