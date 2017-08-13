@@ -10,6 +10,7 @@ namespace UniHttp
 		public string dataPath;
 		public int maxPersistentConnections;
 
+		public static ILogger Logger;
 		public static IContentSerializer RequestBodySerializer;
 		public static ISslVerifier SslVerifier;
 		public static IFileHandler FileHandler;

@@ -10,6 +10,7 @@ namespace UniHttp
 		static int[] REDIRECTS = new [] {301, 302, 303, 307, 308};
 
 		HttpSetting setting;
+		ILogger logger;
 		HttpStreamPool connectionPool;
 		RequestPreprocessor requestProcessor;
 		ResponsePostprocessor responseProcessor;
@@ -20,6 +21,7 @@ namespace UniHttp
 			var cacheHandler = HttpManager.CacheHandler;
 
 			this.setting = setting;
+			this.logger = HttpManager.Logger;
 			this.connectionPool = HttpManager.TcpConnectionPool;
 			this.requestProcessor = new RequestPreprocessor(setting, cookieJar, cacheHandler);
 			this.responseProcessor = new ResponsePostprocessor(setting, cookieJar, cacheHandler);
@@ -58,7 +60,7 @@ namespace UniHttp
 
 				if(setting.followRedirects && IsRedirect(response)) {
 					request = ConstructRequest(response);
-					Logger.Info("Redirecting to " + request.ToString());
+					logger.Log("Redirecting to " + request.ToString());
 				} else {
 					break;
 				}
@@ -103,14 +105,12 @@ namespace UniHttp
 
 		void LogRequest(HttpRequest request)
 		{
-			string logText = string.Concat(request.Uri.ToString(), Constant.CRLF, request.ToString());
-			Logger.Info(logText);
+			logger.Log(string.Concat(request.Uri.ToString(), Constant.CRLF, request.ToString()));
 		}
 
 		void LogResponse(HttpResponse response)
 		{
-			string logText = string.Concat(response.Request.Uri.ToString(), Constant.CRLF, response.ToString());
-			Logger.Info(logText);
+			logger.Log(string.Concat(response.Request.Uri.ToString(), Constant.CRLF, response.ToString()));
 		}
 	}
 }
