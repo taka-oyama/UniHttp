@@ -39,6 +39,7 @@ namespace UniHttp
 			this.maxPersistentConnections = maxPersistentConnections;
 			Directory.CreateDirectory(dataPath);
 
+			Logger = Logger ?? Debug.unityLogger;
 			RequestBodySerializer = RequestBodySerializer ?? new JsonSerializer();
 			SslVerifier = SslVerifier ?? new DefaultSslVerifier();
 			FileHandler = FileHandler ?? new DefaultFileHandler();
