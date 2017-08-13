@@ -9,6 +9,7 @@ namespace UniHttp
 	{
 		public HttpSetting setting;
 
+		object locker = new object();
 		ConnectionHandler transport;
 		List<HttpRequest> ongoingRequests;
 		Queue<DispatchInfo> pendingRequests;
@@ -68,7 +69,9 @@ namespace UniHttp
 
 		void ExecuteOnMainThread(Action callback)
 		{
-			HttpManager.MainThreadQueue.Enqueue(callback);
+			lock(locker) {
+				HttpManager.MainThreadQueue.Enqueue(callback);
+			}
 		}
 	}
 }
