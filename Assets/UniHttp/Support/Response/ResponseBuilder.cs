@@ -9,9 +9,10 @@ namespace UniHttp
 {
 	internal sealed class ResponseBuilder
 	{
-		const char LF = '\n';
-		const char CR = '\r';
 		const char COLON = ':';
+		const char SPACE = ' ';
+		const char CR = '\r';
+		const char LF = '\n';
 
 		HttpResponse response;
 		Stream sourceStream;
@@ -41,8 +42,8 @@ namespace UniHttp
 
 		void SetStatusLine()
 		{
-			response.HttpVersion = ReadTo(' ').TrimEnd(' ');
-			response.StatusCode = int.Parse(ReadTo(' ').TrimEnd(' '));
+			response.HttpVersion = ReadTo(SPACE).TrimEnd(SPACE);
+			response.StatusCode = int.Parse(ReadTo(SPACE).TrimEnd(SPACE));
 			response.StatusPhrase = ReadTo(LF).TrimEnd();
 		}
 
