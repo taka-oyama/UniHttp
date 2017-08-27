@@ -21,7 +21,7 @@ namespace UniHttp
 		internal void Execute(HttpRequest request)
 		{
 			if(setting.useCookies) {
-				AppendCookiesToRequest(request);
+				AddCookiesToRequest(request);
 			}
 			if(!setting.useCache) {
 				request.Headers.AddOrReplace("Cache-Control", "no-store");
@@ -35,7 +35,7 @@ namespace UniHttp
 			}
 		}
 
-		void AppendCookiesToRequest(HttpRequest request)
+		void AddCookiesToRequest(HttpRequest request)
 		{
 			var cookies = new Dictionary<string, string>();
 			cookieJar.FindMatch(request.Uri).ForEach(c => cookies.Add(c.name, c.value));
