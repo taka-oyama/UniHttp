@@ -24,8 +24,12 @@ namespace UniHttp
 		{
 			this.Method = method;
 			this.Uri = ConstructUri(uri, query);
-			this.Headers = headers ?? new RequestHeadersDefaultBuilder(this).Build();
+			this.Headers = headers ?? new RequestHeaders();
 			this.Data = data;
+
+			Headers.AddOrReplace("Host", GenerateHost(uri));
+			Headers.AddOrReplace("Accept-Encoding", "gzip");
+			Headers.AddOrReplace("User-Agent", "UniHttp/1.0");
 		}
 
 		public byte[] ToBytes()
@@ -47,6 +51,15 @@ namespace UniHttp
 			}
 			sb.Append(Constant.CRLF);
 			return sb.ToString();
+		}
+
+		string GenerateHost(Uri uri)
+		{
+			string host = uri.Host;
+			if(uri.Scheme == Uri.UriSchemeHttp && uri.Port != 80 || uri.Scheme == Uri.UriSchemeHttps && uri.Port != 443) {
+				host += ":" + Uri.Port; 
+			}
+			return host;
 		}
 
 		Uri ConstructUri(Uri uri, HttpQuery query)
