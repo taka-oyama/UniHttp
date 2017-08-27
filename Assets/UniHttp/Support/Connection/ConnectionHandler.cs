@@ -44,7 +44,7 @@ namespace UniHttp
 
 					response = new ResponseBuilder(request, stream).Build();
 					streamPool.CheckIn(response, stream);
-
+					responseProcessor.Execute(response);
 					LogResponse(response);
 
 					if(setting.followRedirects && IsRedirect(response)) {
@@ -53,8 +53,6 @@ namespace UniHttp
 						break;
 					}
 				}
-
-				responseProcessor.Execute(response);
 			}
 			catch(SocketException exception) {
 				response = BuildErrorResponse(request, exception);
