@@ -76,6 +76,7 @@ namespace UniHttp
 		void OnApplicationQuit()
 		{
 			Save();
+			StreamPool.CloseAll();
 		}
 	}
 }

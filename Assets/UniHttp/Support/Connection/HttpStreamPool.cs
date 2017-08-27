@@ -68,7 +68,7 @@ namespace UniHttp
 			return true;
 		}
 
-		internal void Clear()
+		internal void CloseAll()
 		{
 			lock(locker) {
 				streams.ForEach(stream => stream.Close());
