@@ -35,7 +35,7 @@ namespace UniHttp
 
 		HttpManager Setup(string baseDataPath, int maxPersistentConnections)
 		{
-			this.dataPath = baseDataPath ?? Application.temporaryCachePath + "/UniHttp/";
+			this.dataPath = (baseDataPath ?? Application.temporaryCachePath) + "/UniHttp/";
 			this.maxPersistentConnections = maxPersistentConnections;
 			Directory.CreateDirectory(dataPath);
 
