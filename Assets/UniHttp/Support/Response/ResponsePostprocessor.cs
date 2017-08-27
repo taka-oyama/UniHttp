@@ -20,8 +20,13 @@ namespace UniHttp
 			if(setting.useCookies) {
 				cookieJar.AddOrReplaceRange(new CookieParser(response).Parse());
 			}
-			if(setting.useCache && cacheHandler.IsCachable(response)) {
-				response.CacheInfo = cacheHandler.CacheResponse(response);
+			if(setting.useCache) {
+				if(response.StatusCode == 304) {
+					response.CacheInfo = cacheHandler.Find(response.Request);
+				}
+				if(cacheHandler.IsCachable(response)) {
+					response.CacheInfo = cacheHandler.CacheResponse(response);
+				}
 			}
 		}
 	}
