@@ -6,14 +6,13 @@ namespace UniHttp
 {
 	public class HttpQuery
 	{
-		string separator;
-		string delimiter;
+		const string SEPARATOR = "&";
+		const string DELIMITER = "=";
+
 		Dictionary<string, List<string>> query;
 
-		public HttpQuery(string separator = "&", string delimiter = "=")
+		public HttpQuery()
 		{
-			this.separator = separator;
-			this.delimiter = delimiter;
 			this.query = new Dictionary<string, List<string>>();
 		}
 
@@ -27,13 +26,13 @@ namespace UniHttp
 
 		public override string ToString()
 		{
-			List<string> kv = new List<string>();
+			List<string> kv = new List<string>(query.Count);
 			foreach(string name in query.Keys) {
 				foreach(string value in query[name]) {
-					kv.Add(string.Concat(Uri.EscapeUriString(name), delimiter, Uri.EscapeUriString(value)));
+					kv.Add(string.Concat(Uri.EscapeUriString(name), DELIMITER, Uri.EscapeUriString(value)));
 				}
 			}
-			return string.Join(separator, kv.ToArray());
+			return string.Join(SEPARATOR, kv.ToArray());
 		}
 	}
 }
