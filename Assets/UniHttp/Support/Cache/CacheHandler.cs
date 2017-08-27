@@ -65,9 +65,6 @@ namespace UniHttp
 
 		internal CacheInfo Find(HttpRequest request)
 		{
-			if(!IsCachable(request)) {
-				return null;
-			}
 			if(!storage.Exists(request.Uri)) {
 				return null;
 			}
