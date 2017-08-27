@@ -17,7 +17,7 @@ namespace UniHttp
 		public static CacheStorage CacheStorage;
 
 		internal static Queue<Action> MainThreadQueue;
-		internal static HttpStreamPool TcpConnectionPool;
+		internal static HttpStreamPool StreamPool;
 		internal static CookieJar CookieJar;
 		internal static CacheHandler CacheHandler;
 
@@ -46,7 +46,7 @@ namespace UniHttp
 			CacheStorage = CacheStorage ?? new CacheStorage(FileHandler, new DirectoryInfo(dataPath + "Cache/"));
 
 			MainThreadQueue = new Queue<Action>();
-			TcpConnectionPool = new HttpStreamPool(maxPersistentConnections);
+			StreamPool = new HttpStreamPool(maxPersistentConnections);
 			CookieJar = new CookieJar(new ObjectStorage(FileHandler, dataPath + "Cookie.bin"));
 			CacheHandler = new CacheHandler(new ObjectStorage(FileHandler, dataPath + "CacheInfo.bin"), CacheStorage);
 

@@ -11,7 +11,7 @@ namespace UniHttp
 
 		HttpSetting setting;
 		ILogger logger;
-		HttpStreamPool connectionPool;
+		HttpStreamPool streamPool;
 		RequestPreprocessor requestProcessor;
 		ResponsePostprocessor responseProcessor;
 
@@ -22,7 +22,7 @@ namespace UniHttp
 
 			this.setting = setting;
 			this.logger = HttpManager.Logger;
-			this.connectionPool = HttpManager.TcpConnectionPool;
+			this.streamPool = HttpManager.StreamPool;
 			this.requestProcessor = new RequestPreprocessor(setting, cookieJar, cacheHandler);
 			this.responseProcessor = new ResponsePostprocessor(setting, cookieJar, cacheHandler);
 		}
@@ -50,13 +50,13 @@ namespace UniHttp
 		{
 			HttpResponse response;
 			while(true) {
-				HttpStream stream = connectionPool.CheckOut(request);
+				HttpStream stream = streamPool.CheckOut(request);
 				byte[] data = request.ToBytes();
 				stream.Write(data, 0, data.Length);
 				stream.Flush();
 
 				response = new ResponseBuilder(request, stream).Build();
-				connectionPool.CheckIn(response, stream);
+				streamPool.CheckIn(response, stream);
 
 				if(setting.followRedirects && IsRedirect(response)) {
 					request = ConstructRequest(response);
