@@ -29,42 +29,37 @@ namespace UniHttp
 
 		internal HttpResponse Send(HttpRequest request)
 		{
-			HttpResponse response = null;
+			HttpResponse response;
 
 			try {
 				requestProcessor.Execute(request);
-				LogRequest(request);
 
-				response = Transmit(request);
+				while(true) {
+					LogRequest(request);
+
+					HttpStream stream = streamPool.CheckOut(request);
+					byte[] data = request.ToBytes();
+					stream.Write(data, 0, data.Length);
+					stream.Flush();
+
+					response = new ResponseBuilder(request, stream).Build();
+					streamPool.CheckIn(response, stream);
+
+					LogResponse(response);
+
+					if(setting.followRedirects && IsRedirect(response)) {
+						request = MakeRedirectRequest(response);
+					} else {
+						break;
+					}
+				}
+
 				responseProcessor.Execute(response);
 			}
 			catch(SocketException exception) {
 				response = BuildErrorResponse(request, exception);
 			}
 
-			LogResponse(response);
-			return response;
-		}
-
-		HttpResponse Transmit(HttpRequest request)
-		{
-			HttpResponse response;
-			while(true) {
-				HttpStream stream = streamPool.CheckOut(request);
-				byte[] data = request.ToBytes();
-				stream.Write(data, 0, data.Length);
-				stream.Flush();
-
-				response = new ResponseBuilder(request, stream).Build();
-				streamPool.CheckIn(response, stream);
-
-				if(setting.followRedirects && IsRedirect(response)) {
-					request = ConstructRequest(response);
-					logger.Log("Redirecting to " + request.ToString());
-				} else {
-					break;
-				}
-			}
 			return response;
 		}
 
@@ -88,7 +83,7 @@ namespace UniHttp
 			return false;
 		}
 
-		HttpRequest ConstructRequest(HttpResponse response)
+		HttpRequest MakeRedirectRequest(HttpResponse response)
 		{
 			Uri uri = new Uri(response.Headers["Location"][0]);
 			HttpRequest request = response.Request;
