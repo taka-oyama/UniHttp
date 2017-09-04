@@ -75,5 +75,14 @@ namespace UniHttp
 		{
 			return string.Join("-", str.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
 		}
+
+		public RequestHeaders Clone()
+		{
+			RequestHeaders clone = new RequestHeaders();
+			foreach(string key in fields.Keys) {
+				clone.fields.Add(key, fields[key]);
+			}
+			return clone;
+		}
 	}
 }
