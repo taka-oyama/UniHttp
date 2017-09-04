@@ -101,7 +101,7 @@ namespace UniHttp
 					stream.Write(data, 0, data.Length);
 					stream.Flush();
 
-					// Build the response
+					// Build the response from stream
 					response = responseBuilder.Build(request, stream);
 					streamPool.CheckIn(response, stream);
 					responsePostprocessor.Execute(response);
