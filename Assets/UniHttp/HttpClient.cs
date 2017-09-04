@@ -93,7 +93,7 @@ namespace UniHttp
 
 				while(true) {
 					// Log request
-					logger.Log(string.Concat(request.Uri.ToString(), Constant.CRLF, request.ToString()));
+					logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
 
 					// Send request though TCP stream
 					HttpStream stream = streamPool.CheckOut(request);
@@ -107,7 +107,7 @@ namespace UniHttp
 					responsePostprocessor.Execute(response);
 
 					// Log response
-					logger.Log(string.Concat(response.Request.Uri.ToString(), Constant.CRLF, response.ToString()));
+					logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
 
 					// Handle redirects
 					if(setting.followRedirects && IsRedirect(response)) {
