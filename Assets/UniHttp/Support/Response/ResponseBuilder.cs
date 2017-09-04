@@ -53,10 +53,11 @@ namespace UniHttp
 		internal HttpResponse Build(HttpRequest request, Exception exception)
 		{
 			HttpResponse response = new HttpResponse(request);
-			response.HttpVersion = "Unknown";
+			response.HttpVersion = "HTTP/1.1";
 			response.StatusCode = 0;
 			response.StatusPhrase = exception.Message.Trim();
-			response.MessageBody = Encoding.UTF8.GetBytes(exception.StackTrace);
+			response.Headers.Append("Content-Type", "text/plain");
+			response.MessageBody = Encoding.UTF8.GetBytes(string.Concat(exception.GetType(), CR, LF, exception.StackTrace));
 
 			return response;
 		}
