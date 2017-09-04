@@ -27,9 +27,9 @@ namespace UniHttp
 			this.Headers = headers ?? new RequestHeaders();
 			this.Data = data;
 
-			Headers.AddOrReplace("Host", GenerateHost(uri));
-			Headers.AddOrReplace("Accept-Encoding", "gzip");
-			Headers.AddOrReplace("User-Agent", "UniHttp/1.0");
+			Headers.Add("Host", GenerateHost(uri));
+			Headers.Add("Accept-Encoding", "gzip");
+			Headers.Add("User-Agent", string.Format("{0}/{1} ({2}; {3})", Application.identifier, Application.version, SystemInfo.deviceModel, SystemInfo.operatingSystem));
 		}
 
 		public byte[] ToBytes()
