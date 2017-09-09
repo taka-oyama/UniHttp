@@ -37,7 +37,7 @@ namespace UniHttp
 			this.pendingRequests = new Queue<DispatchInfo>();
 		}
 
-		public void Transmit(HttpRequest request, Action<HttpResponse> callback)
+		public void Send(HttpRequest request, Action<HttpResponse> callback)
 		{
 			pendingRequests.Enqueue(new DispatchInfo(request, callback));
 			ExecuteIfPossible();
@@ -58,7 +58,7 @@ namespace UniHttp
 		{
 			ThreadPool.QueueUserWorkItem(state => {
 				try {
-					HttpResponse response = Transmit(info.Request);
+					HttpResponse response = Transmit(info);
 					ExecuteOnMainThread(() => {
 						if(info.Callback != null) {
 							info.Callback(response);
@@ -84,8 +84,9 @@ namespace UniHttp
 			}
 		}
 
-		HttpResponse Transmit(HttpRequest request)
+		HttpResponse Transmit(DispatchInfo info)
 		{
+			HttpRequest request = info.Request;
 			HttpResponse response = null;
 
 			try {
@@ -141,10 +142,8 @@ namespace UniHttp
 			HttpRequest request = response.Request;
 			HttpMethod method = request.Method;
 			if(response.StatusCode == 303) {
-				if(request.Method == HttpMethod.POST ||
-					request.Method == HttpMethod.PUT ||
-					request.Method == HttpMethod.PATCH) {
-					method = HttpMethod.GET;
+				if(method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.PATCH) {
+				   method = HttpMethod.GET;
 				}
 			}
 			return new HttpRequest(method, uri, request.Headers, request.Data);
