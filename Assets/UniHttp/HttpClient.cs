@@ -107,6 +107,9 @@ namespace UniHttp
 					streamPool.CheckIn(response, stream);
 					responsePostprocessor.Execute(response);
 
+					// Log response
+					logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
+
 					// Handle redirects
 					if(setting.followRedirects && IsRedirect(response)) {
 						request = MakeRedirectRequest(response);
@@ -117,9 +120,6 @@ namespace UniHttp
 			}
 			catch(SocketException exception) {
 				response = responseBuilder.Build(request, exception);
-			}
-			finally {
-				// Log response
 				logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
 			}
 
@@ -146,6 +146,9 @@ namespace UniHttp
 				   method = HttpMethod.GET;
 				}
 			}
+
+			request.Headers.Remove("Host");
+
 			return new HttpRequest(method, uri, request.Headers, request.Data);
 		}
 	}
