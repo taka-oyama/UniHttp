@@ -28,6 +28,7 @@ namespace UniHttp
 			if(dontDestroyOnLoad) {
 				GameObject.DontDestroyOnLoad(go);
 			}
+			Directory.CreateDirectory(dataPath);
 			return go.AddComponent<HttpManager>().Setup(dataPath, maxPersistentConnections);
 		}
 
@@ -35,7 +36,6 @@ namespace UniHttp
 		{
 			this.dataPath = (baseDataPath ?? Application.temporaryCachePath) + "/UniHttp/";
 			this.maxPersistentConnections = maxPersistentConnections;
-			Directory.CreateDirectory(dataPath);
 
 			Logger = Logger ?? Debug.unityLogger;
 			SslVerifier = SslVerifier ?? new DefaultSslVerifier();
@@ -60,7 +60,7 @@ namespace UniHttp
 			}
 		}
 
-		internal static void Save()
+		void Save()
 		{
 			CookieJar.SaveToFile();
 			CacheHandler.SaveToFile();
