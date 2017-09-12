@@ -47,7 +47,7 @@ namespace UniHttp
 			CookieJar = new CookieJar(new ObjectStorage(FileHandler, dataPath + "Cookie.bin"));
 			CacheHandler = new CacheHandler(
 				new ObjectStorage(FileHandler, dataPath + "CacheInfo.bin"),
-				new CacheStorage(FileHandler, new DirectoryInfo(dataPath + "Cache/"))
+				new CacheStorage(FileHandler, dataPath + "Cache/")
 			);
 
 			return this;

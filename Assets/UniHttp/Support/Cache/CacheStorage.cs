@@ -16,11 +16,11 @@ namespace UniHttp
 		MD5 hash;
 		string password;
 
-		public CacheStorage(IFileHandler fileHandler, DirectoryInfo baseDirectory)
+		public CacheStorage(IFileHandler fileHandler, string baseDirectory)
 		{
 			this.locker = new object();
 			this.fileHandler = fileHandler;
-			this.baseDirectory = baseDirectory;
+			this.baseDirectory = new DirectoryInfo(baseDirectory);
 			this.hash = new MD5CryptoServiceProvider();
 			this.password = Application.identifier;
 		}
