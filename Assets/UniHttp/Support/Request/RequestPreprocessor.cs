@@ -7,23 +7,23 @@ namespace UniHttp
 {
 	internal sealed class RequestPreprocessor
 	{
-		HttpOptions options;
+		HttpSettings settings;
 		CookieJar cookieJar;
 		CacheHandler cacheHandler;
 
-		internal RequestPreprocessor(HttpOptions options, CookieJar cookieJar, CacheHandler cacheHandler)
+		internal RequestPreprocessor(HttpSettings settings, CookieJar cookieJar, CacheHandler cacheHandler)
 		{
-			this.options = options;
+			this.settings = settings;
 			this.cookieJar = cookieJar;
 			this.cacheHandler = cacheHandler;
 		}
 
 		internal void Execute(HttpRequest request)
 		{
-			if(options.useCookies) {
+			if(settings.useCookies) {
 				AddCookiesToRequest(request);
 			}
-			if(!options.useCache) {
+			if(!settings.useCache) {
 				request.Headers.AddOrReplace("Cache-Control", "no-store");
 			}
 			if(cacheHandler.IsCachable(request)) {

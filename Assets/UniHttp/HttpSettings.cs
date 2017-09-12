@@ -4,23 +4,25 @@ namespace UniHttp
 {
 	public class HttpSettings
 	{
-		public string dataDirectory;
-		public int? maxConcurrentRequests;
-		public int? maxPersistentConnections;
+		public bool useCookies = true;
+		public bool useCache = true;
+		public bool followRedirects = true;
+		public int maxConcurrentRequests = 4;
+		public int maxPersistentConnections = 6;
 
+		public string dataDirectory;
 		public ILogger logger;
 		public ISslVerifier sslVerifier;
 		public IFileHandler fileHandler;
 
-		internal void FillWithDefaults()
+		internal HttpSettings FillWithDefaults()
 		{
 			dataDirectory = dataDirectory ?? Application.temporaryCachePath;
-			maxConcurrentRequests = maxConcurrentRequests ?? 4;
-			maxPersistentConnections = maxPersistentConnections ?? 6;
-
 			logger = logger ?? Debug.unityLogger;
 			sslVerifier = sslVerifier ?? new DefaultSslVerifier();
 			fileHandler = fileHandler ?? new DefaultFileHandler();
+
+			return this;
 		}
 	}
 }

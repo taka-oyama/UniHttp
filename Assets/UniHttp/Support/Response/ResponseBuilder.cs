@@ -15,10 +15,12 @@ namespace UniHttp
 		const char CR = '\r';
 		const char LF = '\n';
 
+		CacheHandler cacheHandler;
 		int bufferSize;
 
-		internal ResponseBuilder(int bufferSize = 1024)
+		internal ResponseBuilder(CacheHandler cacheHandler, int bufferSize = 1024)
 		{
+			this.cacheHandler = cacheHandler;
 			this.bufferSize = bufferSize;
 		}
 
@@ -65,7 +67,7 @@ namespace UniHttp
 		byte[] BuildMessageBody(HttpResponse response, Stream source)
 		{
 			if(response.StatusCode == 304) {
-				return HttpManager.CacheHandler.RetrieveFromCache(response.Request);
+				return cacheHandler.RetrieveFromCache(response.Request);
 			}
 
 			if(response.Headers.Exist("Transfer-Encoding", "chunked")) {

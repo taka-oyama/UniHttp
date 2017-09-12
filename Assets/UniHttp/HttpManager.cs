@@ -2,20 +2,30 @@
 using System.IO;
 using System.Collections.Generic;
 using System;
+using System.Threading;
+using System.Net.Sockets;
 
 namespace UniHttp
 {
 	public sealed class HttpManager : MonoBehaviour
 	{
-		public static ILogger Logger;
 		public static ISslVerifier SslVerifier;
 
-		internal static Queue<Action> MainThreadQueue;
-		internal static HttpStreamPool StreamPool;
-		internal static CookieJar CookieJar;
-		internal static CacheHandler CacheHandler;
+		object locker;
 
-		public static HttpManager Initalize(HttpSettings settings = null, bool dontDestroyOnLoad = true)
+		HttpSettings settings;
+		HttpStreamPool streamPool;
+		CookieJar cookieJar;
+		CacheHandler cacheHandler;
+		ResponseBuilder responseBuilder;
+		RequestPreprocessor requestPreprocessor;
+		ResponsePostprocessor responsePostprocessor;
+
+		List<DispatchInfo> ongoingRequests;
+		Queue<DispatchInfo> pendingRequests;
+		Queue<Action> mainThreadQueue;
+
+		public static HttpManager Initalize(HttpSettings httpSettings = null, bool dontDestroyOnLoad = true)
 		{
 			if(GameObject.Find("HttpManager")) {
 				throw new Exception("HttpManager should not be Initialized more than once");
@@ -26,39 +36,160 @@ namespace UniHttp
 				GameObject.DontDestroyOnLoad(go);
 			}
 
-			return go.AddComponent<HttpManager>().Setup(settings ?? new HttpSettings());
+			return go.AddComponent<HttpManager>().Setup(httpSettings);
 		}
 
-		HttpManager Setup(HttpSettings settings)
+		public HttpManager Setup(HttpSettings httpSettings = null)
 		{
-			settings.FillWithDefaults();
-
-			Logger = settings.logger;
-			SslVerifier = settings.sslVerifier;
+			this.settings = (httpSettings ?? new HttpSettings()).FillWithDefaults();
 
 			string dataPath = settings.dataDirectory + "/UniHttp";
-			Directory.CreateDirectory(settings.dataDirectory);
+			Directory.CreateDirectory(dataPath);
 
-			MainThreadQueue = new Queue<Action>();
-			StreamPool = new HttpStreamPool(settings.maxPersistentConnections.Value);
+			SslVerifier = settings.sslVerifier;
 
-			CookieJar = new CookieJar(settings.fileHandler, dataPath);
-			CacheHandler = new CacheHandler(settings.fileHandler, dataPath);
+			this.locker = new object();
+
+			this.streamPool = new HttpStreamPool(settings.maxPersistentConnections);
+			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
+			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
+			this.responseBuilder = new ResponseBuilder(cacheHandler);
+			this.requestPreprocessor = new RequestPreprocessor(settings, cookieJar, cacheHandler);
+			this.responsePostprocessor = new ResponsePostprocessor(settings, cookieJar, cacheHandler);
+
+			this.ongoingRequests = new List<DispatchInfo>();
+			this.pendingRequests = new Queue<DispatchInfo>();
+			this.mainThreadQueue = new Queue<Action>();
 
 			return this;
 		}
 
+		public void Send(HttpRequest request, Action<HttpResponse> callback)
+		{
+			pendingRequests.Enqueue(new DispatchInfo(request, callback));
+			TransmitIfPossible();
+		}
+
+		void TransmitIfPossible()
+		{
+			if(pendingRequests.Count > 0) {
+				if(ongoingRequests.Count < settings.maxConcurrentRequests) {
+					TransmitInWorkerThread();
+				}
+			}
+		}
+
+		void TransmitInWorkerThread()
+		{
+			DispatchInfo info = pendingRequests.Dequeue();
+			ongoingRequests.Add(info);
+
+			ThreadPool.QueueUserWorkItem(state => {
+				try {
+					HttpResponse response = Transmit(info);
+					ExecuteOnMainThread(() => {
+						ongoingRequests.Remove(info);
+						if(info.Callback != null) {
+							info.Callback(response);
+						}
+						TransmitIfPossible();
+					});
+				} catch(Exception exception) {
+					ExecuteOnMainThread(() => {
+						throw exception;
+					});
+				}
+			});
+		}
+
+		void ExecuteOnMainThread(Action callback)
+		{
+			lock(locker) {
+				mainThreadQueue.Enqueue(callback);
+			}
+		}
+
+		HttpResponse Transmit(DispatchInfo info)
+		{
+			HttpRequest request = info.Request;
+			HttpResponse response = null;
+
+			try {
+				while(true) {
+					requestPreprocessor.Execute(request);
+
+					// Log request
+					settings.logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
+
+					// Send request though TCP stream
+					HttpStream stream = streamPool.CheckOut(request);
+					byte[] data = request.ToBytes();
+					stream.Write(data, 0, data.Length);
+					stream.Flush();
+
+					// Build the response from stream
+					response = responseBuilder.Build(request, stream);
+					streamPool.CheckIn(response, stream);
+					responsePostprocessor.Execute(response);
+
+					// Log response
+					settings.logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
+
+					// Handle redirects
+					if(IsRedirect(response)) {
+						request = MakeRedirectRequest(response);
+					} else {
+						break;
+					}
+				}
+			}
+			catch(SocketException exception) {
+				response = responseBuilder.Build(request, exception);
+				settings.logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
+			}
+
+			return response;
+		}
+
+		bool IsRedirect(HttpResponse response)
+		{
+			if(settings.followRedirects) {
+				for(int i = 0; i < Constant.REDIRECTS.Length; i++) {
+					if(response.StatusCode == Constant.REDIRECTS[i]) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		HttpRequest MakeRedirectRequest(HttpResponse response)
+		{
+			Uri uri = new Uri(response.Headers["Location"][0]);
+			HttpRequest request = response.Request;
+			HttpMethod method = request.Method;
+			if(response.StatusCode == 303) {
+				if(method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.PATCH) {
+					method = HttpMethod.GET;
+				}
+			}
+
+			request.Headers.Remove("Host");
+
+			return new HttpRequest(method, uri, request.Headers, request.Data);
+		}
+
 		void FixedUpdate()
 		{
-			while(MainThreadQueue.Count > 0) {
-				MainThreadQueue.Dequeue().Invoke();
+			while(mainThreadQueue.Count > 0) {
+				mainThreadQueue.Dequeue().Invoke();
 			}
 		}
 
 		void Save()
 		{
-			CookieJar.SaveToFile();
-			CacheHandler.SaveToFile();
+			cookieJar.SaveToFile();
+			cacheHandler.SaveToFile();
 		}
 
 		void OnApplicationPause(bool isPaused)
@@ -71,7 +202,7 @@ namespace UniHttp
 		void OnApplicationQuit()
 		{
 			Save();
-			StreamPool.CloseAll();
+			streamPool.CloseAll();
 		}
 	}
 }
