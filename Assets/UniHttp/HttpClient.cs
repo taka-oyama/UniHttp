@@ -86,9 +86,9 @@ namespace UniHttp
 			HttpResponse response = null;
 
 			try {
-				requestPreprocessor.Execute(request);
-
 				while(true) {
+					requestPreprocessor.Execute(request);
+
 					// Log request
 					logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
 
