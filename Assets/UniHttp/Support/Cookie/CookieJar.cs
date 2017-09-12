@@ -14,10 +14,10 @@ namespace UniHttp
 		ObjectStorage io;
 		Dictionary<string, List<Cookie>> cookies;
 
-		internal CookieJar(ObjectStorage io)
+		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
 			this.locker = new object();
-			this.io = io;
+			this.io = new ObjectStorage(fileHandler, dataDirectory + "/Cookie.bin");
 			this.cookies = ReadFromFile();
 		}
 

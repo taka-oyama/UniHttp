@@ -10,14 +10,14 @@ namespace UniHttp
 		object locker;
 		ObjectStorage infoStorage;
 		Dictionary<string, CacheInfo> caches;
-		CacheStorage storage;
+		CacheStorage cacheStorage;
 
-		internal CacheHandler(ObjectStorage infoStorage, CacheStorage cacheStorage)
+		internal CacheHandler(IFileHandler fileHandler, string dataDirectory)
 		{
 			this.locker = new object();
-			this.infoStorage = infoStorage;
+			this.infoStorage = new ObjectStorage(fileHandler, dataDirectory + "/CacheInfo.bin");
+			this.cacheStorage = new CacheStorage(fileHandler, dataDirectory);
 			this.caches = ReadFromFile();
-			this.storage = cacheStorage;
 		}
 
 		internal bool IsCachable(HttpRequest request)
@@ -65,7 +65,7 @@ namespace UniHttp
 
 		internal CacheInfo Find(HttpRequest request)
 		{
-			if(!storage.Exists(request.Uri)) {
+			if(!cacheStorage.Exists(request.Uri)) {
 				return null;
 			}
 			lock(locker) {
@@ -85,21 +85,21 @@ namespace UniHttp
 				} else {
 					caches.Add(url, new CacheInfo(response));
 				}
-				storage.Write(response.Request.Uri, response.MessageBody);
+				cacheStorage.Write(response.Request.Uri, response.MessageBody);
 				return caches[url];
 			}
 		}
 
 		internal byte[] RetrieveFromCache(HttpRequest request)
 		{
-			return storage.Read(request.Uri);
+			return cacheStorage.Read(request.Uri);
 		}
 
 		internal void Clear()
 		{
 			lock(locker) {
 				caches.Clear();
-				storage.Clear();
+				cacheStorage.Clear();
 			}
 		}
 

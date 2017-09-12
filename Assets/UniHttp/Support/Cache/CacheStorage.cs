@@ -20,7 +20,7 @@ namespace UniHttp
 		{
 			this.locker = new object();
 			this.fileHandler = fileHandler;
-			this.baseDirectory = new DirectoryInfo(baseDirectory);
+			this.baseDirectory = new DirectoryInfo(baseDirectory).CreateSubdirectory("Cache");
 			this.hash = new MD5CryptoServiceProvider();
 			this.password = Application.identifier;
 		}
@@ -58,7 +58,7 @@ namespace UniHttp
 
 		string ComputeDirectory(Uri uri)
 		{
-			return baseDirectory.FullName + uri.Authority.Replace(":", "_") + "/";
+			return baseDirectory.FullName + "/" + uri.Authority.Replace(":", "_") + "/";
 		}
 
 		string ComputeFileName(Uri uri)
