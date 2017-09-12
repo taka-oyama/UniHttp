@@ -65,7 +65,7 @@ namespace UniHttp
 		byte[] BuildMessageBody(HttpResponse response, Stream source)
 		{
 			if(response.StatusCode == 304) {
-				return HttpManager.CacheStorage.Read(response.Request.Uri);
+				return HttpManager.CacheHandler.RetrieveFromCache(response.Request);
 			}
 
 			if(response.Headers.Exist("Transfer-Encoding", "chunked")) {

@@ -90,6 +90,11 @@ namespace UniHttp
 			}
 		}
 
+		internal byte[] RetrieveFromCache(HttpRequest request)
+		{
+			return storage.Read(request.Uri);
+		}
+
 		internal void Clear()
 		{
 			lock(locker) {
@@ -105,7 +110,7 @@ namespace UniHttp
 			}
 		}
 
-		internal Dictionary<string, CacheInfo> ReadFromFile()
+		Dictionary<string, CacheInfo> ReadFromFile()
 		{
 			if(!infoStorage.Exists) {
 				return new Dictionary<string, CacheInfo>();
