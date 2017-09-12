@@ -9,11 +9,13 @@ namespace UniHttp
 	{
 		object locker;
 		List<HttpStream> streams;
+		ISslVerifier sslVerifier;
 
-		internal HttpStreamPool()
+		internal HttpStreamPool(ISslVerifier sslVerifier)
 		{
 			this.locker = new object();
 			this.streams = new List<HttpStream>();
+			this.sslVerifier = sslVerifier;
 		}
 
 		internal HttpStream CheckOut(HttpRequest request)
@@ -28,7 +30,7 @@ namespace UniHttp
 						return stream;
 					}
 				}
-				return new HttpStream(request.Uri);
+				return new HttpStream(request.Uri, sslVerifier);
 			}
 		}
 

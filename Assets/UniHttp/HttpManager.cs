@@ -9,10 +9,6 @@ namespace UniHttp
 {
 	public sealed class HttpManager : MonoBehaviour
 	{
-		public static ISslVerifier SslVerifier;
-
-		object locker;
-
 		HttpSettings settings;
 		HttpStreamPool streamPool;
 		CookieJar cookieJar;
@@ -24,6 +20,7 @@ namespace UniHttp
 		List<DispatchInfo> ongoingRequests;
 		Queue<DispatchInfo> pendingRequests;
 		Queue<Action> mainThreadQueue;
+		object locker;
 
 		public static HttpManager Initalize(HttpSettings httpSettings = null, bool dontDestroyOnLoad = true)
 		{
@@ -46,11 +43,7 @@ namespace UniHttp
 			string dataPath = settings.dataDirectory + "/UniHttp";
 			Directory.CreateDirectory(dataPath);
 
-			SslVerifier = settings.sslVerifier;
-
-			this.locker = new object();
-
-			this.streamPool = new HttpStreamPool();
+			this.streamPool = new HttpStreamPool(settings.sslVerifier);
 			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
 			this.responseBuilder = new ResponseBuilder(cacheHandler);
@@ -60,6 +53,7 @@ namespace UniHttp
 			this.ongoingRequests = new List<DispatchInfo>();
 			this.pendingRequests = new Queue<DispatchInfo>();
 			this.mainThreadQueue = new Queue<Action>();
+			this.locker = new object();
 
 			return this;
 		}

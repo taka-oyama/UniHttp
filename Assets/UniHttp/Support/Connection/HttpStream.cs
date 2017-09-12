@@ -13,7 +13,7 @@ namespace UniHttp
 		SslStream sslStream;
 		Stream stream;
 
-		internal HttpStream(Uri uri)
+		internal HttpStream(Uri uri, ISslVerifier sslVerifier)
 		{
 			this.url = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority); 
 			this.tcpClient = new TcpClient();
@@ -26,7 +26,7 @@ namespace UniHttp
 			}
 
 			if(uri.Scheme == Uri.UriSchemeHttps) {
-				this.sslStream = new SslStream(stream, false, HttpManager.SslVerifier.Verify);
+				this.sslStream = new SslStream(stream, false, sslVerifier.Verify);
 				this.stream = sslStream;
 				sslStream.AuthenticateAsClient(uri.Host);
 				return;
