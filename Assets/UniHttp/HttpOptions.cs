@@ -2,17 +2,17 @@
 
 namespace UniHttp
 {
-	public struct HttpSetting
+	public struct HttpOptions
 	{
 		public bool useCookies;
 		public bool useCache;
 		public bool followRedirects;
 		public int maxConcurrentRequests;
 
-		public static HttpSetting Default
+		public static HttpOptions Default
 		{
 			get {
-				return new HttpSetting() {
+				return new HttpOptions() {
 					useCookies = true,
 					useCache = true,
 					followRedirects = true,

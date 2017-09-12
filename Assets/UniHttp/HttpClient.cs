@@ -8,7 +8,7 @@ namespace UniHttp
 {
 	public sealed class HttpClient
 	{
-		HttpSetting setting;
+		HttpOptions options;
 		ILogger logger;
 		HttpStreamPool streamPool;
 		ResponseBuilder responseBuilder;
@@ -19,17 +19,17 @@ namespace UniHttp
 		Queue<DispatchInfo> pendingRequests;
 		object locker = new object();
 
-		public HttpClient(HttpSetting? httpSetting = null)
+		public HttpClient(HttpOptions? httpOptions = null)
 		{
 			var cookieJar = HttpManager.CookieJar;
 			var cacheHandler = HttpManager.CacheHandler;
 
-			this.setting = httpSetting.HasValue ? httpSetting.Value : HttpSetting.Default;
+			this.options = httpOptions.HasValue ? httpOptions.Value : HttpOptions.Default;
 			this.logger = HttpManager.Logger;
 			this.streamPool = HttpManager.StreamPool;
 			this.responseBuilder = new ResponseBuilder();
-			this.requestPreprocessor = new RequestPreprocessor(setting, cookieJar, cacheHandler);
-			this.responsePostprocessor = new ResponsePostprocessor(setting, cookieJar, cacheHandler);
+			this.requestPreprocessor = new RequestPreprocessor(options, cookieJar, cacheHandler);
+			this.responsePostprocessor = new ResponsePostprocessor(options, cookieJar, cacheHandler);
 
 			this.ongoingRequests = new List<DispatchInfo>();
 			this.pendingRequests = new Queue<DispatchInfo>();
@@ -44,7 +44,7 @@ namespace UniHttp
 		void TransmitIfPossible()
 		{
 			if(pendingRequests.Count > 0) {
-				if(ongoingRequests.Count < setting.maxConcurrentRequests) {
+				if(ongoingRequests.Count < options.maxConcurrentRequests) {
 					TransmitInWorkerThread();
 				}
 			}
@@ -107,7 +107,7 @@ namespace UniHttp
 					logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
 
 					// Handle redirects
-					if(setting.followRedirects && IsRedirect(response)) {
+					if(options.followRedirects && IsRedirect(response)) {
 						request = MakeRedirectRequest(response);
 					} else {
 						break;
