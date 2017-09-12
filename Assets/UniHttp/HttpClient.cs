@@ -8,8 +8,6 @@ namespace UniHttp
 {
 	public sealed class HttpClient
 	{
-		static int[] REDIRECTS = new [] {301, 302, 303, 307, 308};
-
 		HttpSetting setting;
 		ILogger logger;
 		HttpStreamPool streamPool;
@@ -126,8 +124,8 @@ namespace UniHttp
 
 		bool IsRedirect(HttpResponse response)
 		{
-			for(int i = 0; i < REDIRECTS.Length; i++) {
-				if(response.StatusCode == REDIRECTS[i]) {
+			for(int i = 0; i < Constant.REDIRECTS.Length; i++) {
+				if(response.StatusCode == Constant.REDIRECTS[i]) {
 					return true;
 				}
 			}
