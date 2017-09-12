@@ -10,7 +10,7 @@ namespace UniHttp
 
 		public HttpJsonData(object target)
 		{
-			this.json = HttpManager.RequestBodySerializer.Serialize(target);
+			this.json = JsonUtility.ToJson(target);
 		}
 
 		public HttpJsonData(string json)
