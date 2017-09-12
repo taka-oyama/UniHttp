@@ -24,11 +24,18 @@ namespace UniHttp
 			if(GameObject.Find("HttpManager")) {
 				throw new Exception("HttpManager should not be Initialized more than once");
 			}
+
 			GameObject go = new GameObject("HttpManager");
 			if(dontDestroyOnLoad) {
 				GameObject.DontDestroyOnLoad(go);
 			}
+
 			Directory.CreateDirectory(dataDirectory);
+
+			Logger = Logger ?? Debug.unityLogger;
+			SslVerifier = SslVerifier ?? new DefaultSslVerifier();
+			FileHandler = FileHandler ?? new DefaultFileHandler();
+
 			return go.AddComponent<HttpManager>().Setup(dataDirectory, maxPersistentConnections);
 		}
 
@@ -36,10 +43,6 @@ namespace UniHttp
 		{
 			this.dataPath = (baseDataDirectory ?? Application.temporaryCachePath) + "/UniHttp";
 			this.maxPersistentConnections = maxPersistentConnections;
-
-			Logger = Logger ?? Debug.unityLogger;
-			SslVerifier = SslVerifier ?? new DefaultSslVerifier();
-			FileHandler = FileHandler ?? new DefaultFileHandler();
 
 			MainThreadQueue = new Queue<Action>();
 			StreamPool = new HttpStreamPool(maxPersistentConnections);
