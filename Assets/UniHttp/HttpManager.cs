@@ -50,7 +50,7 @@ namespace UniHttp
 
 			this.locker = new object();
 
-			this.streamPool = new HttpStreamPool(settings.maxPersistentConnections);
+			this.streamPool = new HttpStreamPool();
 			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
 			this.responseBuilder = new ResponseBuilder(cacheHandler);

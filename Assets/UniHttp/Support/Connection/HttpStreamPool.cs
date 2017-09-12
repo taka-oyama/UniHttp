@@ -10,14 +10,10 @@ namespace UniHttp
 		object locker;
 		List<HttpStream> streams;
 
-		internal HttpStreamPool(int maxConnectionCount)
+		internal HttpStreamPool()
 		{
 			this.locker = new object();
-			this.streams = new List<HttpStream>(maxConnectionCount);
-
-			if(streams.Capacity < 1) {
-				throw new OverflowException("maxCount must be greater than 0");
-			}
+			this.streams = new List<HttpStream>();
 		}
 
 		internal HttpStream CheckOut(HttpRequest request)
@@ -44,12 +40,6 @@ namespace UniHttp
 			}
 
 			lock(locker) {
-				if(streams.Capacity == streams.Count) {
-					if(streams[0].Connected) {
-						streams[0].Close();
-					}
-					streams.RemoveAt(0);
-				}
 				streams.Add(stream);
 
 				// clean up closed streams

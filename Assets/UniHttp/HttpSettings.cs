@@ -8,7 +8,6 @@ namespace UniHttp
 		public bool useCache = true;
 		public bool followRedirects = true;
 		public int maxConcurrentRequests = 4;
-		public int maxPersistentConnections = 6;
 
 		public string dataDirectory;
 		public ILogger logger;
