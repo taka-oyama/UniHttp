@@ -40,38 +40,36 @@ namespace UniHttp
 		public void Send(HttpRequest request, Action<HttpResponse> callback)
 		{
 			pendingRequests.Enqueue(new DispatchInfo(request, callback));
-			ExecuteIfPossible();
+			TransmitIfPossible();
 		}
 
-		void ExecuteIfPossible()
+		void TransmitIfPossible()
 		{
 			if(pendingRequests.Count > 0) {
 				if(ongoingRequests.Count < setting.maxConcurrentRequests) {
-					DispatchInfo info = pendingRequests.Dequeue();
-					ongoingRequests.Add(info);
-					ExecuteInWorkerThread(info);
+					TransmitInWorkerThread();
 				}
 			}
 		}
 
-		void ExecuteInWorkerThread(DispatchInfo info)
+		void TransmitInWorkerThread()
 		{
+			DispatchInfo info = pendingRequests.Dequeue();
+			ongoingRequests.Add(info);
+
 			ThreadPool.QueueUserWorkItem(state => {
 				try {
 					HttpResponse response = Transmit(info);
 					ExecuteOnMainThread(() => {
+						ongoingRequests.Remove(info);
 						if(info.Callback != null) {
 							info.Callback(response);
 						}
+						TransmitIfPossible();
 					});
 				} catch(Exception exception) {
 					ExecuteOnMainThread(() => {
 						throw exception;
-					});
-				} finally {
-					ExecuteOnMainThread(() => {
-						ongoingRequests.Remove(info);
-						ExecuteIfPossible();
 					});
 				}
 			});
