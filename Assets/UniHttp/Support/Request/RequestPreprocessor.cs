@@ -30,8 +30,12 @@ namespace UniHttp
 				AddCacheDirectiveToRequest(request);
 			}
 			if(request.Data != null) {
-				request.Headers.AddOrReplace("Content-Type", request.Data.GetContentType());
-				request.Headers.AddOrReplace("Content-Length", request.Data.ToBytes().Length.ToString());
+				if(request.Headers.NotExist("Content-Type")) {
+					request.Headers.Add("Content-Type", request.Data.GetContentType());
+				}
+				if(request.Headers.NotExist("Content-Length")) {
+					request.Headers.Add("Content-Length", request.Data.ToBytes().Length.ToString());
+				}
 			}
 		}
 
