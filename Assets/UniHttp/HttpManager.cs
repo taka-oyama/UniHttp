@@ -7,19 +7,15 @@ namespace UniHttp
 {
 	public sealed class HttpManager : MonoBehaviour
 	{
-		public string dataPath;
-		public int maxPersistentConnections;
-
 		public static ILogger Logger;
 		public static ISslVerifier SslVerifier;
-		public static IFileHandler FileHandler;
 
 		internal static Queue<Action> MainThreadQueue;
 		internal static HttpStreamPool StreamPool;
 		internal static CookieJar CookieJar;
 		internal static CacheHandler CacheHandler;
 
-		public static HttpManager Initalize(string dataDirectory = null, int maxPersistentConnections = 6, bool dontDestroyOnLoad = true)
+		public static HttpManager Initalize(HttpSettings settings = null, bool dontDestroyOnLoad = true)
 		{
 			if(GameObject.Find("HttpManager")) {
 				throw new Exception("HttpManager should not be Initialized more than once");
@@ -30,25 +26,24 @@ namespace UniHttp
 				GameObject.DontDestroyOnLoad(go);
 			}
 
-			Directory.CreateDirectory(dataDirectory);
-
-			Logger = Logger ?? Debug.unityLogger;
-			SslVerifier = SslVerifier ?? new DefaultSslVerifier();
-			FileHandler = FileHandler ?? new DefaultFileHandler();
-
-			return go.AddComponent<HttpManager>().Setup(dataDirectory, maxPersistentConnections);
+			return go.AddComponent<HttpManager>().Setup(settings ?? new HttpSettings());
 		}
 
-		HttpManager Setup(string baseDataDirectory, int maxPersistentConnections)
+		HttpManager Setup(HttpSettings settings)
 		{
-			this.dataPath = (baseDataDirectory ?? Application.temporaryCachePath) + "/UniHttp";
-			this.maxPersistentConnections = maxPersistentConnections;
+			settings.FillWithDefaults();
+
+			Logger = settings.logger;
+			SslVerifier = settings.sslVerifier;
+
+			string dataPath = settings.dataDirectory + "/UniHttp";
+			Directory.CreateDirectory(settings.dataDirectory);
 
 			MainThreadQueue = new Queue<Action>();
-			StreamPool = new HttpStreamPool(maxPersistentConnections);
+			StreamPool = new HttpStreamPool(settings.maxPersistentConnections.Value);
 
-			CookieJar = new CookieJar(FileHandler, dataPath);
-			CacheHandler = new CacheHandler(FileHandler, dataPath);
+			CookieJar = new CookieJar(settings.fileHandler, dataPath);
+			CacheHandler = new CacheHandler(settings.fileHandler, dataPath);
 
 			return this;
 		}
