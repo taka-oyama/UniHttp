@@ -70,9 +70,8 @@ namespace UniHttp
 				return cacheHandler.RetrieveFromCache(response.Request);
 			}
 
-			if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
-				using(MemoryStream destination = new MemoryStream())
-				{
+			using(MemoryStream destination = new MemoryStream()) {
+				if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
 					int chunkSize = ReadChunkSize(source);
 					while(chunkSize > 0) {
 						CopyTo(source, destination, chunkSize);
@@ -81,18 +80,15 @@ namespace UniHttp
 					}
 					return DecodeMessageBody(response, destination);
 				}
-			}
 
-			if(response.Headers.Exist("Content-Length")) {
-				int contentLength = int.Parse(response.Headers["Content-Length"][0]);
-				using(MemoryStream destination = new MemoryStream())
-				{
+				if(response.Headers.Exist("Content-Length")) {
+					int contentLength = int.Parse(response.Headers["Content-Length"][0]);
 					CopyTo(source, destination, contentLength);
 					return DecodeMessageBody(response, destination);
 				}
-			}
 
-			throw new Exception("Could not determine how to read message body!");
+				throw new Exception("Could not determine how to read message body!");
+			}
 		}
 
 		byte[] DecodeMessageBody(HttpResponse response, MemoryStream stream)
