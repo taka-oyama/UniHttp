@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
-using UnityEngine;
 using System.Globalization;
 using System.IO.Compression;
+using UnityEngine;
 
 namespace UniHttp
 {
@@ -24,23 +23,23 @@ namespace UniHttp
 			this.bufferSize = bufferSize;
 		}
 
-		internal HttpResponse Build(HttpRequest request, Stream source)
+		internal HttpResponse Build(HttpRequest request, HttpStream source)
 		{
 			DateTime then = DateTime.Now;
 
 			HttpResponse response = new HttpResponse(request);
 
 			// Status Line
-			response.HttpVersion = ReadTo(source, SPACE).TrimEnd(SPACE);
-			response.StatusCode = int.Parse(ReadTo(source, SPACE).TrimEnd(SPACE));
-			response.StatusPhrase = ReadTo(source, LF).TrimEnd();
+			response.HttpVersion = source.ReadTo(SPACE).TrimEnd(SPACE);
+			response.StatusCode = int.Parse(source.ReadTo(SPACE).TrimEnd(SPACE));
+			response.StatusPhrase = source.ReadTo(LF).TrimEnd();
 
 			// Headers
-			string name = ReadTo(source, COLON, LF).TrimEnd(COLON, CR, LF);
+			string name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			while(name != String.Empty) {
-				string valuesStr = ReadTo(source, LF).TrimEnd(CR, LF);
+				string valuesStr = source.ReadTo(LF).TrimEnd(CR, LF);
 				response.Headers.Append(name, valuesStr);
-				name = ReadTo(source, COLON, LF).TrimEnd(COLON, CR, LF);
+				name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			}
 
 			// Message Body
@@ -64,7 +63,7 @@ namespace UniHttp
 			return response;
 		}
 
-		byte[] BuildMessageBody(HttpResponse response, Stream source)
+		byte[] BuildMessageBody(HttpResponse response, HttpStream source)
 		{
 			if(response.StatusCode == 304) {
 				return cacheHandler.RetrieveFromCache(response.Request);
@@ -74,8 +73,8 @@ namespace UniHttp
 				if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
 					int chunkSize = ReadChunkSize(source);
 					while(chunkSize > 0) {
-						CopyTo(source, destination, chunkSize);
-						SkipTo(source, LF);
+						source.CopyTo(destination, chunkSize);
+						source.SkipTo(LF);
 						chunkSize = ReadChunkSize(source);
 					}
 					return DecodeMessageBody(response, destination);
@@ -83,7 +82,7 @@ namespace UniHttp
 
 				if(response.Headers.Exist("Content-Length")) {
 					int contentLength = int.Parse(response.Headers["Content-Length"][0]);
-					CopyTo(source, destination, contentLength);
+					source.CopyTo(destination, contentLength);
 					return DecodeMessageBody(response, destination);
 				}
 
@@ -105,8 +104,8 @@ namespace UniHttp
 			byte[] buffer = new byte[bufferSize];
 			int readBytes = 0;
 			stream.Seek(0, SeekOrigin.Begin);
-			using(var destination = new MemoryStream()) {
-				using(var gzipStream = new GZipStream(stream, CompressionMode.Decompress)) {
+			using(MemoryStream destination = new MemoryStream()) {
+				using(GZipStream gzipStream = new GZipStream(stream, CompressionMode.Decompress)) {
 					while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
 						destination.Write(buffer, 0, readBytes);
 					}
@@ -115,56 +114,12 @@ namespace UniHttp
 			}
 		}
 
-		int ReadChunkSize(Stream source)
-		{
-			using(MemoryStream destination = new MemoryStream(0)) {
-				ReadTo(source, destination, LF);
-				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).TrimEnd(CR, LF);
-				return int.Parse(hexStr, NumberStyles.HexNumber);
-			}
-		}
-
-		string ReadTo(Stream source, params char[] stoppers)
+		int ReadChunkSize(HttpStream source)
 		{
 			using(MemoryStream destination = new MemoryStream()) {
-				return ReadTo(source, destination, stoppers);
-			}
-		}
-
-		string ReadTo(Stream source, MemoryStream destination, params char[] stoppers)
-		{
-			int b;
-			int count = 0;
-			do {
-				b = source.ReadByte();
-				destination.WriteByte((byte)b);
-				if(b == -1) break;
-				count += 1;
-			} while(stoppers.All(s => b != (int)s));
-			return Encoding.UTF8.GetString(destination.ToArray());
-		}
-
-		int SkipTo(Stream source, params char[] stopChars)
-		{
-			int b;
-			int count = 0;
-			do {
-				b = source.ReadByte();
-				if(b == -1) break;
-				count += 1;
-			} while(stopChars.All(s => b != (int)s));
-			return count;
-		}
-
-		void CopyTo(Stream source, Stream destination, int count)
-		{
-			byte[] buffer = new byte[bufferSize];
-			int remainingBytes = count;
-			int readBytes = 0;
-			while(remainingBytes > 0) {
-				readBytes = source.Read(buffer, 0, Math.Min(buffer.Length, remainingBytes));
-				destination.Write(buffer, 0, readBytes);
-				remainingBytes -= readBytes;
+				source.ReadTo(destination, LF);
+				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).TrimEnd(CR, LF);
+				return int.Parse(hexStr, NumberStyles.HexNumber);
 			}
 		}
 	}

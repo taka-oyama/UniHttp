@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using System;
 using System.Net.Security;
+using System.Text;
+using UnityEngine;
 
 namespace UniHttp
 {
@@ -103,6 +104,51 @@ namespace UniHttp
 		{
 			Dispose(true);
 			base.Close();
+		}
+
+		public string ReadTo(params char[] stoppers)
+		{
+			using(MemoryStream destination = new MemoryStream()) {
+				return ReadTo(destination, stoppers);
+			}
+		}
+
+		public string ReadTo(MemoryStream destination, params char[] stoppers)
+		{
+			int b;
+			int count = 0;
+			do {
+				b = ReadByte();
+				destination.WriteByte((byte)b);
+				if(b == -1) break;
+				count += 1;
+			}
+			while(Array.TrueForAll(stoppers, s => b != (int)s));
+			return Encoding.UTF8.GetString(destination.ToArray());
+		}
+
+		public void SkipTo(params char[] stopChars)
+		{
+			int b;
+			int count = 0;
+			do {
+				b = ReadByte();
+				if(b == -1) break;
+				count += 1;
+			}
+			while(Array.TrueForAll(stopChars, s => b != (int)s));
+		}
+
+		public void CopyTo(Stream destination, int count)
+		{
+			byte[] buffer = new byte[16 * 1024];
+			int remainingBytes = count;
+			int readBytes = 0;
+			while(remainingBytes > 0) {
+				readBytes = Read(buffer, 0, Math.Min(buffer.Length, remainingBytes));
+				destination.Write(buffer, 0, readBytes);
+				remainingBytes -= readBytes;
+			}
 		}
 	}
 }
