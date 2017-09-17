@@ -65,7 +65,7 @@ namespace UniHttp
 			return string.Join(Constant.CRLF, fieldLines.ToArray());
 		}
 
-		string Titleize(string str)
+		static string Titleize(string str)
 		{
 			return string.Join("-", str.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
 		}
