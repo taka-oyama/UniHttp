@@ -55,6 +55,8 @@ namespace UniHttp
 			this.mainThreadQueue = new Queue<Action>();
 			this.locker = new object();
 
+			UserAgent.Build();
+
 			return this;
 		}
 

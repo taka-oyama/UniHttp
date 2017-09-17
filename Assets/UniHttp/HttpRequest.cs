@@ -36,7 +36,7 @@ namespace UniHttp
 			}
 
 			if(Headers.NotExist("User-Agent")) {
-				Headers.Add("User-Agent", string.Format("{0}/{1} ({2}; {3})", Application.identifier, Application.version, SystemInfo.deviceModel, SystemInfo.operatingSystem));
+				Headers.Add("User-Agent", UserAgent.Value);
 			}
 		}
 
