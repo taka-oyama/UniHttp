@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 namespace UniHttp
 {
@@ -8,6 +9,7 @@ namespace UniHttp
 		public bool useCache = true;
 		public bool followRedirects = true;
 		public int maxConcurrentRequests = 4;
+		public TimeSpan keepAliveTimeout = TimeSpan.FromSeconds(10f);
 
 		public string dataDirectory;
 		public ILogger logger;

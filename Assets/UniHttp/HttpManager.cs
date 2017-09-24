@@ -21,6 +21,7 @@ namespace UniHttp
 		Queue<DispatchInfo> pendingRequests;
 		Queue<Action> mainThreadQueue;
 		object locker;
+		float deltaTimer;
 
 		public static HttpManager Initalize(HttpSettings httpSettings = null, bool dontDestroyOnLoad = true)
 		{
@@ -43,7 +44,7 @@ namespace UniHttp
 			string dataPath = settings.dataDirectory + "/UniHttp";
 			Directory.CreateDirectory(dataPath);
 
-			this.streamPool = new HttpStreamPool(settings.sslVerifier);
+			this.streamPool = new HttpStreamPool(settings.keepAliveTimeout, settings.sslVerifier);
 			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
 			this.responseBuilder = new ResponseBuilder(cacheHandler);
@@ -54,6 +55,7 @@ namespace UniHttp
 			this.pendingRequests = new Queue<DispatchInfo>();
 			this.mainThreadQueue = new Queue<Action>();
 			this.locker = new object();
+			this.deltaTimer = 0f;
 
 			UserAgent.Build();
 
@@ -118,8 +120,8 @@ namespace UniHttp
 					settings.logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
 
 					// Send request though TCP stream
-					HttpStream stream = streamPool.CheckOut(request);
 					byte[] data = request.ToBytes();
+					HttpStream stream = streamPool.CheckOut(request);
 					stream.Write(data, 0, data.Length);
 					stream.Flush();
 
@@ -180,6 +182,17 @@ namespace UniHttp
 			while(mainThreadQueue.Count > 0) {
 				mainThreadQueue.Dequeue().Invoke();
 			}
+
+			deltaTimer += Time.deltaTime;
+			if (deltaTimer >= 1f) {
+				UpdateEverySecond();
+				deltaTimer = 0f;
+			}
+		}
+
+		void UpdateEverySecond()
+		{
+			streamPool.CheckExpiredStreams();
 		}
 
 		void Save()

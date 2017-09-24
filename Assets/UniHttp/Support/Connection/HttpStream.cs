@@ -10,13 +10,16 @@ namespace UniHttp
 	internal sealed class HttpStream : Stream
 	{
 		internal string url;
+		internal KeepAlive keepAlive;
+
 		TcpClient tcpClient;
 		SslStream sslStream;
 		Stream stream;
 
-		internal HttpStream(Uri uri, ISslVerifier sslVerifier)
+		internal HttpStream(Uri uri, DateTime expiresAt, ISslVerifier sslVerifier)
 		{
-			this.url = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority); 
+			this.url = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
+			this.keepAlive = new KeepAlive(expiresAt);
 			this.tcpClient = new TcpClient();
 			this.tcpClient.Connect(uri.Host, uri.Port);
 

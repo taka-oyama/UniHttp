@@ -23,10 +23,12 @@ public class Test : MonoBehaviour
 		IHttpData payload = new HttpJsonData(new TestClass() { level = 10, stat = "!!#^(0-=" });
 		var request = new HttpRequest(HttpMethod.GET, uri);
 		httpManager.Send(request, response => {
-			var uri1 = new Uri("http://localhost:3000/test/debug");
-			var request1 = new HttpRequest(HttpMethod.GET, uri1);
-			httpManager.Send(request1, r => {
-			});
+			for(int i = 0; i < 10; i++) {
+				var uri1 = new Uri("http://localhost:3000/test");
+				var request1 = new HttpRequest(HttpMethod.GET, uri1);
+				httpManager.Send(request1, r => {
+				});
+			}
 		});
 
 	}
