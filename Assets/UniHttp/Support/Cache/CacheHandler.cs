@@ -42,7 +42,7 @@ namespace UniHttp
 			if(!IsCachable(response.Request)) {
 				return false;
 			}
-			if(response.StatusCode != 200) {
+			if(response.StatusCode != StatusCode.OK) {
 				return false;
 			}
 			if(response.MessageBody.Length == 0) {

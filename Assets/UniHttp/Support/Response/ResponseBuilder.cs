@@ -65,7 +65,7 @@ namespace UniHttp
 
 		byte[] BuildMessageBody(HttpResponse response, HttpStream source)
 		{
-			if(response.StatusCode == 304) {
+			if(response.StatusCode == StatusCode.NotModified) {
 				return cacheHandler.RetrieveFromCache(response.Request);
 			}
 

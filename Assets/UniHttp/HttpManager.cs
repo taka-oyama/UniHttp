@@ -164,7 +164,7 @@ namespace UniHttp
 			Uri uri = new Uri(response.Headers["Location"][0]);
 			HttpRequest request = response.Request;
 			HttpMethod method = request.Method;
-			if(response.StatusCode == 303) {
+			if(response.StatusCode == StatusCode.SeeOther) {
 				if(method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.PATCH) {
 					method = HttpMethod.GET;
 				}
