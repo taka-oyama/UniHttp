@@ -26,9 +26,9 @@ namespace UniHttp
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(HttpVersion);
-			sb.Append(Constant.SPACE);
+			sb.Append(Constant.Space);
 			sb.Append(StatusCode);
-			sb.Append(Constant.SPACE);
+			sb.Append(Constant.Space);
 			sb.Append(StatusPhrase);
 			sb.Append(Constant.CRLF);
 			if(Headers.Length > 0) {

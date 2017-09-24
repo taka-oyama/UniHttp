@@ -150,8 +150,8 @@ namespace UniHttp
 		bool IsRedirect(HttpResponse response)
 		{
 			if(settings.followRedirects) {
-				for(int i = 0; i < Constant.REDIRECTS.Length; i++) {
-					if(response.StatusCode == Constant.REDIRECTS[i]) {
+				for(int i = 0; i < Constant.Redirects.Length; i++) {
+					if(response.StatusCode == Constant.Redirects[i]) {
 						return true;
 					}
 				}

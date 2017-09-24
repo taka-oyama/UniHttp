@@ -91,9 +91,9 @@ namespace UniHttp
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(Method.ToString().ToUpper());
-			sb.Append(Constant.SPACE);
+			sb.Append(Constant.Space);
 			sb.Append(Uri.PathAndQuery);
-			sb.Append(Constant.SPACE);
+			sb.Append(Constant.Space);
 			sb.Append("HTTP/" + Version);
 			sb.Append(Constant.CRLF);
 			sb.Append(Headers.ToString());
