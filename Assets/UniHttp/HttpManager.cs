@@ -62,9 +62,9 @@ namespace UniHttp
 			return this;
 		}
 
-		public void Send(HttpRequest request, Action<HttpResponse> callback)
+		public void Send(HttpRequest request, Action<HttpResponse> onResponse)
 		{
-			pendingRequests.Enqueue(new DispatchInfo(request, callback));
+			pendingRequests.Enqueue(new DispatchInfo(request, onResponse));
 			TransmitIfPossible();
 		}
 
@@ -87,8 +87,8 @@ namespace UniHttp
 					HttpResponse response = Transmit(info);
 					ExecuteOnMainThread(() => {
 						ongoingRequests.Remove(info);
-						if(info.Callback != null) {
-							info.Callback(response);
+						if(info.OnResponse != null) {
+							info.OnResponse(response);
 						}
 						TransmitIfPossible();
 					});
