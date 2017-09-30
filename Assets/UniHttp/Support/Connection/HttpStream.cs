@@ -142,13 +142,13 @@ namespace UniHttp
 			while(Array.TrueForAll(stopChars, s => b != (int)s));
 		}
 
-		public void CopyTo(Stream destination, int count)
+		public void CopyTo(Stream destination, long count)
 		{
 			byte[] buffer = new byte[16 * 1024];
-			int remainingBytes = count;
+			long remainingBytes = count;
 			int readBytes = 0;
 			while(remainingBytes > 0) {
-				readBytes = Read(buffer, 0, Math.Min(buffer.Length, remainingBytes));
+				readBytes = Read(buffer, 0, (int) Math.Min(buffer.LongLength, remainingBytes));
 				destination.Write(buffer, 0, readBytes);
 				remainingBytes -= readBytes;
 			}

@@ -71,7 +71,7 @@ namespace UniHttp
 
 			using(MemoryStream destination = new MemoryStream()) {
 				if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
-					int chunkSize = ReadChunkSize(source);
+					long chunkSize = ReadChunkSize(source);
 					while(chunkSize > 0) {
 						source.CopyTo(destination, chunkSize);
 						source.SkipTo(LF);
@@ -81,7 +81,7 @@ namespace UniHttp
 				}
 
 				if(response.Headers.Exist("Content-Length")) {
-					int contentLength = int.Parse(response.Headers["Content-Length"][0]);
+					long contentLength = long.Parse(response.Headers["Content-Length"][0]);
 					source.CopyTo(destination, contentLength);
 					return DecodeMessageBody(response, destination);
 				}
@@ -114,12 +114,12 @@ namespace UniHttp
 			}
 		}
 
-		int ReadChunkSize(HttpStream source)
+		long ReadChunkSize(HttpStream source)
 		{
 			using(MemoryStream destination = new MemoryStream()) {
 				source.ReadTo(destination, LF);
 				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).TrimEnd(CR, LF);
-				return int.Parse(hexStr, NumberStyles.HexNumber);
+				return long.Parse(hexStr, NumberStyles.HexNumber);
 			}
 		}
 	}
