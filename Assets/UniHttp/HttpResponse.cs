@@ -17,7 +17,8 @@ namespace UniHttp
 		public TimeSpan RoundTripTime { get; internal set; }
 		internal CacheInfo CacheInfo { get; set; }
 
-		public HttpResponse(HttpRequest request) {
+		public HttpResponse(HttpRequest request)
+		{
 			this.Request = request;
 			this.Headers = new ResponseHeaders();
 		}
