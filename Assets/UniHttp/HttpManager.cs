@@ -177,7 +177,7 @@ namespace UniHttp
 			return new HttpRequest(method, uri, request.Headers, request.Data);
 		}
 
-		void FixedUpdate()
+		void Update()
 		{
 			while(mainThreadQueue.Count > 0) {
 				mainThreadQueue.Dequeue().Invoke();
