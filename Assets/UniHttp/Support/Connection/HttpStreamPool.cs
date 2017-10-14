@@ -92,7 +92,6 @@ namespace UniHttp
 			if(streams.Count > 0) {
 				foreach(HttpStream stream in streams) {
 					if(stream.keepAlive.Expired) {
-						Debug.Log("Expired");
 						stream.Close();
 					}
 				}
