@@ -77,6 +77,7 @@ namespace UniHttp
 						source.SkipTo(LF);
 						chunkSize = ReadChunkSize(source);
 					}
+					source.SkipTo(LF);
 					return DecodeMessageBody(response, destination);
 				}
 
