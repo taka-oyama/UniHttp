@@ -110,39 +110,45 @@ namespace UniHttp
 		HttpResponse Transmit(HttpRequest request)
 		{
 			HttpResponse response = null;
+			HttpStream stream = null;
 
-			try {
-				while(true) {
-					requestPreprocessor.Execute(request);
+			while(true) {
+				requestPreprocessor.Execute(request);
 
-					// Log request
-					settings.logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
+				// Log request
+				settings.logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
 
+				try {
 					// Send request though TCP stream
 					byte[] data = request.ToBytes();
-					HttpStream stream = streamPool.CheckOut(request);
+					stream = streamPool.CheckOut(request);
 					stream.Write(data, 0, data.Length);
 					stream.Flush();
 
 					// Build the response from stream
 					response = responseBuilder.Build(request, stream);
-					streamPool.CheckIn(response, stream);
-					responsePostprocessor.Execute(response);
-
-					// Log response
-					settings.logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
-
-					// Handle redirects
-					if(IsRedirect(response)) {
-						request = MakeRedirectRequest(response);
-					} else {
-						break;
+				}
+				catch(SocketException exception) {
+					response = responseBuilder.Build(request, exception);
+				}
+				finally {
+					if(stream != null) {
+						streamPool.CheckIn(response, stream);
 					}
 				}
-			}
-			catch(SocketException exception) {
-				response = responseBuilder.Build(request, exception);
+
+				// Handle resoponse
+				responsePostprocessor.Execute(response);
+
+				// Log response
 				settings.logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
+
+				// Handle redirects
+				if(IsRedirect(response)) {
+					request = MakeRedirectRequest(response);
+				} else {
+					break;
+				}
 			}
 
 			return response;

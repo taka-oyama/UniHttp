@@ -8,14 +8,16 @@ namespace UniHttp
 	internal sealed class HttpStreamPool
 	{
 		object locker;
-		List<HttpStream> streams;
+		List<HttpStream> unusedStreams;
+		List<HttpStream> usedStreams;
 		TimeSpan keepAliveTimeout;
 		ISslVerifier sslVerifier;
 
 		internal HttpStreamPool(TimeSpan keepAliveTimeout, ISslVerifier sslVerifier)
 		{
 			this.locker = new object();
-			this.streams = new List<HttpStream>();
+			this.unusedStreams = new List<HttpStream>();
+			this.usedStreams = new List<HttpStream>();
 			this.keepAliveTimeout = keepAliveTimeout;
 			this.sslVerifier = sslVerifier;
 		}
@@ -26,16 +28,19 @@ namespace UniHttp
 			DateTime expiresAt = DateTime.Now + keepAliveTimeout;
 
 			lock(locker) {
-				int index = streams.FindIndex(s => s.url == url);
+				int index = unusedStreams.FindIndex(s => s.url == url);
 				if(index >= 0) {
-					HttpStream stream = streams[index];
-					streams.RemoveAt(index);
+					HttpStream stream = unusedStreams[index];
+					unusedStreams.RemoveAt(index);
 					if(stream.Connected) {
 						return stream;
 					}
 				}
+
+				HttpStream newStream = new HttpStream(request.Uri, expiresAt, sslVerifier);
+				usedStreams.Add(newStream);
+				return newStream;
 			}
-			return new HttpStream(request.Uri, expiresAt, sslVerifier);
 		}
 
 		internal void CheckIn(HttpResponse response, HttpStream stream)
@@ -53,8 +58,8 @@ namespace UniHttp
 			}
 
 			lock(locker) {
-				streams.Add(stream);
-				streams.RemoveAll(s => !s.Connected);
+				usedStreams.Remove(stream);
+				unusedStreams.Add(stream);
 			}
 		}
 
@@ -89,14 +94,14 @@ namespace UniHttp
 
 		internal void CheckExpiredStreams()
 		{
-			if(streams.Count > 0) {
-				foreach(HttpStream stream in streams) {
+			if(unusedStreams.Count > 0) {
+				foreach(HttpStream stream in unusedStreams) {
 					if(stream.keepAlive.Expired) {
 						stream.Close();
 					}
 				}
 				lock(locker) {
-					streams.RemoveAll(s => !s.Connected);
+					unusedStreams.RemoveAll(s => !s.Connected);
 				}
 			}
 		}
@@ -104,10 +109,14 @@ namespace UniHttp
 		internal void CloseAll()
 		{
 			lock(locker) {
-				foreach(HttpStream stream in streams) {
+				foreach(HttpStream stream in unusedStreams) {
 					stream.Close();
 				}
-				streams.Clear();
+				foreach(HttpStream stream in usedStreams) {
+					stream.Close();
+				}
+				unusedStreams.Clear();
+				usedStreams.Clear();
 			}
 		}
 	}
