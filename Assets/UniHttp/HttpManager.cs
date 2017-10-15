@@ -209,8 +209,8 @@ namespace UniHttp
 
 		void OnApplicationQuit()
 		{
-			Save();
 			streamPool.CloseAll();
+			Save();
 		}
 	}
 }
