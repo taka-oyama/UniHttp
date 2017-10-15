@@ -84,7 +84,7 @@ namespace UniHttp
 
 			ThreadPool.QueueUserWorkItem(state => {
 				try {
-					HttpResponse response = Transmit(info);
+					HttpResponse response = Transmit(info.Request);
 					ExecuteOnMainThread(() => {
 						ongoingRequests.Remove(info);
 						if(info.OnResponse != null) {
@@ -107,9 +107,8 @@ namespace UniHttp
 			}
 		}
 
-		HttpResponse Transmit(DispatchInfo info)
+		HttpResponse Transmit(HttpRequest request)
 		{
-			HttpRequest request = info.Request;
 			HttpResponse response = null;
 
 			try {
