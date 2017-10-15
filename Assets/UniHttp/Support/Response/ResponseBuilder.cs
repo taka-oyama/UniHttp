@@ -14,8 +14,8 @@ namespace UniHttp
 		const char CR = '\r';
 		const char LF = '\n';
 
-		CacheHandler cacheHandler;
-		int bufferSize;
+		readonly CacheHandler cacheHandler;
+		readonly int bufferSize;
 
 		internal ResponseBuilder(CacheHandler cacheHandler, int bufferSize = 16 * 1024)
 		{
