@@ -77,7 +77,7 @@ namespace UniHttp
 
 		public override int Read(byte[] buffer, int offset, int count)
 		{
-			return stream.Read(buffer, 0, count);
+			return stream.Read(buffer, offset, count);
 		}
 
 		public override long Seek(long offset, SeekOrigin origin)
