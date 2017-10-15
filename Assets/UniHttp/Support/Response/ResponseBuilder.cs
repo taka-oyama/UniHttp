@@ -65,25 +65,43 @@ namespace UniHttp
 
 		byte[] BuildMessageBody(HttpResponse response, HttpStream source)
 		{
+			Progress progress = response.Request.DownloadProgress;
+
 			if(response.StatusCode == StatusCode.NotModified) {
-				return cacheHandler.RetrieveFromCache(response.Request);
+				byte[] messageBody = cacheHandler.RetrieveFromCache(response.Request);
+
+				progress.Start(messageBody.LongLength);
+				progress.Finialize();
+
+				return messageBody;
 			}
 
 			using(MemoryStream destination = new MemoryStream()) {
 				if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
+					progress.Start();
+
 					long chunkSize = ReadChunkSize(source);
 					while(chunkSize > 0) {
-						source.CopyTo(destination, chunkSize);
+						source.CopyTo(destination, chunkSize, progress);
 						source.SkipTo(LF);
 						chunkSize = ReadChunkSize(source);
 					}
 					source.SkipTo(LF);
+
+					progress.Finialize();
+
 					return DecodeMessageBody(response, destination);
 				}
 
 				if(response.Headers.Exist("Content-Length")) {
 					long contentLength = long.Parse(response.Headers["Content-Length"][0]);
-					source.CopyTo(destination, contentLength);
+
+					progress.Start(contentLength);
+
+					source.CopyTo(destination, contentLength, progress);
+
+					progress.Finialize();
+
 					return DecodeMessageBody(response, destination);
 				}
 

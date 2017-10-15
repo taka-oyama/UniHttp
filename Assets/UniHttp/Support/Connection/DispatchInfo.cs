@@ -3,7 +3,7 @@ using System;
 
 namespace UniHttp
 {
-	internal struct DispatchInfo
+	internal class DispatchInfo
 	{
 		internal HttpRequest Request { get; private set; }
 		internal Action<HttpResponse> OnResponse { get; private set; }

@@ -12,6 +12,7 @@ namespace UniHttp
 		public string Version { get { return "1.1"; } }
 		public RequestHeaders Headers { get; private set; }
 		public IHttpData Data { get; private set; }
+		public Progress DownloadProgress { get; private set; }
 
 		public HttpRequest(HttpMethod method, Uri uri) : this(method, uri, null, null, null) {}
 		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query) : this(method, uri, query, null, null) {}
@@ -26,6 +27,7 @@ namespace UniHttp
 			this.Uri = ConstructUri(uri, query);
 			this.Headers = headers ?? new RequestHeaders();
 			this.Data = data;
+			this.DownloadProgress = new Progress();
 
 			if(Headers.NotExist("Host")) {
 				Headers.Add("Host", GenerateHost(uri));
