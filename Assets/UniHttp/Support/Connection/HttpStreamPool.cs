@@ -28,11 +28,11 @@ namespace UniHttp
 
 		internal HttpStream CheckOut(HttpRequest request)
 		{
-			string url = string.Concat(request.Uri.Scheme, Uri.SchemeDelimiter, request.Uri.Authority);
+			string baseUrl = string.Concat(request.Uri.Scheme, Uri.SchemeDelimiter, request.Uri.Authority);
 			DateTime expiresAt = DateTime.Now + keepAliveTimeout;
 
 			lock(locker) {
-				int index = unusedStreams.FindIndex(s => s.url == url);
+				int index = unusedStreams.FindIndex(s => s.baseUrl == baseUrl);
 				if(index >= 0) {
 					HttpStream stream = unusedStreams[index];
 					unusedStreams.RemoveAt(index);

@@ -9,7 +9,7 @@ namespace UniHttp
 {
 	internal sealed class HttpStream : Stream
 	{
-		internal string url;
+		internal string baseUrl;
 		internal KeepAlive keepAlive;
 
 		Uri uri;
@@ -19,7 +19,7 @@ namespace UniHttp
 
 		internal HttpStream(Uri uri, DateTime expiresAt, ISslVerifier sslVerifier)
 		{
-			this.url = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
+			this.baseUrl = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
 			this.keepAlive = new KeepAlive(expiresAt);
 
 			this.uri = uri;
@@ -27,7 +27,7 @@ namespace UniHttp
 			this.sslVerifier = sslVerifier;
 		}
 
-		public void Connect()
+		internal void Connect()
 		{
 			this.tcpClient.Connect(uri.Host, uri.Port);
 			this.stream = tcpClient.GetStream();
@@ -39,12 +39,12 @@ namespace UniHttp
 			}
 		}
 
-		public bool Connected
+		internal bool Connected
 		{
 			get { return tcpClient.Connected; }
 		}
 
-		public TcpClient TcpClient
+		internal TcpClient TcpClient
 		{
 			get { return tcpClient; }
 		}
