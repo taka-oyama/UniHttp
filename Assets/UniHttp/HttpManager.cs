@@ -44,7 +44,7 @@ namespace UniHttp
 			string dataPath = settings.dataDirectory + "/UniHttp";
 			Directory.CreateDirectory(dataPath);
 
-			this.streamPool = new HttpStreamPool(settings.keepAliveTimeout, settings.sslVerifier);
+			this.streamPool = new HttpStreamPool(settings);
 			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
 			this.responseBuilder = new ResponseBuilder(cacheHandler);

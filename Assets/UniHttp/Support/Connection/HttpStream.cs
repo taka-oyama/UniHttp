@@ -12,36 +12,41 @@ namespace UniHttp
 		internal string url;
 		internal KeepAlive keepAlive;
 
+		Uri uri;
 		TcpClient tcpClient;
-		SslStream sslStream;
 		Stream stream;
+		ISslVerifier sslVerifier;
 
 		internal HttpStream(Uri uri, DateTime expiresAt, ISslVerifier sslVerifier)
 		{
 			this.url = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
 			this.keepAlive = new KeepAlive(expiresAt);
-			this.tcpClient = new TcpClient();
-			this.tcpClient.Connect(uri.Host, uri.Port);
 
+			this.uri = uri;
+			this.tcpClient = new TcpClient();
+			this.sslVerifier = sslVerifier;
+		}
+
+		public void Connect()
+		{
+			this.tcpClient.Connect(uri.Host, uri.Port);
 			this.stream = tcpClient.GetStream();
 
-			if(uri.Scheme == Uri.UriSchemeHttp) {
-				return;
-			}
-
 			if(uri.Scheme == Uri.UriSchemeHttps) {
-				this.sslStream = new SslStream(stream, false, sslVerifier.Verify);
-				this.stream = sslStream;
+				SslStream sslStream = new SslStream(stream, false, sslVerifier.Verify);
 				sslStream.AuthenticateAsClient(uri.Host);
-				return;
+				this.stream = sslStream;
 			}
-
-			throw new Exception("Unsupported Scheme:" + uri.Scheme);
 		}
 
 		public bool Connected
 		{
 			get { return tcpClient.Connected; }
+		}
+
+		public TcpClient TcpClient
+		{
+			get { return tcpClient; }
 		}
 
 		public override bool CanRead
@@ -144,8 +149,8 @@ namespace UniHttp
 
 		public void CopyTo(Stream destination, long count, Progress progress = null)
 		{
-			byte[] buffer = new byte[16 * 1024];
-			long remainingBytes = count;
+			byte[] buffer = new byte[tcpClient.ReceiveBufferSize];
+  			long remainingBytes = count;
 			int readBytes = 0;
 			while(remainingBytes > 0) {
 				readBytes = Read(buffer, 0, (int) Math.Min(buffer.LongLength, remainingBytes));
