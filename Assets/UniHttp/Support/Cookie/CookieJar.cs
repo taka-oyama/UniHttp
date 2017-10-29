@@ -122,8 +122,11 @@ namespace UniHttp
 			if(!io.Exists) {
 				return new Dictionary<string, List<Cookie>>();
 			}
-			lock(locker) {
+			try {
 				return io.Read<Dictionary<string, List<Cookie>>>();
+			}
+			catch(IOException ioException) {
+				return new Dictionary<string, List<Cookie>>();
 			}
 		}
 

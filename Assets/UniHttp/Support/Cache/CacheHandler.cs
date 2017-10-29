@@ -119,8 +119,12 @@ namespace UniHttp
 			if(!infoStorage.Exists) {
 				return new Dictionary<string, CacheInfo>();
 			}
-			lock(locker) {
+
+			try {
 				return infoStorage.Read<Dictionary<string, CacheInfo>>();
+			}
+			catch(IOException ioException) {
+				return new Dictionary<string, CacheInfo>();
 			}
 		}
 	}
