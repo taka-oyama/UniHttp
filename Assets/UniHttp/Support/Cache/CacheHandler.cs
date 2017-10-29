@@ -94,9 +94,9 @@ namespace UniHttp
 			}
 		}
 
-		internal byte[] RetrieveFromCache(HttpRequest request)
+		internal FileStream GetReadStream(HttpRequest request)
 		{
-			return cacheStorage.Read(request.Uri);
+			return cacheStorage.OpenReadStream(request.Uri);
 		}
 
 		internal void Clear()

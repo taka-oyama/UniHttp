@@ -39,6 +39,13 @@ namespace UniHttp
 			}
 		}
 
+		public FileStream OpenReadStream(Uri uri)
+		{
+			lock(locker) {
+				return fileHandler.OpenReadStream(ComputePath(uri));
+			}
+		}
+
 		public virtual bool Exists(Uri uri)
 		{
 			lock(locker) {

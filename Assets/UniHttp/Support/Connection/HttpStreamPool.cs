@@ -41,10 +41,8 @@ namespace UniHttp
 					}
 				}
 
-				HttpStream newStream = new HttpStream(request.Uri, expiresAt, sslVerifier);
-				newStream.TcpClient.SendBufferSize = tcpBufferSize;
-				newStream.TcpClient.ReceiveBufferSize = tcpBufferSize;
-				newStream.TcpClient.NoDelay = tcpNoDelay;
+				HttpStream newStream = new HttpStream(request.Uri, expiresAt, sslVerifier, tcpBufferSize);
+				newStream.TcpNoDelay = tcpNoDelay;
 				newStream.Connect();
 				usedStreams.Add(newStream);
 

@@ -13,6 +13,11 @@ namespace UniHttp
 			return File.Exists(path);
 		}
 
+		public virtual FileStream OpenWriteStream(string path)
+		{
+			return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+		}
+
 		public virtual void Write(string path, byte[] data)
 		{
 			FileInfo info = new FileInfo(path);
@@ -30,6 +35,11 @@ namespace UniHttp
 				new BinaryFormatter().Serialize(stream, obj);
 				Write(path, stream.ToArray());
 			}
+		}
+
+		public virtual FileStream OpenReadStream(string path)
+		{
+			return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 		}
 
 		public virtual byte[] Read(string path)

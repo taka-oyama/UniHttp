@@ -65,48 +65,65 @@ namespace UniHttp
 
 		byte[] BuildMessageBody(HttpResponse response, HttpStream source)
 		{
-			Progress progress = response.Request.DownloadProgress;
-
-			if(response.StatusCode == StatusCode.NotModified) {
-				byte[] messageBody = cacheHandler.RetrieveFromCache(response.Request);
-
-				progress.Start(messageBody.LongLength);
-				progress.Finialize();
-
-				return messageBody;
-			}
-
 			using(MemoryStream destination = new MemoryStream()) {
+
+				if(response.StatusCode == StatusCode.NotModified) {
+					return BuildMessageBodyFromCache(response, source, destination);
+				}
+
 				if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
-					progress.Start();
-
-					long chunkSize = ReadChunkSize(source);
-					while(chunkSize > 0) {
-						source.CopyTo(destination, chunkSize, progress);
-						source.SkipTo(LF);
-						chunkSize = ReadChunkSize(source);
-					}
-					source.SkipTo(LF);
-
-					progress.Finialize();
-
-					return DecodeMessageBody(response, destination);
+					return BuildMessageBodyFromChunked(response, source, destination);
 				}
 
 				if(response.Headers.Exist("Content-Length")) {
-					long contentLength = long.Parse(response.Headers["Content-Length"][0]);
-
-					progress.Start(contentLength);
-
-					source.CopyTo(destination, contentLength, progress);
-
-					progress.Finialize();
-
-					return DecodeMessageBody(response, destination);
+					return BuildMessageBodyFromContentLength(response, source, destination);
 				}
 
 				throw new Exception("Could not determine how to read message body!");
 			}
+		}
+
+		byte[] BuildMessageBodyFromCache(HttpResponse response, HttpStream source, MemoryStream destination)
+		{
+			FileStream fileStream = cacheHandler.GetReadStream(response.Request);
+			CacheStream cacheStream = new CacheStream(fileStream, bufferSize);
+
+			try {
+				Progress progress = response.Request.DownloadProgress;
+				progress.Start(fileStream.Length);
+				cacheStream.CopyTo(destination, fileStream.Length, progress);
+				progress.Finialize();
+				return destination.ToArray();
+			}
+			finally {
+				fileStream.Close();
+				cacheStream.Close();
+			}
+		}
+
+		byte[] BuildMessageBodyFromChunked(HttpResponse response, HttpStream source, MemoryStream destination)
+		{
+			Progress progress = response.Request.DownloadProgress;
+			progress.Start();
+			long chunkSize = ReadChunkSize(source);
+			while(chunkSize > 0) {
+				source.CopyTo(destination, chunkSize, progress);
+				source.SkipTo(LF);
+				chunkSize = ReadChunkSize(source);
+			}
+			source.SkipTo(LF);
+			progress.Finialize();
+			return DecodeMessageBody(response, destination);
+		}
+
+		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source, MemoryStream destination)
+		{
+			Progress progress = response.Request.DownloadProgress;
+			long contentLength = long.Parse(response.Headers["Content-Length"][0]);
+			progress.Start(contentLength);
+			source.CopyTo(destination, contentLength, progress);
+			progress.Finialize();
+			return DecodeMessageBody(response, destination);
 		}
 
 		byte[] DecodeMessageBody(HttpResponse response, MemoryStream stream)
