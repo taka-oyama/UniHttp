@@ -65,14 +65,18 @@ namespace UniHttp
 
 		internal CacheInfo Find(HttpRequest request)
 		{
-			if(!cacheStorage.Exists(request.Uri)) {
-				return null;
-			}
+			CacheInfo cache = null;
+
 			lock(locker) {
 				if(caches.ContainsKey(request.Uri.AbsoluteUri)) {
-					return caches[request.Uri.AbsoluteUri];	
+					cache = caches[request.Uri.AbsoluteUri];	
 				}
 			}
+
+			if(cache != null && cacheStorage.Exists(request.Uri)) {
+				return cache;
+			}
+
 			return null;
 		}
 
