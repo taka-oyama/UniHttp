@@ -15,16 +15,16 @@ namespace UniHttp
 		public bool tcpNoDelay = true;
 
 		public string dataDirectory;
-		public ILogger logger;
 		public ISslVerifier sslVerifier;
 		public IFileHandler fileHandler;
+		public ILogger logger;
 
 		internal HttpSettings FillWithDefaults()
 		{
-			dataDirectory = dataDirectory ?? Application.temporaryCachePath;
-			logger = logger ?? Debug.unityLogger;
-			sslVerifier = sslVerifier ?? new DefaultSslVerifier();
-			fileHandler = fileHandler ?? new DefaultFileHandler();
+			this.dataDirectory = dataDirectory ?? Application.temporaryCachePath;
+			this.sslVerifier = sslVerifier ?? new DefaultSslVerifier();
+			this.fileHandler = fileHandler ?? new DefaultFileHandler();
+			this.logger = logger ?? Debug.unityLogger;
 
 			return this;
 		}
