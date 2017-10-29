@@ -20,21 +20,32 @@ namespace UniHttp
 
 		internal void Execute(HttpRequest request)
 		{
-			if(settings.useCookies) {
-				AddCookiesToRequest(request);
-			}
-			if(!settings.useCache) {
-				request.Headers.AddOrReplace("Cache-Control", "no-store");
-			}
-			if(cacheHandler.IsCachable(request)) {
-				AddCacheDirectiveToRequest(request);
-			}
-			if(request.Data != null) {
-				if(request.Headers.NotExist("Content-Type")) {
-					request.Headers.Add("Content-Type", request.Data.GetContentType());
+			/**
+			 * Request has to be locked here to consider a case where a single instance of HttpRequest
+			 * was sent multiple times simultaneously.
+			 * 
+			 * Ex.
+			 * HttpRequest request = new HttpRequest(...);
+			 * httpManager.Send(request);
+			 * httpManager.Send(request);
+			 */
+			lock(request) {
+				if(settings.useCookies) {
+					AddCookiesToRequest(request);
 				}
-				if(request.Headers.NotExist("Content-Length")) {
-					request.Headers.Add("Content-Length", request.Data.ToBytes().Length.ToString());
+				if(!settings.useCache) {
+					request.Headers.AddOrReplace("Cache-Control", "no-store");
+				}
+				if(cacheHandler.IsCachable(request)) {
+					AddCacheDirectiveToRequest(request);
+				}
+				if(request.Data != null) {
+					if(request.Headers.NotExist("Content-Type")) {
+						request.Headers.Add("Content-Type", request.Data.GetContentType());
+					}
+					if(request.Headers.NotExist("Content-Length")) {
+						request.Headers.Add("Content-Length", request.Data.ToBytes().Length.ToString());
+					}
 				}
 			}
 		}
