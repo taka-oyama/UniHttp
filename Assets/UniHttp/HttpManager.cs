@@ -219,7 +219,7 @@ namespace UniHttp
 			Save();
 		}
 
-		public void ClearCaches()
+		public void ClearCache()
 		{
 			Directory.Delete(settings.dataDirectory + "/UniHttp", true);
 		}
