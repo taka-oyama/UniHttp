@@ -11,9 +11,10 @@ namespace UniHttp
 		List<HttpStream> unusedStreams;
 		List<HttpStream> usedStreams;
 		TimeSpan keepAliveTimeout;
-		ISslVerifier sslVerifier;
 		bool tcpNoDelay;
 		int tcpBufferSize;
+		HttpProxy httpProxy;
+		ISslVerifier sslVerifier;
 
 		internal HttpStreamPool(HttpSettings settings)
 		{
@@ -21,9 +22,10 @@ namespace UniHttp
 			this.unusedStreams = new List<HttpStream>();
 			this.usedStreams = new List<HttpStream>();
 			this.keepAliveTimeout = settings.keepAliveTimeout;
-			this.sslVerifier = settings.sslVerifier;
 			this.tcpNoDelay = settings.tcpNoDelay;
 			this.tcpBufferSize = settings.tcpBufferSize;
+			this.httpProxy = settings.proxy;
+			this.sslVerifier = settings.sslVerifier;
 		}
 
 		internal HttpStream CheckOut(HttpRequest request)
@@ -41,7 +43,8 @@ namespace UniHttp
 					}
 				}
 
-				HttpStream newStream = new HttpStream(request.Uri, expiresAt, sslVerifier, tcpBufferSize);
+				Uri uri = request.useProxy ? request.Uri : httpProxy.Uri;
+				HttpStream newStream = new HttpStream(uri, expiresAt, sslVerifier, tcpBufferSize);
 				newStream.TcpNoDelay = tcpNoDelay;
 				newStream.Connect();
 				usedStreams.Add(newStream);

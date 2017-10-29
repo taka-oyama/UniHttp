@@ -14,6 +14,8 @@ namespace UniHttp
 		public IHttpData Data { get; private set; }
 		public Progress DownloadProgress { get; private set; }
 
+		internal bool useProxy;
+
 		public HttpRequest(HttpMethod method, Uri uri) : this(method, uri, null, null, null) {}
 		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query) : this(method, uri, query, null, null) {}
 		public HttpRequest(HttpMethod method, Uri uri, IHttpData data) : this(method, uri, null, null, data) {}
@@ -94,6 +96,9 @@ namespace UniHttp
 			StringBuilder sb = new StringBuilder();
 			sb.Append(Method.ToString().ToUpper());
 			sb.Append(Constant.Space);
+			if(useProxy) {
+				sb.Append(Uri.Scheme + Uri.SchemeDelimiter + Uri.Authority);
+			}
 			sb.Append(Uri.PathAndQuery);
 			sb.Append(Constant.Space);
 			sb.Append("HTTP/" + Version);

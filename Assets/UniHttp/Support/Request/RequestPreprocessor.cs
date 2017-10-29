@@ -30,6 +30,8 @@ namespace UniHttp
 			 * httpManager.Send(request);
 			 */
 			lock(request) {
+				request.useProxy = settings.proxy != null;
+
 				if(settings.useCookies) {
 					AddCookiesToRequest(request);
 				}

@@ -15,6 +15,7 @@ namespace UniHttp
 		public bool tcpNoDelay = true;
 
 		public string dataDirectory;
+		public HttpProxy proxy;
 		public ISslVerifier sslVerifier;
 		public IFileHandler fileHandler;
 		public ILogger logger;
