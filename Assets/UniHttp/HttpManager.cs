@@ -218,5 +218,10 @@ namespace UniHttp
 			streamPool.CloseAll();
 			Save();
 		}
+
+		public void ClearCaches()
+		{
+			Directory.Delete(settings.dataDirectory + "/UniHttp", true);
+		}
 	}
 }
