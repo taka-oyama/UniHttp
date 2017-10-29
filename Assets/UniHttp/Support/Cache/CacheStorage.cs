@@ -28,21 +28,21 @@ namespace UniHttp
 		public virtual void Write(Uri uri, byte[] data)
 		{
 			lock(locker) {
-				fileHandler.Write(ComputeDirectory(uri) + ComputeFileName(uri), data);
+				fileHandler.Write(ComputePath(uri), data);
 			}
 		}
 
 		public virtual byte[] Read(Uri uri)
 		{
 			lock(locker) {
-				return fileHandler.Read(ComputeDirectory(uri) + ComputeFileName(uri));
+				return fileHandler.Read(ComputePath(uri));
 			}
 		}
 
 		public virtual bool Exists(Uri uri)
 		{
 			lock(locker) {
-				return fileHandler.Exists(ComputeDirectory(uri) + ComputeFileName(uri));
+				return fileHandler.Exists(ComputePath(uri));
 			}
 		}
 
@@ -54,6 +54,11 @@ namespace UniHttp
 					dirs[i].Delete(true);
 				}
 			}
+		}
+
+		string ComputePath(Uri uri)
+		{
+			return ComputeDirectory(uri) + ComputeFileName(uri);
 		}
 
 		string ComputeDirectory(Uri uri)
