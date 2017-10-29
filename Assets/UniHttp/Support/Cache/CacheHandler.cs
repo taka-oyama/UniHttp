@@ -123,7 +123,7 @@ namespace UniHttp
 			try {
 				return infoStorage.Read<Dictionary<string, CacheInfo>>();
 			}
-			catch(IOException ioException) {
+			catch(IOException) {
 				return new Dictionary<string, CacheInfo>();
 			}
 		}

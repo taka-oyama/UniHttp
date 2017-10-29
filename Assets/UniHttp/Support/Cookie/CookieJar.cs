@@ -125,7 +125,7 @@ namespace UniHttp
 			try {
 				return io.Read<Dictionary<string, List<Cookie>>>();
 			}
-			catch(IOException ioException) {
+			catch(IOException) {
 				return new Dictionary<string, List<Cookie>>();
 			}
 		}
