@@ -43,7 +43,7 @@ namespace UniHttp
 					}
 				}
 
-				Uri uri = request.useProxy ? request.Uri : httpProxy.Uri;
+				Uri uri = request.useProxy ? httpProxy.Uri : request.Uri;
 				HttpStream newStream = new HttpStream(uri, expiresAt, sslVerifier, tcpBufferSize);
 				newStream.TcpNoDelay = tcpNoDelay;
 				newStream.Connect();
