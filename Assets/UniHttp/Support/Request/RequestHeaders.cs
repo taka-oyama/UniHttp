@@ -47,15 +47,6 @@ namespace UniHttp
 			fields.Add(name, value);
 		}
 
-		public bool AddIfNotExist(string name, string value)
-		{
-			if(NotExist(name)) {
-				Add(name, value);
-				return true;
-			}
-			return false;
-		}
-
 		public void AddOrReplace(string name, string value)
 		{
 			name = name.ToLower();

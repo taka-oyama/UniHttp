@@ -71,11 +71,15 @@ namespace UniHttp
 				return;
 			}
 			if(!string.IsNullOrEmpty(cache.eTag)) {
-				request.Headers.AddIfNotExist("If-None-Match", cache.eTag);
+				if(request.Headers.NotExist("If-None-Match")) {
+					request.Headers.Add("If-None-Match", cache.eTag);
+				}
 			}
 			if(cache.lastModified.HasValue) {
 				DateTimeOffset modifiedSince = cache.lastModified.Value + cache.lastModified.Value.Offset;
-				request.Headers.AddIfNotExist("If-Modified-Since", modifiedSince.ToString("r"));
+				if(request.Headers.NotExist("If-Modified-Since")) {
+					request.Headers.Add("If-Modified-Since", modifiedSince.ToString("r"));
+				}
 			}
 		}
 	}
