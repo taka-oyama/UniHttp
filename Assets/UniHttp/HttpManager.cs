@@ -47,7 +47,7 @@ namespace UniHttp
 			this.streamPool = new HttpStreamPool(settings);
 			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
-			this.responseBuilder = new ResponseBuilder(cacheHandler);
+			this.responseBuilder = new ResponseBuilder(cacheHandler, settings.tcpBufferSize);
 			this.requestPreprocessor = new RequestPreprocessor(settings, cookieJar, cacheHandler);
 			this.responsePostprocessor = new ResponsePostprocessor(settings, cookieJar, cacheHandler);
 

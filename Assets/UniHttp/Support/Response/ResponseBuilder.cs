@@ -17,7 +17,7 @@ namespace UniHttp
 		readonly CacheHandler cacheHandler;
 		readonly int bufferSize;
 
-		internal ResponseBuilder(CacheHandler cacheHandler, int bufferSize = 16 * 1024)
+		internal ResponseBuilder(CacheHandler cacheHandler, int bufferSize)
 		{
 			this.cacheHandler = cacheHandler;
 			this.bufferSize = bufferSize;
