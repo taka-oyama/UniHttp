@@ -74,6 +74,10 @@ namespace UniHttp
 
 		bool IsPersistedConnection(HttpResponse response)
 		{
+			if(response == null) {
+				return false;
+			}
+
 			if(response.Request.Headers.Exist("Connection", "close")) {
 				return false;
 			}
