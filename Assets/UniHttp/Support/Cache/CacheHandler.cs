@@ -82,8 +82,9 @@ namespace UniHttp
 
 		internal CacheInfo CacheResponse(HttpResponse response)
 		{
+			string url = response.Request.Uri.AbsoluteUri;
+
 			lock(locker) {
-				string url = response.Request.Uri.AbsoluteUri;
 				if(caches.ContainsKey(url)) {
 					caches[url].Update(response);
 				} else {
