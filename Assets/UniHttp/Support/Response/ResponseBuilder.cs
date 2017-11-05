@@ -15,12 +15,10 @@ namespace UniHttp
 		const char LF = '\n';
 
 		readonly CacheHandler cacheHandler;
-		readonly int bufferSize;
 
-		internal ResponseBuilder(CacheHandler cacheHandler, int bufferSize)
+		internal ResponseBuilder(CacheHandler cacheHandler)
 		{
 			this.cacheHandler = cacheHandler;
-			this.bufferSize = bufferSize;
 		}
 
 		internal HttpResponse Build(HttpRequest request, HttpStream source)
@@ -85,18 +83,16 @@ namespace UniHttp
 
 		byte[] BuildMessageBodyFromCache(HttpResponse response, HttpStream source, MemoryStream destination)
 		{
-			FileStream fileStream = cacheHandler.GetReadStream(response.Request);
-			CacheStream cacheStream = new CacheStream(fileStream, bufferSize);
+			CacheStream cacheStream = cacheHandler.GetReadStream(response.Request);
 
 			try {
 				Progress progress = response.Request.DownloadProgress;
-				progress.Start(fileStream.Length);
-				cacheStream.CopyTo(destination, fileStream.Length, progress);
+				progress.Start(cacheStream.Length);
+				cacheStream.CopyTo(destination, cacheStream.Length, progress);
 				progress.Finialize();
 				return destination.ToArray();
 			}
 			finally {
-				fileStream.Close();
 				cacheStream.Close();
 			}
 		}
@@ -137,7 +133,7 @@ namespace UniHttp
 
 		byte[] DecodeMessageBodyAsGzip(MemoryStream stream)
 		{
-			byte[] buffer = new byte[bufferSize];
+			byte[] buffer = new byte[Constant.CopyBufferSize];
 			int readBytes = 0;
 			stream.Seek(0, SeekOrigin.Begin);
 			using(MemoryStream destination = new MemoryStream()) {

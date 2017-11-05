@@ -23,7 +23,6 @@ namespace UniHttp
 			this.usedStreams = new List<HttpStream>();
 			this.keepAliveTimeout = settings.keepAliveTimeout;
 			this.tcpNoDelay = settings.tcpNoDelay;
-			this.tcpBufferSize = settings.tcpBufferSize;
 			this.httpProxy = settings.proxy;
 			this.sslVerifier = settings.sslVerifier;
 		}
@@ -44,7 +43,7 @@ namespace UniHttp
 				}
 
 				Uri uri = request.useProxy ? httpProxy.Uri : request.Uri;
-				HttpStream newStream = new HttpStream(uri, expiresAt, sslVerifier, tcpBufferSize);
+				HttpStream newStream = new HttpStream(uri, expiresAt, sslVerifier);
 				newStream.TcpNoDelay = tcpNoDelay;
 				newStream.Connect();
 				usedStreams.Add(newStream);

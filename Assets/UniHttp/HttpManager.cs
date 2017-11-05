@@ -47,7 +47,7 @@ namespace UniHttp
 			this.streamPool = new HttpStreamPool(settings);
 			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
-			this.responseBuilder = new ResponseBuilder(cacheHandler, settings.tcpBufferSize);
+			this.responseBuilder = new ResponseBuilder(cacheHandler);
 			this.requestPreprocessor = new RequestPreprocessor(settings, cookieJar, cacheHandler);
 			this.responsePostprocessor = new ResponsePostprocessor(settings, cookieJar, cacheHandler);
 
@@ -113,16 +113,17 @@ namespace UniHttp
 			HttpStream stream = null;
 
 			while(true) {
+				// Prepare the request
 				requestPreprocessor.Execute(request);
+				byte[] requestData = request.ToBytes();
 
 				// Log request
 				settings.logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
 
 				try {
 					// Send request though TCP stream
-					byte[] data = request.ToBytes();
 					stream = streamPool.CheckOut(request);
-					stream.Write(data, 0, data.Length);
+					stream.Write(requestData, 0, requestData.Length);
 					stream.Flush();
 
 					// Build the response from stream

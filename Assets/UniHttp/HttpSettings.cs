@@ -11,7 +11,6 @@ namespace UniHttp
 		public int maxConcurrentRequests = 4;
 		public TimeSpan keepAliveTimeout = TimeSpan.FromSeconds(10f);
 
-		public int tcpBufferSize = 64 * 1024;
 		public bool tcpNoDelay = true;
 
 		public string dataDirectory;

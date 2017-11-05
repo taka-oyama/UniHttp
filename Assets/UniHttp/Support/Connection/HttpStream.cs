@@ -13,7 +13,7 @@ namespace UniHttp
 		TcpClient tcpClient;
 		ISslVerifier sslVerifier;
 
-		internal HttpStream(Uri uri, DateTime expiresAt, ISslVerifier sslVerifier, int bufferSize) : base(null, bufferSize)
+		internal HttpStream(Uri uri, DateTime expiresAt, ISslVerifier sslVerifier) : base(null)
 		{
 			this.baseUrl = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
 			this.keepAlive = new KeepAlive(expiresAt);

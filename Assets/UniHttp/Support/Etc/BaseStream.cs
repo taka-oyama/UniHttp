@@ -12,7 +12,7 @@ namespace UniHttp
 		protected Stream stream;
 		protected int bufferSize;
 
-		internal BaseStream(Stream stream, int bufferSize)
+		internal BaseStream(Stream stream, int bufferSize = Constant.CopyBufferSize)
 		{
 			this.stream = stream;
 			this.bufferSize = bufferSize;
