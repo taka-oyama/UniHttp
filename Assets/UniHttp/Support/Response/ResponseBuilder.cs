@@ -24,7 +24,6 @@ namespace UniHttp
 		internal HttpResponse Build(HttpRequest request, HttpStream source)
 		{
 			DateTime then = DateTime.Now;
-
 			HttpResponse response = new HttpResponse(request);
 
 			// Status Line
@@ -66,7 +65,7 @@ namespace UniHttp
 			using(MemoryStream destination = new MemoryStream()) {
 
 				if(response.StatusCode == StatusCode.NotModified) {
-					return BuildMessageBodyFromCache(response, source, destination);
+					return BuildMessageBodyFromCache(response, destination);
 				}
 
 				if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
@@ -81,7 +80,7 @@ namespace UniHttp
 			}
 		}
 
-		byte[] BuildMessageBodyFromCache(HttpResponse response, HttpStream source, MemoryStream destination)
+		byte[] BuildMessageBodyFromCache(HttpResponse response, MemoryStream destination)
 		{
 			CacheStream cacheStream = cacheHandler.GetReadStream(response.Request);
 

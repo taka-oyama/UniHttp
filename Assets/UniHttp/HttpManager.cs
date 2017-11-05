@@ -43,9 +43,9 @@ namespace UniHttp
 			string dataPath = settings.dataDirectory + "/UniHttp";
 			Directory.CreateDirectory(dataPath);
 
+			this.streamPool = new StreamPool(settings);
 			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
-			this.streamPool = new StreamPool(settings);
 			this.messenger = new Messenger(settings, streamPool, cacheHandler, cookieJar);
 
 			this.ongoingRequests = new List<DispatchInfo>();
@@ -63,6 +63,11 @@ namespace UniHttp
 		{
 			pendingRequests.Enqueue(new DispatchInfo(request, onResponse));
 			TransmitIfPossible();
+		}
+
+		public void ClearCache()
+		{
+			Directory.Delete(settings.dataDirectory + "/UniHttp", true);
 		}
 
 		void TransmitIfPossible()
@@ -110,16 +115,12 @@ namespace UniHttp
 				mainThreadQueue.Dequeue().Invoke();
 			}
 
+			// Update every second
 			deltaTimer += Time.deltaTime;
 			if (deltaTimer >= 1f) {
-				UpdateEverySecond();
+				streamPool.CheckExpiredStreams();
 				deltaTimer = 0f;
 			}
-		}
-
-		void UpdateEverySecond()
-		{
-			streamPool.CheckExpiredStreams();
 		}
 
 		void Save()
@@ -139,11 +140,6 @@ namespace UniHttp
 		{
 			streamPool.CloseAll();
 			Save();
-		}
-
-		public void ClearCache()
-		{
-			Directory.Delete(settings.dataDirectory + "/UniHttp", true);
 		}
 	}
 }
