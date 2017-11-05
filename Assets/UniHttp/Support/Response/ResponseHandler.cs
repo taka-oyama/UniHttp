@@ -7,21 +7,25 @@ using UnityEngine;
 
 namespace UniHttp
 {
-	internal sealed class ResponseBuilder
+	internal sealed class ResponseHandler
 	{
 		const char COLON = ':';
 		const char SPACE = ' ';
 		const char CR = '\r';
 		const char LF = '\n';
 
-		readonly CacheHandler cacheHandler;
+		HttpSettings settings;
+		CookieJar cookieJar;
+		CacheHandler cacheHandler;
 
-		internal ResponseBuilder(CacheHandler cacheHandler)
+		internal ResponseHandler(HttpSettings settings, CookieJar cookieJar, CacheHandler cacheHandler)
 		{
+			this.settings = settings;
+			this.cookieJar = cookieJar;
 			this.cacheHandler = cacheHandler;
 		}
 
-		internal HttpResponse Build(HttpRequest request, HttpStream source)
+		internal HttpResponse Process(HttpRequest request, HttpStream source)
 		{
 			DateTime then = DateTime.Now;
 			HttpResponse response = new HttpResponse(request);
@@ -45,10 +49,14 @@ namespace UniHttp
 			// Roundtrip Time
 			response.RoundTripTime = DateTime.Now - then;
 
+			// Post process for response
+			ProcessCookie(response);
+			ProcessCache(response);
+
 			return response;
 		}
 
-		internal HttpResponse Build(HttpRequest request, Exception exception)
+		internal HttpResponse Process(HttpRequest request, Exception exception)
 		{
 			HttpResponse response = new HttpResponse(request);
 			response.HttpVersion = "HTTP/1.1";
@@ -151,6 +159,25 @@ namespace UniHttp
 				source.ReadTo(destination, LF);
 				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).TrimEnd(CR, LF);
 				return long.Parse(hexStr, NumberStyles.HexNumber);
+			}
+		}
+
+		void ProcessCookie(HttpResponse response)
+		{
+			if(settings.useCookies) {
+				cookieJar.AddOrReplaceRange(new CookieParser(response).Parse());
+			}
+		}
+
+		void ProcessCache(HttpResponse response)
+		{
+			if(settings.useCache) {
+				if(response.StatusCode == StatusCode.NotModified) {
+					response.CacheInfo = cacheHandler.Find(response.Request);
+				}
+				if(cacheHandler.IsCachable(response)) {
+					response.CacheInfo = cacheHandler.CacheResponse(response);
+				}
 			}
 		}
 	}

@@ -5,20 +5,20 @@ using System;
 
 namespace UniHttp
 {
-	internal sealed class RequestPreprocessor
+	internal sealed class RequestHandler
 	{
 		HttpSettings settings;
 		CookieJar cookieJar;
 		CacheHandler cacheHandler;
 
-		internal RequestPreprocessor(HttpSettings settings, CookieJar cookieJar, CacheHandler cacheHandler)
+		internal RequestHandler(HttpSettings settings, CookieJar cookieJar, CacheHandler cacheHandler)
 		{
 			this.settings = settings;
 			this.cookieJar = cookieJar;
 			this.cacheHandler = cacheHandler;
 		}
 
-		internal void Execute(HttpRequest request)
+		internal void Prepare(HttpRequest request)
 		{
 			/**
 			 * Request has to be locked here to consider a case where a single instance of HttpRequest
@@ -50,6 +50,13 @@ namespace UniHttp
 					}
 				}
 			}
+		}
+
+		internal void Send(HttpRequest request, HttpStream stream)
+		{
+			byte[] data = request.ToBytes();
+			stream.Write(data, 0, data.Length);
+			stream.Flush();
 		}
 
 		void AddCookiesToRequest(HttpRequest request)

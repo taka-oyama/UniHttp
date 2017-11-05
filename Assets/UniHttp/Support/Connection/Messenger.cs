@@ -8,17 +8,15 @@ namespace UniHttp
 	{
 		HttpSettings settings;
 		StreamPool streamPool;
-		ResponseBuilder responseBuilder;
-		RequestPreprocessor requestPreprocessor;
-		ResponsePostprocessor responsePostprocessor;
+		ResponseHandler responseHandler;
+		RequestHandler requestHandler;
 
 		internal Messenger(HttpSettings settings, StreamPool streamPool, CacheHandler cacheHandler, CookieJar cookieJar)
 		{
 			this.settings = settings;
 			this.streamPool = streamPool;
-			this.responseBuilder = new ResponseBuilder(cacheHandler);
-			this.requestPreprocessor = new RequestPreprocessor(settings, cookieJar, cacheHandler);
-			this.responsePostprocessor = new ResponsePostprocessor(settings, cookieJar, cacheHandler);
+			this.requestHandler = new RequestHandler(settings, cookieJar, cacheHandler);
+			this.responseHandler = new ResponseHandler(settings, cookieJar, cacheHandler);
 		}
 
 		internal HttpResponse Send(HttpRequest request)
@@ -27,24 +25,17 @@ namespace UniHttp
 			HttpStream stream = null;
 
 			while(true) {
-				// Prepare the request
-				requestPreprocessor.Execute(request);
-				byte[] requestData = request.ToBytes();
+				requestHandler.Prepare(request);
 
-				// Log request
 				settings.logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
 
 				try {
-					// Send request though TCP stream
 					stream = streamPool.CheckOut(request);
-					stream.Write(requestData, 0, requestData.Length);
-					stream.Flush();
-
-					// Build the response from stream
-					response = responseBuilder.Build(request, stream);
+					requestHandler.Send(request, stream);
+					response = responseHandler.Process(request, stream);
 				}
 				catch(SocketException exception) {
-					response = responseBuilder.Build(request, exception);
+					response = responseHandler.Process(request, exception);
 				}
 				finally {
 					if(stream != null) {
@@ -52,13 +43,8 @@ namespace UniHttp
 					}
 				}
 
-				// Handle resoponse
-				responsePostprocessor.Execute(response);
-
-				// Log response
 				settings.logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
 
-				// Handle redirects
 				if(IsRedirect(response)) {
 					request = MakeRedirectRequest(response);
 				} else {
