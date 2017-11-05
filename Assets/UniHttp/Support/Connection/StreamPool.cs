@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace UniHttp
 {
-	internal sealed class HttpStreamPool
+	internal sealed class StreamPool
 	{
 		object locker;
 		List<HttpStream> unusedStreams;
@@ -16,7 +16,7 @@ namespace UniHttp
 		HttpProxy httpProxy;
 		ISslVerifier sslVerifier;
 
-		internal HttpStreamPool(HttpSettings settings)
+		internal StreamPool(HttpSettings settings)
 		{
 			this.locker = new object();
 			this.unusedStreams = new List<HttpStream>();

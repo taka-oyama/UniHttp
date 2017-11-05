@@ -10,16 +10,15 @@ namespace UniHttp
 	public sealed class HttpManager : MonoBehaviour
 	{
 		HttpSettings settings;
-		HttpStreamPool streamPool;
 		CookieJar cookieJar;
 		CacheHandler cacheHandler;
-		ResponseBuilder responseBuilder;
-		RequestPreprocessor requestPreprocessor;
-		ResponsePostprocessor responsePostprocessor;
+		StreamPool streamPool;
+		Messenger messenger;
 
 		List<DispatchInfo> ongoingRequests;
 		Queue<DispatchInfo> pendingRequests;
 		Queue<Action> mainThreadQueue;
+
 		object locker;
 		float deltaTimer;
 
@@ -44,12 +43,10 @@ namespace UniHttp
 			string dataPath = settings.dataDirectory + "/UniHttp";
 			Directory.CreateDirectory(dataPath);
 
-			this.streamPool = new HttpStreamPool(settings);
 			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
-			this.responseBuilder = new ResponseBuilder(cacheHandler);
-			this.requestPreprocessor = new RequestPreprocessor(settings, cookieJar, cacheHandler);
-			this.responsePostprocessor = new ResponsePostprocessor(settings, cookieJar, cacheHandler);
+			this.streamPool = new StreamPool(settings);
+			this.messenger = new Messenger(settings, streamPool, cacheHandler, cookieJar);
 
 			this.ongoingRequests = new List<DispatchInfo>();
 			this.pendingRequests = new Queue<DispatchInfo>();
@@ -84,7 +81,7 @@ namespace UniHttp
 
 			ThreadPool.QueueUserWorkItem(state => {
 				try {
-					HttpResponse response = Transmit(info.Request);
+					HttpResponse response = messenger.Send(info.Request);
 					ExecuteOnMainThread(() => {
 						ongoingRequests.Remove(info);
 						if(info.OnResponse != null) {
@@ -105,82 +102,6 @@ namespace UniHttp
 			lock(locker) {
 				mainThreadQueue.Enqueue(callback);
 			}
-		}
-
-		HttpResponse Transmit(HttpRequest request)
-		{
-			HttpResponse response = null;
-			HttpStream stream = null;
-
-			while(true) {
-				// Prepare the request
-				requestPreprocessor.Execute(request);
-				byte[] requestData = request.ToBytes();
-
-				// Log request
-				settings.logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
-
-				try {
-					// Send request though TCP stream
-					stream = streamPool.CheckOut(request);
-					stream.Write(requestData, 0, requestData.Length);
-					stream.Flush();
-
-					// Build the response from stream
-					response = responseBuilder.Build(request, stream);
-				}
-				catch(SocketException exception) {
-					response = responseBuilder.Build(request, exception);
-				}
-				finally {
-					if(stream != null) {
-						streamPool.CheckIn(response, stream);
-					}
-				}
-
-				// Handle resoponse
-				responsePostprocessor.Execute(response);
-
-				// Log response
-				settings.logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
-
-				// Handle redirects
-				if(IsRedirect(response)) {
-					request = MakeRedirectRequest(response);
-				} else {
-					break;
-				}
-			}
-
-			return response;
-		}
-
-		bool IsRedirect(HttpResponse response)
-		{
-			if(settings.followRedirects) {
-				for(int i = 0; i < Constant.Redirects.Length; i++) {
-					if(response.StatusCode == Constant.Redirects[i]) {
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
-		HttpRequest MakeRedirectRequest(HttpResponse response)
-		{
-			Uri uri = new Uri(response.Headers["Location"][0]);
-			HttpRequest request = response.Request;
-			HttpMethod method = request.Method;
-			if(response.StatusCode == StatusCode.SeeOther) {
-				if(method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.PATCH) {
-					method = HttpMethod.GET;
-				}
-			}
-
-			request.Headers.Remove("Host");
-
-			return new HttpRequest(method, uri, request.Headers, request.Data);
 		}
 
 		void Update()
