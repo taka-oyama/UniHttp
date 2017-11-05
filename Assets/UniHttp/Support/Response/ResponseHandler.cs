@@ -90,17 +90,13 @@ namespace UniHttp
 
 		byte[] BuildMessageBodyFromCache(HttpResponse response, MemoryStream destination)
 		{
-			CacheStream cacheStream = cacheHandler.GetReadStream(response.Request);
-
-			try {
+			using(CacheStream cacheStream = cacheHandler.GetReadStream(response.Request))
+			{
 				Progress progress = response.Request.DownloadProgress;
 				progress.Start(cacheStream.Length);
 				cacheStream.CopyTo(destination, cacheStream.Length, progress);
 				progress.Finialize();
 				return destination.ToArray();
-			}
-			finally {
-				cacheStream.Close();
 			}
 		}
 
