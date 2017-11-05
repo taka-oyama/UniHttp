@@ -21,8 +21,8 @@ namespace UniHttp
 
 		internal HttpResponse Send(HttpRequest request)
 		{
-			HttpResponse response = null;
 			HttpStream stream = null;
+			HttpResponse response = null;
 
 			while(true) {
 				requestHandler.Prepare(request);
