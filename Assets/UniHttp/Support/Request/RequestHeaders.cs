@@ -66,23 +66,10 @@ namespace UniHttp
 		{
 			List<string> fieldLines = new List<string>();
 			foreach(var kvPair in fields) {
-				fieldLines.Add(Titleize(kvPair.Key) + ": " + kvPair.Value);
+				string name = string.Join("-", kvPair.Key.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
+				fieldLines.Add(name + ": " + kvPair.Value);
 			}
 			return string.Join(Constant.CRLF, fieldLines.ToArray());
-		}
-
-		string Titleize(string str)
-		{
-			return string.Join("-", str.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
-		}
-
-		public RequestHeaders Clone()
-		{
-			RequestHeaders clone = new RequestHeaders();
-			foreach(string key in fields.Keys) {
-				clone.fields.Add(key, fields[key]);
-			}
-			return clone;
 		}
 	}
 }
