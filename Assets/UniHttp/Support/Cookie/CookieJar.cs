@@ -12,18 +12,18 @@ namespace UniHttp
 	{
 		object locker;
 		ObjectStorage io;
-		Dictionary<string, List<Cookie>> cookies;
+		Dictionary<string, List<CookieData>> data;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
 			this.locker = new object();
 			this.io = new ObjectStorage(fileHandler, dataDirectory + "/Cookie.bin");
-			this.cookies = ReadFromFile();
+			this.data = ReadFromFile();
 		}
 
-		internal List<Cookie> FindMatch(Uri uri)
+		internal List<CookieData> FindMatch(Uri uri)
 		{
-			List<Cookie> relevants = new List<Cookie>();
+			List<CookieData> relevants = new List<CookieData>();
 			IPAddress address;
 
 			lock(locker) {
@@ -42,7 +42,7 @@ namespace UniHttp
 			}
 		}
 
-		internal void AddOrReplaceRange(List<Cookie> cookies)
+		internal void AddOrReplaceRange(List<CookieData> cookies)
 		{
 			lock(locker) {
 				cookies.ForEach(Add);
@@ -52,8 +52,8 @@ namespace UniHttp
 		internal void CleanUp()
 		{
 			lock(locker) {
-				foreach(string key in cookies.Keys) {
-					cookies[key].RemoveAll(c => c.IsExpired);
+				foreach(string key in data.Keys) {
+					data[key].RemoveAll(c => c.IsExpired);
 				}
 			}
 		}
@@ -61,32 +61,32 @@ namespace UniHttp
 		internal void Clear()
 		{
 			lock(locker) {
-				cookies.Clear();
+				data.Clear();
 			}
 		}
 
-		void Add(Cookie cookie)
+		void Add(CookieData cookie)
 		{
-			string key = cookie.domain;
+			string domainName = cookie.domain;
 
-			if(!cookies.ContainsKey(key)) {
-				cookies.Add(key, new List<Cookie>());
+			if(!data.ContainsKey(domainName)) {
+				data.Add(domainName, new List<CookieData>());
 			}
-			Cookie target = cookies[key].Find(c => c.name == cookie.name);
+			CookieData target = data[domainName].Find(c => c.name == cookie.name);
 			if(target != null) {
-				cookies[key].Remove(target);
+				data[domainName].Remove(target);
 			}
 			if(cookie.expires == null || cookie.expires >= DateTime.Now) {
-				cookies[key].Add(cookie);
+				data[domainName].Add(cookie);
 			}
 		}
 
-		List<Cookie> Fetch(Uri uri, string key)
+		List<CookieData> Fetch(Uri uri, string key)
 		{
-			var relevants = new List<Cookie>();
+			var relevants = new List<CookieData>();
 			bool isSsl = uri.Scheme == Uri.UriSchemeHttps;
-			if(cookies.ContainsKey(key)) {
-				cookies[key].ForEach(c => {
+			if(data.ContainsKey(key)) {
+				data[key].ForEach(c => {
 					if(c.IsExpired) {
 						return;
 					}
@@ -109,24 +109,24 @@ namespace UniHttp
 		{
 			lock(locker) {
 				CleanUp();
-				var saveable = new Dictionary<string, List<Cookie>>();
-				foreach(string key in cookies.Keys) {
-					saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
+				var saveable = new Dictionary<string, List<CookieData>>();
+				foreach(string key in data.Keys) {
+					saveable.Add(key, data[key].FindAll(c => !c.IsSession));
 				}
 				io.Write(saveable);
 			}
 		}
 
-		internal Dictionary<string, List<Cookie>> ReadFromFile()
+		internal Dictionary<string, List<CookieData>> ReadFromFile()
 		{
 			if(!io.Exists) {
-				return new Dictionary<string, List<Cookie>>();
+				return new Dictionary<string, List<CookieData>>();
 			}
 			try {
-				return io.Read<Dictionary<string, List<Cookie>>>();
+				return io.Read<Dictionary<string, List<CookieData>>>();
 			}
 			catch(IOException) {
-				return new Dictionary<string, List<Cookie>>();
+				return new Dictionary<string, List<CookieData>>();
 			}
 		}
 
@@ -134,9 +134,9 @@ namespace UniHttp
 		{
 			lock(locker) {
 				StringBuilder sb = new StringBuilder();
-				foreach(string key in cookies.Keys) {
+				foreach(string key in data.Keys) {
 					sb.Append(key + ":\n");
-					foreach(var cookie in cookies[key]) {
+					foreach(var cookie in data[key]) {
 						sb.Append("   " + cookie.ToString() + "\n");
 					}
 				}

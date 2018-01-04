@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace UniHttp
 {
 	[Serializable]
-	public sealed class Cookie
+	public sealed class CookieData
 	{
 		public string name;
 		public string value;
