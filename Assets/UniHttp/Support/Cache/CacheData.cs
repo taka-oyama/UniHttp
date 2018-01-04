@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UniHttp
 {
 	[Serializable()]
-	internal sealed class CacheInfo
+	internal sealed class CacheData
 	{
 		internal string domain;
 		internal string path;
@@ -16,7 +16,7 @@ namespace UniHttp
 		internal DateTimeOffset? lastModified;
 		internal DateTimeOffset createdAt;
 
-		internal CacheInfo(HttpResponse response)
+		internal CacheData(HttpResponse response)
 		{
 			this.createdAt = DateTimeOffset.Now;
 			Update(response);

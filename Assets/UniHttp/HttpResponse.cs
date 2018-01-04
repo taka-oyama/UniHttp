@@ -15,7 +15,7 @@ namespace UniHttp
 		public ResponseHeaders Headers { get; private set; }
 		public byte[] MessageBody { get; internal set; }
 		public TimeSpan RoundTripTime { get; internal set; }
-		internal CacheInfo CacheInfo { get; set; }
+		internal CacheData CacheData { get; set; }
 
 		public HttpResponse(HttpRequest request)
 		{
@@ -51,10 +51,10 @@ namespace UniHttp
 				if(Headers["Content-Type"][0].Contains("application/json")) return true;
 				if(Headers["Content-Type"][0].Contains("application/xml")) return true;
 			}
-			if(CacheInfo != null) {
-				if(CacheInfo.contentType[0].Contains("text/")) return true;
-				if(CacheInfo.contentType[0].Contains("application/json")) return true;
-				if(CacheInfo.contentType[0].Contains("application/xml")) return true;
+			if(CacheData != null) {
+				if(CacheData.contentType[0].Contains("text/")) return true;
+				if(CacheData.contentType[0].Contains("application/json")) return true;
+				if(CacheData.contentType[0].Contains("application/xml")) return true;
 			}
 			return false;
 		}

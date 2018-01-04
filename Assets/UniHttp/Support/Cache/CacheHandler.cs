@@ -9,7 +9,7 @@ namespace UniHttp
 	{
 		object locker;
 		ObjectStorage infoStorage;
-		Dictionary<string, CacheInfo> caches;
+		Dictionary<string, CacheData> caches;
 		CacheStorage cacheStorage;
 
 		internal CacheHandler(IFileHandler fileHandler, string dataDirectory)
@@ -63,9 +63,9 @@ namespace UniHttp
 			return false;
 		}
 
-		internal CacheInfo Find(HttpRequest request)
+		internal CacheData Find(HttpRequest request)
 		{
-			CacheInfo cache = null;
+			CacheData cache = null;
 
 			lock(locker) {
 				if(caches.ContainsKey(request.Uri.AbsoluteUri)) {
@@ -80,7 +80,7 @@ namespace UniHttp
 			return null;
 		}
 
-		internal CacheInfo CacheResponse(HttpResponse response)
+		internal CacheData CacheResponse(HttpResponse response)
 		{
 			string url = response.Request.Uri.AbsoluteUri;
 
@@ -88,7 +88,7 @@ namespace UniHttp
 				if(caches.ContainsKey(url)) {
 					caches[url].Update(response);
 				} else {
-					caches.Add(url, new CacheInfo(response));
+					caches.Add(url, new CacheData(response));
 				}
 				cacheStorage.Write(response.Request.Uri, response.MessageBody);
 				return caches[url];
@@ -115,17 +115,17 @@ namespace UniHttp
 			}
 		}
 
-		Dictionary<string, CacheInfo> ReadFromFile()
+		Dictionary<string, CacheData> ReadFromFile()
 		{
 			if(!infoStorage.Exists) {
-				return new Dictionary<string, CacheInfo>();
+				return new Dictionary<string, CacheData>();
 			}
 
 			try {
-				return infoStorage.Read<Dictionary<string, CacheInfo>>();
+				return infoStorage.Read<Dictionary<string, CacheData>>();
 			}
 			catch(IOException) {
-				return new Dictionary<string, CacheInfo>();
+				return new Dictionary<string, CacheData>();
 			}
 		}
 	}
