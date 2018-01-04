@@ -10,7 +10,7 @@ namespace UniHttp
 	{
 		internal string domain;
 		internal string path;
-		internal List<string> contentType;
+		internal string contentType;
 		internal string eTag;
 		internal DateTimeOffset? expireAt;
 		internal DateTimeOffset? lastModified;
@@ -29,7 +29,7 @@ namespace UniHttp
 			this.domain = uri.Authority;
 			this.path = uri.AbsolutePath;
 			if(response.Headers.Exist("Content-Type")) {
-				this.contentType = response.Headers["Content-Type"];
+				this.contentType = response.Headers["Content-Type"][0];
 			}
 			if(response.Headers.Exist("ETag")) {
 				this.eTag = response.Headers["ETag"][0];

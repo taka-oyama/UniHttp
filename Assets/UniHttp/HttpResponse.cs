@@ -52,9 +52,9 @@ namespace UniHttp
 				if(Headers["Content-Type"][0].Contains("application/xml")) return true;
 			}
 			if(CacheData != null) {
-				if(CacheData.contentType[0].Contains("text/")) return true;
-				if(CacheData.contentType[0].Contains("application/json")) return true;
-				if(CacheData.contentType[0].Contains("application/xml")) return true;
+				if(CacheData.contentType.Contains("text/")) return true;
+				if(CacheData.contentType.Contains("application/json")) return true;
+				if(CacheData.contentType.Contains("application/xml")) return true;
 			}
 			return false;
 		}
