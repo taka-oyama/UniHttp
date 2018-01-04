@@ -24,11 +24,13 @@ namespace UniHttp
 
 		public static HttpManager Initalize(HttpSettings httpSettings = null, bool dontDestroyOnLoad = true)
 		{
-			if(GameObject.Find("HttpManager")) {
-				throw new Exception("HttpManager should not be Initialized more than once");
+			string name = typeof(HttpManager).FullName;
+
+			if(GameObject.Find(name)) {
+				throw new Exception(name + " should not be Initialized more than once");
 			}
 
-			GameObject go = new GameObject("HttpManager");
+			GameObject go = new GameObject(name);
 			if(dontDestroyOnLoad) {
 				GameObject.DontDestroyOnLoad(go);
 			}
@@ -40,7 +42,7 @@ namespace UniHttp
 		{
 			this.settings = (httpSettings ?? new HttpSettings()).FillWithDefaults();
 
-			string dataPath = settings.dataDirectory + "/UniHttp";
+			string dataPath = string.Concat(settings.dataDirectory, "/", GetType().Namespace);
 			Directory.CreateDirectory(dataPath);
 
 			this.streamPool = new StreamPool(settings);
@@ -67,7 +69,7 @@ namespace UniHttp
 
 		public void ClearCache()
 		{
-			Directory.Delete(settings.dataDirectory + "/UniHttp", true);
+			Directory.Delete(string.Concat(settings.dataDirectory, "/", GetType().Namespace), true);
 		}
 
 		void TransmitIfPossible()
