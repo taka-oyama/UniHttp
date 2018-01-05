@@ -15,9 +15,9 @@ namespace UniHttp
 			this.response = response;
 		}
 
-		internal List<CookieData> Parse()
+		internal List<Cookie> Parse()
 		{
-			List<CookieData> setCookies = new List<CookieData>();
+			List<Cookie> setCookies = new List<Cookie>();
 
 			if(response.Headers.Exist("set-cookie")) {
 				List<string> setCookiesStr = response.Headers["set-cookie"];
@@ -26,9 +26,9 @@ namespace UniHttp
 			return setCookies;
 		}
 
-		CookieData ParseEach(string attributeStr)
+		Cookie ParseEach(string attributeStr)
 		{
-			var cookie = new CookieData();
+			var cookie = new Cookie();
 			var attributes = attributeStr.Split(new[]{ "; " }, StringSplitOptions.None);
 			var kvPair = attributes[0].Split('=');
 

@@ -161,7 +161,8 @@ namespace UniHttp
 		void ProcessCookie(HttpResponse response)
 		{
 			if(settings.useCookies) {
-				cookieJar.AddOrReplaceRange(new CookieParser(response).Parse());
+				response.Cookies = new CookieParser(response).Parse();
+				cookieJar.AddOrReplaceRange(response.Cookies);
 			}
 		}
 

@@ -13,6 +13,7 @@ namespace UniHttp
 		public int StatusCode { get; internal set; }
 		public string StatusPhrase { get; internal set; }
 		public ResponseHeaders Headers { get; private set; }
+		public List<Cookie> Cookies { get; internal set; }
 		public byte[] MessageBody { get; internal set; }
 		public TimeSpan RoundTripTime { get; internal set; }
 		internal CacheData CacheData { get; set; }

@@ -12,28 +12,28 @@ namespace UniHttp
 	{
 		object locker;
 		ObjectStorage io;
-		Dictionary<string, List<CookieData>> data;
+		Dictionary<string, List<Cookie>> cookies;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
 			this.locker = new object();
 			this.io = new ObjectStorage(fileHandler, dataDirectory + "/Cookie.bin");
-			this.data = ReadFromFile();
+			this.cookies = ReadFromFile();
 		}
 
-		internal List<CookieData> FindMatch(Uri uri)
+		internal List<Cookie> FindMatch(Uri uri)
 		{
-			List<CookieData> relevants = new List<CookieData>();
+			List<Cookie> relevants = new List<Cookie>();
 			IPAddress address;
 
 			lock(locker) {
 				if(IPAddress.TryParse(uri.Host, out address)) {
-					relevants.AddRange(Fetch(uri, uri.Host));
+					relevants.AddRange(FindForDomain(uri, uri.Host));
 				} else {
 					string domain = uri.Host;
 					int index = 0;
 					do {
-						relevants.AddRange(Fetch(uri, domain));
+						relevants.AddRange(FindForDomain(uri, domain));
 						index = domain.IndexOf('.');
 						domain = domain.Substring(index + 1);
 					} while(index >= 0);
@@ -42,18 +42,29 @@ namespace UniHttp
 			}
 		}
 
-		internal void AddOrReplaceRange(List<CookieData> cookies)
+		internal void AddOrReplaceRange(List<Cookie> newCookies)
 		{
 			lock(locker) {
-				cookies.ForEach(Add);
+				foreach(Cookie newCookie in newCookies) {
+					if(!cookies.ContainsKey(newCookie.domain)) {
+						cookies.Add(newCookie.domain, new List<Cookie>());
+					}
+					Cookie target = cookies[newCookie.domain].Find(c => c.name == newCookie.name);
+					if(target != null) {
+						cookies[newCookie.domain].Remove(target);
+					}
+					if(newCookie.expires == null || newCookie.expires >= DateTime.Now) {
+						cookies[newCookie.domain].Add(newCookie);
+					}
+				}
 			}
 		}
 
 		internal void CleanUp()
 		{
 			lock(locker) {
-				foreach(string key in data.Keys) {
-					data[key].RemoveAll(c => c.IsExpired);
+				foreach(string key in cookies.Keys) {
+					cookies[key].RemoveAll(c => c.IsExpired);
 				}
 			}
 		}
@@ -61,47 +72,32 @@ namespace UniHttp
 		internal void Clear()
 		{
 			lock(locker) {
-				data.Clear();
+				cookies.Clear();
 			}
 		}
 
-		void Add(CookieData cookie)
+		List<Cookie> FindForDomain(Uri uri, string domain)
 		{
-			string domainName = cookie.domain;
+			var relevants = new List<Cookie>();
 
-			if(!data.ContainsKey(domainName)) {
-				data.Add(domainName, new List<CookieData>());
-			}
-			CookieData target = data[domainName].Find(c => c.name == cookie.name);
-			if(target != null) {
-				data[domainName].Remove(target);
-			}
-			if(cookie.expires == null || cookie.expires >= DateTime.Now) {
-				data[domainName].Add(cookie);
-			}
-		}
-
-		List<CookieData> Fetch(Uri uri, string key)
-		{
-			var relevants = new List<CookieData>();
-			bool isSsl = uri.Scheme == Uri.UriSchemeHttps;
-			if(data.ContainsKey(key)) {
-				data[key].ForEach(c => {
-					if(c.IsExpired) {
-						return;
+			if(cookies.ContainsKey(domain)) {
+				foreach(Cookie data in cookies[domain]) {
+					if(data.IsExpired) {
+						continue;
 					}
-					if(c.secure && !isSsl) {
-						return;
+					if(data.secure && uri.Scheme != Uri.UriSchemeHttps) {
+						continue;
 					}
-					if(c.ExactMatchOnly && uri.Host != key) {
-						return;
+					if(data.ExactMatchOnly && uri.Host != domain) {
+						continue;
 					}
 					// add to qualification only if the path matches
-					if(uri.AbsolutePath.IndexOf(c.path) == 0) {
-						relevants.Add(c);
+					if(uri.AbsolutePath.IndexOf(data.path) == 0) {
+						relevants.Add(data);
 					}
-				});
+				}
 			}
+
 			return relevants;
 		}
 
@@ -109,24 +105,24 @@ namespace UniHttp
 		{
 			lock(locker) {
 				CleanUp();
-				var saveable = new Dictionary<string, List<CookieData>>();
-				foreach(string key in data.Keys) {
-					saveable.Add(key, data[key].FindAll(c => !c.IsSession));
+				var saveable = new Dictionary<string, List<Cookie>>();
+				foreach(string key in cookies.Keys) {
+					saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
 				}
 				io.Write(saveable);
 			}
 		}
 
-		internal Dictionary<string, List<CookieData>> ReadFromFile()
+		internal Dictionary<string, List<Cookie>> ReadFromFile()
 		{
 			if(!io.Exists) {
-				return new Dictionary<string, List<CookieData>>();
+				return new Dictionary<string, List<Cookie>>();
 			}
 			try {
-				return io.Read<Dictionary<string, List<CookieData>>>();
+				return io.Read<Dictionary<string, List<Cookie>>>();
 			}
 			catch(IOException) {
-				return new Dictionary<string, List<CookieData>>();
+				return new Dictionary<string, List<Cookie>>();
 			}
 		}
 
@@ -134,9 +130,9 @@ namespace UniHttp
 		{
 			lock(locker) {
 				StringBuilder sb = new StringBuilder();
-				foreach(string key in data.Keys) {
+				foreach(string key in cookies.Keys) {
 					sb.Append(key + ":\n");
-					foreach(var cookie in data[key]) {
+					foreach(var cookie in cookies[key]) {
 						sb.Append("   " + cookie.ToString() + "\n");
 					}
 				}
