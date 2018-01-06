@@ -69,26 +69,24 @@ namespace UniHttp
 
 		byte[] BuildMessageBody(HttpResponse response, HttpStream source)
 		{
-			using(MemoryStream destination = new MemoryStream()) {
-
-				if(response.StatusCode == StatusCode.NotModified) {
-					return BuildMessageBodyFromCache(response, destination);
-				}
-
-				if(response.Headers.Exist(HeaderField.TransferEncoding, "chunked")) {
-					return BuildMessageBodyFromChunked(response, source, destination);
-				}
-
-				if(response.Headers.Exist(HeaderField.ContentLength)) {
-					return BuildMessageBodyFromContentLength(response, source, destination);
-				}
-
-				throw new Exception("Could not determine how to read message body!");
+			if(response.StatusCode == StatusCode.NotModified) {
+				return BuildMessageBodyFromCache(response);
 			}
+
+			if(response.Headers.Exist(HeaderField.TransferEncoding, "chunked")) {
+				return BuildMessageBodyFromChunked(response, source);
+			}
+
+			if(response.Headers.Exist(HeaderField.ContentLength)) {
+				return BuildMessageBodyFromContentLength(response, source);
+			}
+
+			throw new Exception("Could not determine how to read message body!");
 		}
 
-		byte[] BuildMessageBodyFromCache(HttpResponse response, MemoryStream destination)
+		byte[] BuildMessageBodyFromCache(HttpResponse response)
 		{
+			MemoryStream destination = new MemoryStream();
 			using(CacheStream cacheStream = cacheHandler.GetReadStream(response.Request))
 			{
 				Progress progress = response.Request.DownloadProgress;
@@ -99,8 +97,9 @@ namespace UniHttp
 			}
 		}
 
-		byte[] BuildMessageBodyFromChunked(HttpResponse response, HttpStream source, MemoryStream destination)
+		byte[] BuildMessageBodyFromChunked(HttpResponse response, HttpStream source)
 		{
+			MemoryStream destination = new MemoryStream();
 			Progress progress = response.Request.DownloadProgress;
 			progress.Start();
 			long chunkSize = ReadChunkSize(source);
@@ -114,8 +113,9 @@ namespace UniHttp
 			return DecodeMessageBody(response, destination);
 		}
 
-		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source, MemoryStream destination)
+		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source)
 		{
+			MemoryStream destination = new MemoryStream();
 			Progress progress = response.Request.DownloadProgress;
 			long contentLength = long.Parse(response.Headers[HeaderField.ContentLength][0]);
 			progress.Start(contentLength);
@@ -150,11 +150,10 @@ namespace UniHttp
 
 		long ReadChunkSize(HttpStream source)
 		{
-			using(MemoryStream destination = new MemoryStream()) {
-				source.ReadTo(destination, LF);
-				string hexStr = Encoding.ASCII.GetString(destination.ToArray()).TrimEnd(CR, LF);
-				return long.Parse(hexStr, NumberStyles.HexNumber);
-			}
+			MemoryStream destination = new MemoryStream();
+			source.ReadTo(destination, LF);
+			string hexStr = Encoding.ASCII.GetString(destination.ToArray()).TrimEnd(CR, LF);
+			return long.Parse(hexStr, NumberStyles.HexNumber);
 		}
 
 		void ProcessCookie(HttpResponse response)

@@ -31,10 +31,9 @@ namespace UniHttp
 
 		public void WriteObject<T>(string path, T obj) where T : class
 		{
-			using(var stream = new MemoryStream()) {
-				new BinaryFormatter().Serialize(stream, obj);
-				Write(path, stream.ToArray());
-			}
+			MemoryStream stream = new MemoryStream();
+			new BinaryFormatter().Serialize(stream, obj);
+			Write(path, stream.ToArray());
 		}
 
 		public virtual FileStream OpenReadStream(string path)
@@ -49,9 +48,8 @@ namespace UniHttp
 
 		public T ReadObject<T>(string path) where T : class
 		{
-			using(var stream = new MemoryStream(Read(path))) {
-				return new BinaryFormatter().Deserialize(stream) as T;
-			}
+			MemoryStream stream = new MemoryStream(Read(path));
+			return new BinaryFormatter().Deserialize(stream) as T;
 		}
 	}
 }
