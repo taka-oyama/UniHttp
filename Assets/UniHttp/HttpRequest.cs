@@ -29,18 +29,6 @@ namespace UniHttp
 			this.Headers = headers ?? new RequestHeaders();
 			this.Data = data;
 			this.DownloadProgress = new Progress();
-
-			if(Headers.NotExist(HeaderField.Host)) {
-				Headers.Add(HeaderField.Host, GenerateHost(uri));
-			}
-
-			if(Headers.NotExist(HeaderField.AcceptEncoding)) {
-				Headers.Add(HeaderField.AcceptEncoding, "gzip");
-			}
-
-			if(Headers.NotExist(HeaderField.UserAgent)) {
-				Headers.Add(HeaderField.UserAgent, UserAgent.Value);
-			}
 		}
 
 		public byte[] ToBytes()
@@ -62,15 +50,6 @@ namespace UniHttp
 			}
 			sb.Append(Constant.CRLF);
 			return sb.ToString();
-		}
-
-		string GenerateHost(Uri uri)
-		{
-			string host = uri.Host;
-			if(uri.Scheme == Uri.UriSchemeHttp && uri.Port != 80 || uri.Scheme == Uri.UriSchemeHttps && uri.Port != 443) {
-				host += ":" + Uri.Port; 
-			}
-			return host;
 		}
 
 		Uri ConstructUri(Uri uri, HttpQuery query)

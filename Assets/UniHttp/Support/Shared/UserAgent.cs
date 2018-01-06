@@ -3,15 +3,7 @@ using System.Text;
 
 internal static class UserAgent
 {
-	static string value;
-
-	internal static string Value
-	{
-		get 
-		{
-			return value = value ?? Build();
-		}
-	}
+	internal static string value;
 
 	internal static string Build()
 	{
@@ -24,6 +16,6 @@ internal static class UserAgent
 		sb.Append("; ");
 		sb.Append(SystemInfo.operatingSystem);
 		sb.Append(")");
-		return sb.ToString();
+		return value = sb.ToString();
 	}
 }

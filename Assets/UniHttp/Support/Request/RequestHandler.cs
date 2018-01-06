@@ -32,6 +32,15 @@ namespace UniHttp
 			lock(request) {
 				request.useProxy = settings.proxy != null;
 
+				if(request.Headers.NotExist(HeaderField.Host)) {
+					request.Headers.Add(HeaderField.Host, GenerateHost(request.Uri));
+				}
+				if(settings.allowResponseCompression && request.Headers.NotExist(HeaderField.AcceptEncoding)) {
+					request.Headers.Add(HeaderField.AcceptEncoding, "gzip");
+				}
+				if(settings.appendDefaultUserAgentToRequest && request.Headers.NotExist(HeaderField.UserAgent)) {
+					request.Headers.Add(HeaderField.UserAgent, UserAgent.value);
+				}
 				if(settings.useCookies) {
 					AddCookiesToRequest(request);
 				}
@@ -57,6 +66,15 @@ namespace UniHttp
 			byte[] data = request.ToBytes();
 			stream.Write(data, 0, data.Length);
 			stream.Flush();
+		}
+
+		string GenerateHost(Uri uri)
+		{
+			string host = uri.Host;
+			if(uri.Scheme == Uri.UriSchemeHttp && uri.Port != 80 || uri.Scheme == Uri.UriSchemeHttps && uri.Port != 443) {
+				host += ":" + uri.Port;
+			}
+			return host;
 		}
 
 		void AddCookiesToRequest(HttpRequest request)

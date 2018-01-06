@@ -5,13 +5,15 @@ namespace UniHttp
 {
 	public class HttpSettings
 	{
+		public bool appendDefaultUserAgentToRequest = true;
+		public bool allowResponseCompression = true;
+		public bool followRedirects = true;
+		public bool tcpNoDelay = true;
 		public bool useCookies = true;
 		public bool useCache = true;
-		public bool followRedirects = true;
+
 		public int maxConcurrentRequests = 4;
 		public TimeSpan keepAliveTimeout = TimeSpan.FromSeconds(10f);
-
-		public bool tcpNoDelay = true;
 
 		public string dataDirectory;
 		public HttpProxy proxy;
