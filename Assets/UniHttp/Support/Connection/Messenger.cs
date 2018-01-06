@@ -11,6 +11,14 @@ namespace UniHttp
 		ResponseHandler responseHandler;
 		RequestHandler requestHandler;
 
+		static readonly int[] RedirectingStatusCodes = new[] {
+			StatusCode.MovedPermanently,
+			StatusCode.Found,
+			StatusCode.SeeOther,
+			StatusCode.TemporaryRedirected,
+			StatusCode.PermanentRedirect,
+		};
+
 		internal Messenger(HttpSettings settings, StreamPool streamPool, CacheHandler cacheHandler, CookieJar cookieJar)
 		{
 			this.settings = settings;
@@ -58,8 +66,8 @@ namespace UniHttp
 		bool IsRedirect(HttpResponse response)
 		{
 			if(settings.followRedirects) {
-				for(int i = 0; i < Constant.Redirects.Length; i++) {
-					if(response.StatusCode == Constant.Redirects[i]) {
+				for(int i = 0; i < RedirectingStatusCodes.Length; i++) {
+					if(response.StatusCode == RedirectingStatusCodes[i]) {
 						return true;
 					}
 				}
