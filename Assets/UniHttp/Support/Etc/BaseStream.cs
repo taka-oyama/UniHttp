@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Net.Sockets;
-using System.Net.Security;
 using System.Text;
-using UnityEngine;
 
 namespace UniHttp
 {

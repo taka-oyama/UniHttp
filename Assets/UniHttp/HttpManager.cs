@@ -3,7 +3,6 @@ using System.IO;
 using System.Collections.Generic;
 using System;
 using System.Threading;
-using System.Net.Sockets;
 
 namespace UniHttp
 {
@@ -32,7 +31,7 @@ namespace UniHttp
 
 			GameObject go = new GameObject(name);
 			if(dontDestroyOnLoad) {
-				GameObject.DontDestroyOnLoad(go);
+				DontDestroyOnLoad(go);
 			}
 
 			return go.AddComponent<HttpManager>().Setup(httpSettings);

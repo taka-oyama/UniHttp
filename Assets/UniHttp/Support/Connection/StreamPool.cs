@@ -12,7 +12,6 @@ namespace UniHttp
 		List<HttpStream> usedStreams;
 		TimeSpan keepAliveTimeout;
 		bool tcpNoDelay;
-		int tcpBufferSize;
 		HttpProxy httpProxy;
 		ISslVerifier sslVerifier;
 

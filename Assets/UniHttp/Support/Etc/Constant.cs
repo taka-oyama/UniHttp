@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace UniHttp
+﻿namespace UniHttp
 {
 	internal static class Constant
 	{

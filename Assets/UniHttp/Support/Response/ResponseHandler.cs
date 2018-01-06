@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using System.IO.Compression;
-using UnityEngine;
 
 namespace UniHttp
 {
