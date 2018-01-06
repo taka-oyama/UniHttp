@@ -31,16 +31,16 @@ namespace UniHttp
 			this.Data = data;
 			this.DownloadProgress = new Progress();
 
-			if(Headers.NotExist("Host")) {
-				Headers.Add("Host", GenerateHost(uri));
+			if(Headers.NotExist(HeaderField.Host)) {
+				Headers.Add(HeaderField.Host, GenerateHost(uri));
 			}
 
-			if(Headers.NotExist("Accept-Encoding")) {
-				Headers.Add("Accept-Encoding", "gzip");
+			if(Headers.NotExist(HeaderField.AcceptEncoding)) {
+				Headers.Add(HeaderField.AcceptEncoding, "gzip");
 			}
 
-			if(Headers.NotExist("User-Agent")) {
-				Headers.Add("User-Agent", UserAgent.Value);
+			if(Headers.NotExist(HeaderField.UserAgent)) {
+				Headers.Add(HeaderField.UserAgent, UserAgent.Value);
 			}
 		}
 

@@ -2,6 +2,7 @@
 {
 	public class HeaderField
 	{
+		public const string AcceptEncoding = "Accept-Encoding";
 		public const string CacheControl = "Cache-Control";
 		public const string Connection = "Connection";
 		public const string ContentEncoding = "Content-Encoding";
@@ -19,5 +20,6 @@
 		public const string Location = "Location";
 		public const string SetCookie = "Set-Cookie";
 		public const string TransferEncoding = "Transfer-Encoding";
+		public const string UserAgent = "User-Agent";
 	}
 }

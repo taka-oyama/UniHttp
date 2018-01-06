@@ -47,10 +47,10 @@ namespace UniHttp
 
 		bool IsStringableContentType()
 		{
-			if(Headers.Exist("Content-Type")) {
-				if(Headers["Content-Type"][0].Contains("text/")) return true;
-				if(Headers["Content-Type"][0].Contains("application/json")) return true;
-				if(Headers["Content-Type"][0].Contains("application/xml")) return true;
+			if(Headers.Exist(HeaderField.ContentType)) {
+				if(Headers[HeaderField.ContentType][0].Contains("text/")) return true;
+				if(Headers[HeaderField.ContentType][0].Contains("application/json")) return true;
+				if(Headers[HeaderField.ContentType][0].Contains("application/xml")) return true;
 			}
 			if(CacheData != null) {
 				if(CacheData.contentType.Contains("text/")) return true;
