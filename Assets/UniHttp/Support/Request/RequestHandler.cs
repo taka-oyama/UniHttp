@@ -98,9 +98,9 @@ namespace UniHttp
 					sb.Append(kv.Key);
 					sb.Append("=");
 					sb.Append(kv.Value);
-					sb.Append(";");
+					sb.Append("; ");
 				}
-				sb.Remove(sb.Length - 1, 1);
+				sb.Remove(sb.Length - 1, 2);
 				request.Headers.AddOrReplace(HeaderField.Cookie, sb.ToString());
 			}
 		}
