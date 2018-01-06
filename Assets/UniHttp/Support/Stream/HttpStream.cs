@@ -7,11 +7,11 @@ namespace UniHttp
 {
 	internal sealed class HttpStream : BaseStream
 	{
-		internal string baseUrl;
-		internal KeepAlive keepAlive;
-		Uri uri;
-		TcpClient tcpClient;
-		ISslVerifier sslVerifier;
+		readonly internal string baseUrl;
+		readonly internal KeepAlive keepAlive;
+		readonly Uri uri;
+		readonly TcpClient tcpClient;
+		readonly ISslVerifier sslVerifier;
 
 		internal HttpStream(Uri uri, DateTime expiresAt, ISslVerifier sslVerifier) : base(null)
 		{

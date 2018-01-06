@@ -7,13 +7,13 @@ namespace UniHttp
 {
 	internal sealed class StreamPool
 	{
-		object locker;
-		List<HttpStream> unusedStreams;
-		List<HttpStream> usedStreams;
-		TimeSpan keepAliveTimeout;
-		bool tcpNoDelay;
-		HttpProxy httpProxy;
-		ISslVerifier sslVerifier;
+		readonly object locker;
+		readonly List<HttpStream> unusedStreams;
+		readonly List<HttpStream> usedStreams;
+		readonly TimeSpan keepAliveTimeout;
+		readonly bool tcpNoDelay;
+		readonly HttpProxy httpProxy;
+		readonly ISslVerifier sslVerifier;
 
 		internal StreamPool(HttpSettings settings)
 		{

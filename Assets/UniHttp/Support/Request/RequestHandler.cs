@@ -7,9 +7,9 @@ namespace UniHttp
 {
 	internal sealed class RequestHandler
 	{
-		HttpSettings settings;
-		CookieJar cookieJar;
-		CacheHandler cacheHandler;
+		readonly HttpSettings settings;
+		readonly CookieJar cookieJar;
+		readonly CacheHandler cacheHandler;
 
 		internal RequestHandler(HttpSettings settings, CookieJar cookieJar, CacheHandler cacheHandler)
 		{

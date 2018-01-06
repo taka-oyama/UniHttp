@@ -9,10 +9,10 @@ namespace UniHttp
 {
 	internal sealed class CookieJar
 	{
-		object locker;
-		ObjectStorage io;
-		CookieParser parser;
-		Dictionary<string, List<Cookie>> cookies;
+		readonly object locker;
+		readonly ObjectStorage io;
+		readonly CookieParser parser;
+		readonly Dictionary<string, List<Cookie>> cookies;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{

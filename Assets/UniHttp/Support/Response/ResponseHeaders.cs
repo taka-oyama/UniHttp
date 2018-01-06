@@ -6,7 +6,7 @@ namespace UniHttp
 {
 	public sealed class ResponseHeaders
 	{
-		Dictionary<string, List<string>> fields;
+		readonly Dictionary<string, List<string>> fields;
 
 		public ResponseHeaders()
 		{

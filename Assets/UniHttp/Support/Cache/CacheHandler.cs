@@ -6,7 +6,7 @@ namespace UniHttp
 {
 	internal sealed class CacheHandler
 	{
-		object locker;
+		readonly object locker;
 		ObjectStorage infoStorage;
 		Dictionary<string, CacheData> caches;
 		CacheStorage cacheStorage;

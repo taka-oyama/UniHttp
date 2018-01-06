@@ -9,12 +9,11 @@ namespace UniHttp
 	public class CacheStorage
 	{
 		// for some reason File.Exists returns false when threading, so I'm forced to lock it.
-		object locker;
-
-		IFileHandler fileHandler;
-		DirectoryInfo baseDirectory;
-		MD5 hash;
-		string password;
+		readonly object locker;
+		readonly IFileHandler fileHandler;
+		readonly DirectoryInfo baseDirectory;
+		readonly MD5 hash;
+		readonly string password;
 
 		public CacheStorage(IFileHandler fileHandler, string baseDirectory)
 		{

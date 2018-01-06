@@ -6,10 +6,10 @@ namespace UniHttp
 {
 	internal class Messenger
 	{
-		HttpSettings settings;
-		StreamPool streamPool;
-		ResponseHandler responseHandler;
-		RequestHandler requestHandler;
+		readonly HttpSettings settings;
+		readonly StreamPool streamPool;
+		readonly ResponseHandler responseHandler;
+		readonly RequestHandler requestHandler;
 
 		static readonly int[] RedirectingStatusCodes = new[] {
 			StatusCode.MovedPermanently,

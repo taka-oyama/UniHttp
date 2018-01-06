@@ -6,7 +6,7 @@ namespace UniHttp
 {
 	public sealed class RequestHeaders
 	{
-		Dictionary<string, string> fields;
+		readonly Dictionary<string, string> fields;
 
 		public RequestHeaders()
 		{

@@ -13,7 +13,7 @@ namespace UniHttp
 		internal string eTag;
 		internal DateTimeOffset? expireAt;
 		internal DateTimeOffset? lastModified;
-		internal DateTimeOffset createdAt;
+		internal readonly DateTimeOffset createdAt;
 
 		internal CacheData(HttpResponse response)
 		{
