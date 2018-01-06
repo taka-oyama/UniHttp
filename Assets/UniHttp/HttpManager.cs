@@ -18,7 +18,6 @@ namespace UniHttp
 		Queue<DispatchInfo> pendingRequests;
 		Queue<Action> mainThreadQueue;
 
-		object locker;
 		float deltaTimer;
 
 		public static HttpManager Initalize(HttpSettings httpSettings = null, bool dontDestroyOnLoad = true)
@@ -52,7 +51,6 @@ namespace UniHttp
 			this.ongoingRequests = new List<DispatchInfo>();
 			this.pendingRequests = new Queue<DispatchInfo>();
 			this.mainThreadQueue = new Queue<Action>();
-			this.locker = new object();
 			this.deltaTimer = 0f;
 
 			UserAgent.Build();
@@ -105,7 +103,7 @@ namespace UniHttp
 
 		void ExecuteOnMainThread(Action callback)
 		{
-			lock(locker) {
+			lock(mainThreadQueue) {
 				mainThreadQueue.Enqueue(callback);
 			}
 		}
