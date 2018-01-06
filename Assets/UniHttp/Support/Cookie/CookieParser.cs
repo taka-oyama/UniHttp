@@ -20,18 +20,18 @@ namespace UniHttp
 
 		Cookie ParseEach(HttpResponse response, string attributesAsString)
 		{
-			var cookie = new Cookie();
-			var attributes = attributesAsString.Split(new[]{ "; " }, StringSplitOptions.None);
-			var kvPair = attributes[0].Split('=');
+			Cookie cookie = new Cookie();
+			string[] attributes = attributesAsString.Split(new[]{ "; " }, StringSplitOptions.None);
+			string[] kvPair = attributes[0].Split('=');
 
 			cookie.name = kvPair[0];
 			cookie.value = kvPair[1];
 			cookie.CreatedAt = DateTime.Now;
 
-			foreach(var attr in attributes.Skip(1)) {
+			foreach(string attr in attributes.Skip(1)) {
 				kvPair = attr.Split('=');
 				switch(kvPair[0]) {
-				case "Domain": cookie.domain = kvPair[1];break;
+				case "Domain": cookie.domain = kvPair[1]; break;
 				case "Path": cookie.path = kvPair[1]; break;
 				case "Expires": cookie.expires = DateTime.Parse(kvPair[1]); break;
 				case "Max-Age": cookie.expires = DateTime.Now + TimeSpan.FromSeconds(int.Parse(kvPair[1])); break;

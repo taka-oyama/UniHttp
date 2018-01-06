@@ -58,7 +58,7 @@ namespace UniHttp
 		public override string ToString()
 		{
 			List<string> fieldLines = new List<string>();
-			foreach(var kvPair in fields) {
+			foreach(KeyValuePair<string, List<string>> kvPair in fields) {
 				fieldLines.Add(Titleize(kvPair.Key) + ": " + string.Join(",", kvPair.Value.ToArray()));
 			}
 			return string.Join(Constant.CRLF, fieldLines.ToArray());

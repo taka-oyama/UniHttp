@@ -56,8 +56,8 @@ namespace UniHttp
 		public virtual void Clear()
 		{
 			lock(locker) {
-				var dirs = baseDirectory.GetDirectories();
-				for(var i = 0; i < dirs.Length; i++) {
+				DirectoryInfo[] dirs = baseDirectory.GetDirectories();
+				for(int i = 0; i < dirs.Length; i++) {
 					dirs[i].Delete(true);
 				}
 			}
