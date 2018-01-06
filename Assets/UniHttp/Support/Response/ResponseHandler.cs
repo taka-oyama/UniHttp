@@ -86,11 +86,11 @@ namespace UniHttp
 
 		byte[] BuildMessageBodyFromCache(HttpResponse response)
 		{
-			MemoryStream destination = new MemoryStream();
 			using(CacheStream cacheStream = cacheHandler.GetReadStream(response.Request))
 			{
 				Progress progress = response.Request.DownloadProgress;
 				progress.Start(cacheStream.Length);
+				MemoryStream destination = new MemoryStream();
 				cacheStream.CopyTo(destination, cacheStream.Length, progress);
 				progress.Finialize();
 				return destination.ToArray();
@@ -115,36 +115,31 @@ namespace UniHttp
 
 		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source)
 		{
-			MemoryStream destination = new MemoryStream();
 			Progress progress = response.Request.DownloadProgress;
 			long contentLength = long.Parse(response.Headers[HeaderField.ContentLength][0]);
+			MemoryStream destination = new MemoryStream();
 			progress.Start(contentLength);
 			source.CopyTo(destination, contentLength, progress);
 			progress.Finialize();
 			return DecodeMessageBody(response, destination);
 		}
 
-		byte[] DecodeMessageBody(HttpResponse response, MemoryStream stream)
+		byte[] DecodeMessageBody(HttpResponse response, MemoryStream messageStream)
 		{
 			if(response.Headers.Exist(HeaderField.ContentEncoding, "gzip")) {
-				return DecodeMessageBodyAsGzip(stream);
+				messageStream.Seek(0, SeekOrigin.Begin);
+				return DecodeMessageBodyAsGzip(messageStream);
 			} else {
-				return stream.ToArray();
+				return messageStream.ToArray();
 			}
 		}
 
-		byte[] DecodeMessageBodyAsGzip(MemoryStream stream)
+		byte[] DecodeMessageBodyAsGzip(MemoryStream compressedStream)
 		{
-			byte[] buffer = new byte[Constant.CopyBufferSize];
-			int readBytes = 0;
-			stream.Seek(0, SeekOrigin.Begin);
-			using(MemoryStream destination = new MemoryStream()) {
-				using(GZipStream gzipStream = new GZipStream(stream, CompressionMode.Decompress)) {
-					while((readBytes = gzipStream.Read(buffer, 0, buffer.Length)) > 0) {
-						destination.Write(buffer, 0, readBytes);
-					}
-					return destination.ToArray();
-				}
+			using(GzipDecompressStream gzipStream = new GzipDecompressStream(compressedStream)) {
+				MemoryStream destination = new MemoryStream();
+				gzipStream.CopyTo(destination);
+				return destination.ToArray();
 			}
 		}
 

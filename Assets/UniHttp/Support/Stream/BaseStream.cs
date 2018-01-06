@@ -9,7 +9,7 @@ namespace UniHttp
 		protected Stream stream;
 		protected int bufferSize;
 
-		internal BaseStream(Stream stream, int bufferSize = Constant.CopyBufferSize)
+		internal BaseStream(Stream stream, int bufferSize = 64 * 1024)
 		{
 			this.stream = stream;
 			this.bufferSize = bufferSize;
@@ -82,9 +82,7 @@ namespace UniHttp
 
 		public string ReadTo(params char[] stoppers)
 		{
-			using(MemoryStream destination = new MemoryStream()) {
-				return ReadTo(destination, stoppers);
-			}
+			return ReadTo(new MemoryStream(), stoppers);
 		}
 
 		public string ReadTo(MemoryStream destination, params char[] stoppers)
@@ -126,6 +124,16 @@ namespace UniHttp
 				if(progress != null) {
 					progress.Report(progress.Read + readBytes);
 				}
+			}
+		}
+
+		public void CopyTo(Stream destination)
+		{
+			byte[] buffer = new byte[bufferSize];
+			int readBytes = 0;
+			while ((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0)
+			{
+				destination.Write(buffer, 0, readBytes);
 			}
 		}
 	}
