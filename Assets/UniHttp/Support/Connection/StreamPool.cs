@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Globalization;
 
 namespace UniHttp
 {
@@ -85,12 +86,20 @@ namespace UniHttp
 		void UpdateKeepAliveInfo(HttpResponse response, HttpStream stream)
 		{
 			if(response.Headers.Exist(HeaderField.KeepAlive)) {
-				DateTime now = response.Headers.Exist(HeaderField.Date) ? Helper.ParseDate(response.Headers[HeaderField.Date][0]) : DateTime.Now;
-
 				foreach(string parameter in response.Headers[HeaderField.KeepAlive][0].Split(',')) {
 					string[] pair = parameter.Trim().Split('=');
 
 					if(pair[0] == "timeout") {
+						DateTime now;
+						if(response.Headers.Exist(HeaderField.Date)) {
+							now = DateTime.ParseExact(
+								response.Headers[HeaderField.Date][0],
+								CultureInfo.CurrentCulture.DateTimeFormat.RFC1123Pattern,
+								CultureInfo.InvariantCulture
+							);
+						} else {
+							now = DateTime.Now;
+						}
 						stream.keepAlive.expiresAt = now.AddSeconds(int.Parse(pair[1]));
 						continue;
 					}
