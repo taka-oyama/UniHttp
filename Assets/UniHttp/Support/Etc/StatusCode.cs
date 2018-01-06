@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace UniHttp
+﻿namespace UniHttp
 {
 	public static class StatusCode
 	{

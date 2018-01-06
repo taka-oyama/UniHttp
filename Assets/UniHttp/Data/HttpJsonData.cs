@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Text;
-using System;
 
 namespace UniHttp
 {
