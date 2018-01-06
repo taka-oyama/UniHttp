@@ -80,7 +80,10 @@ namespace UniHttp
 		void AddCookiesToRequest(HttpRequest request)
 		{
 			var cookies = new Dictionary<string, string>();
-			cookieJar.FindMatch(request.Uri).ForEach(c => cookies.Add(c.name, c.value));
+
+			foreach(Cookie cookie in cookieJar.FindMatch(request.Uri)) {
+				cookies.Add(cookie.name, cookie.value);
+			}
 
 			if(request.Headers.Exist(HeaderField.Cookie)) {
 				var presets = request.Headers[HeaderField.Cookie].Split(new string[]{"=", "; "}, StringSplitOptions.None);
@@ -91,7 +94,7 @@ namespace UniHttp
 
 			if(cookies.Count > 0) {
 				StringBuilder sb = new StringBuilder();
-				foreach(var kv in cookies) {
+				foreach(KeyValuePair<string, string> kv in cookies) {
 					sb.Append(kv.Key);
 					sb.Append("=");
 					sb.Append(kv.Value);
