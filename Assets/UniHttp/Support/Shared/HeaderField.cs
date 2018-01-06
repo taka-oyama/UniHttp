@@ -1,6 +1,6 @@
 ﻿namespace UniHttp
 {
-	public class HeaderField
+	public static class HeaderField
 	{
 		public const string AcceptEncoding = "Accept-Encoding";
 		public const string CacheControl = "Cache-Control";
