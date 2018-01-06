@@ -11,7 +11,7 @@ namespace UniHttp
 		readonly ResponseHandler responseHandler;
 		readonly RequestHandler requestHandler;
 
-		static readonly int[] RedirectingStatusCodes = new[] {
+		static readonly int[] statusCodesForRedirect = new[] {
 			StatusCode.MovedPermanently,
 			StatusCode.Found,
 			StatusCode.SeeOther,
@@ -66,8 +66,8 @@ namespace UniHttp
 		bool IsRedirect(HttpResponse response)
 		{
 			if(settings.followRedirects) {
-				for(int i = 0; i < RedirectingStatusCodes.Length; i++) {
-					if(response.StatusCode == RedirectingStatusCodes[i]) {
+				for(int i = 0; i < statusCodesForRedirect.Length; i++) {
+					if(response.StatusCode == statusCodesForRedirect[i]) {
 						return true;
 					}
 				}
