@@ -8,28 +8,21 @@ namespace UniHttp
 {
 	internal sealed class CookieParser
 	{
-		HttpResponse response;
-
-		internal CookieParser(HttpResponse response)
-		{
-			this.response = response;
-		}
-
-		internal List<Cookie> Parse()
+		internal List<Cookie> Parse(HttpResponse response)
 		{
 			List<Cookie> setCookies = new List<Cookie>();
 
 			if(response.Headers.Exist("set-cookie")) {
 				List<string> setCookiesStr = response.Headers["set-cookie"];
-				setCookies.AddRange(setCookiesStr.Select(s => ParseEach(s)));
+				setCookies.AddRange(setCookiesStr.Select(attributesAsString => ParseEach(response, attributesAsString)));
 			}
 			return setCookies;
 		}
 
-		Cookie ParseEach(string attributeStr)
+		Cookie ParseEach(HttpResponse response, string attributesAsString)
 		{
 			var cookie = new Cookie();
-			var attributes = attributeStr.Split(new[]{ "; " }, StringSplitOptions.None);
+			var attributes = attributesAsString.Split(new[]{ "; " }, StringSplitOptions.None);
 			var kvPair = attributes[0].Split('=');
 
 			cookie.name = kvPair[0];

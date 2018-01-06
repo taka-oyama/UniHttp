@@ -12,12 +12,14 @@ namespace UniHttp
 	{
 		object locker;
 		ObjectStorage io;
+		CookieParser parser;
 		Dictionary<string, List<Cookie>> cookies;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
 			this.locker = new object();
 			this.io = new ObjectStorage(fileHandler, dataDirectory + "/Cookie.bin");
+			this.parser = new CookieParser();
 			this.cookies = ReadFromFile();
 		}
 
@@ -42,8 +44,10 @@ namespace UniHttp
 			}
 		}
 
-		internal void AddOrReplaceRange(List<Cookie> newCookies)
+		internal void ParseAndUpdate(HttpResponse response)
 		{
+			List<Cookie> newCookies = parser.Parse(response);
+
 			lock(locker) {
 				foreach(Cookie newCookie in newCookies) {
 					if(!cookies.ContainsKey(newCookie.domain)) {
