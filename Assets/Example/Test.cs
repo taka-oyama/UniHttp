@@ -27,9 +27,3 @@ public class Test : MonoBehaviour
 		});
 	}
 }
-
-public class TestClass
-{
-	public int level;
-	public string stat;
-}

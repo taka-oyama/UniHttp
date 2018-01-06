@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace UniHttp
+﻿namespace UniHttp
 {
 	public class Progress
 	{
