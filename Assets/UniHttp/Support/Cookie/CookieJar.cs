@@ -81,7 +81,7 @@ namespace UniHttp
 
 		List<Cookie> FindForDomain(Uri uri, string domain)
 		{
-			var relevants = new List<Cookie>();
+			List<Cookie> relevants = new List<Cookie>();
 
 			if(cookies.ContainsKey(domain)) {
 				foreach(Cookie data in cookies[domain]) {
@@ -108,7 +108,7 @@ namespace UniHttp
 		{
 			lock(locker) {
 				CleanUp();
-				var saveable = new Dictionary<string, List<Cookie>>();
+				Dictionary<string, List<Cookie>> saveable = new Dictionary<string, List<Cookie>>();
 				foreach(string key in cookies.Keys) {
 					saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
 				}
@@ -135,7 +135,7 @@ namespace UniHttp
 				StringBuilder sb = new StringBuilder();
 				foreach(string key in cookies.Keys) {
 					sb.Append(key + ":\n");
-					foreach(var cookie in cookies[key]) {
+					foreach(Cookie cookie in cookies[key]) {
 						sb.Append("   " + cookie.ToString() + "\n");
 					}
 				}
