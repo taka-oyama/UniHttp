@@ -29,6 +29,7 @@ namespace UniHttp
 			this.Headers = headers ?? new RequestHeaders();
 			this.Data = data;
 			this.DownloadProgress = new Progress();
+			this.useProxy = false;
 		}
 
 		public byte[] ToBytes()
