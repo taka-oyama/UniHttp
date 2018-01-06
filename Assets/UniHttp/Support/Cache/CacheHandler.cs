@@ -25,7 +25,7 @@ namespace UniHttp
 			if(request.Method != HttpMethod.GET && request.Method != HttpMethod.HEAD) {
 				return false;
 			}
-			if(request.Headers.Exist("Cache-Control", "no-store")) {
+			if(request.Headers.Exist(HeaderField.CacheControl, "no-store")) {
 				return false;
 			}
 			if(!string.IsNullOrEmpty(request.Uri.Query)) {
@@ -48,16 +48,16 @@ namespace UniHttp
 			if(response.MessageBody.Length == 0) {
 				return false;
 			}
-			if(response.Headers.Exist("ETag")) {
+			if(response.Headers.Exist(HeaderField.ETag)) {
 				return true;
 			}
-			if(response.Headers.Exist("Last-Modified")) {
+			if(response.Headers.Exist(HeaderField.LastModified)) {
 				return true;
 			}
-			if(response.Headers.Exist("Expires")) {
+			if(response.Headers.Exist(HeaderField.Expires)) {
 				return true;
 			}
-			if(response.Headers.Exist("Cache-Control") && response.Headers["Cache-Control"][0].Contains("max-age")) {
+			if(response.Headers.Exist(HeaderField.CacheControl) && response.Headers[HeaderField.CacheControl][0].Contains("max-age")) {
 				return true;
 			}
 			return false;

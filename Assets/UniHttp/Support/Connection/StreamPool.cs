@@ -77,7 +77,7 @@ namespace UniHttp
 				return false;
 			}
 
-			if(response.Request.Headers.Exist("Connection", "close")) {
+			if(response.Request.Headers.Exist(HeaderField.Connection, "close")) {
 				return false;
 			}
 			return true;
@@ -85,10 +85,10 @@ namespace UniHttp
 
 		void UpdateKeepAliveInfo(HttpResponse response, HttpStream stream)
 		{
-			if(response.Headers.Exist("Keep-Alive")) {
-				DateTime now = response.Headers.Exist("Date") ? Helper.ParseDate(response.Headers["Date"][0]) : DateTime.Now;
+			if(response.Headers.Exist(HeaderField.KeepAlive)) {
+				DateTime now = response.Headers.Exist(HeaderField.Date) ? Helper.ParseDate(response.Headers[HeaderField.Date][0]) : DateTime.Now;
 
-				foreach(string parameter in response.Headers["Keep-Alive"][0].Split(',')) {
+				foreach(string parameter in response.Headers[HeaderField.KeepAlive][0].Split(',')) {
 					string[] pair = parameter.Trim().Split('=');
 
 					if(pair[0] == "timeout") {

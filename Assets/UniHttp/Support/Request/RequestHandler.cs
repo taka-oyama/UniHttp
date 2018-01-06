@@ -36,17 +36,17 @@ namespace UniHttp
 					AddCookiesToRequest(request);
 				}
 				if(!settings.useCache) {
-					request.Headers.AddOrReplace("Cache-Control", "no-store");
+					request.Headers.AddOrReplace(HeaderField.CacheControl, "no-store");
 				}
 				if(cacheHandler.IsCachable(request)) {
 					AddCacheDirectiveToRequest(request);
 				}
 				if(request.Data != null) {
-					if(request.Headers.NotExist("Content-Type")) {
-						request.Headers.Add("Content-Type", request.Data.GetContentType());
+					if(request.Headers.NotExist(HeaderField.ContentType)) {
+						request.Headers.Add(HeaderField.ContentType, request.Data.GetContentType());
 					}
-					if(request.Headers.NotExist("Content-Length")) {
-						request.Headers.Add("Content-Length", request.Data.ToBytes().Length.ToString());
+					if(request.Headers.NotExist(HeaderField.ContentLength)) {
+						request.Headers.Add(HeaderField.ContentLength, request.Data.ToBytes().Length.ToString());
 					}
 				}
 			}
@@ -64,8 +64,8 @@ namespace UniHttp
 			var cookies = new Dictionary<string, string>();
 			cookieJar.FindMatch(request.Uri).ForEach(c => cookies.Add(c.name, c.value));
 
-			if(request.Headers.Exist("Cookie")) {
-				var presets = request.Headers["Cookie"].Split(new string[]{"=", "; "}, StringSplitOptions.None);
+			if(request.Headers.Exist(HeaderField.Cookie)) {
+				var presets = request.Headers[HeaderField.Cookie].Split(new string[]{"=", "; "}, StringSplitOptions.None);
 				for(int i = 0; presets.Length > 0; i += 2) {
 					cookies.Add(presets[i], presets[i + 1]);
 				}
@@ -80,7 +80,7 @@ namespace UniHttp
 					sb.Append(";");
 				}
 				sb.Remove(sb.Length - 1, 1);
-				request.Headers.AddOrReplace("Cookie", sb.ToString());
+				request.Headers.AddOrReplace(HeaderField.Cookie, sb.ToString());
 			}
 		}
 
@@ -91,14 +91,14 @@ namespace UniHttp
 				return;
 			}
 			if(!string.IsNullOrEmpty(cache.eTag)) {
-				if(request.Headers.NotExist("If-None-Match")) {
-					request.Headers.Add("If-None-Match", cache.eTag);
+				if(request.Headers.NotExist(HeaderField.IfNoneMatch)) {
+					request.Headers.Add(HeaderField.IfNoneMatch, cache.eTag);
 				}
 			}
 			if(cache.lastModified.HasValue) {
 				DateTimeOffset modifiedSince = cache.lastModified.Value + cache.lastModified.Value.Offset;
-				if(request.Headers.NotExist("If-Modified-Since")) {
-					request.Headers.Add("If-Modified-Since", modifiedSince.ToString("r"));
+				if(request.Headers.NotExist(HeaderField.IfModifiedSince)) {
+					request.Headers.Add(HeaderField.IfModifiedSince, modifiedSince.ToString("r"));
 				}
 			}
 		}

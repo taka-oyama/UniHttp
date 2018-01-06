@@ -61,7 +61,7 @@ namespace UniHttp
 			response.HttpVersion = "HTTP/1.1";
 			response.StatusCode = 0;
 			response.StatusPhrase = exception.Message.Trim();
-			response.Headers.Append("Content-Type", "text/plain");
+			response.Headers.Append(HeaderField.ContentType, "text/plain");
 			response.MessageBody = Encoding.UTF8.GetBytes(string.Concat(exception.GetType(), CR, LF, exception.StackTrace));
 
 			return response;
@@ -75,11 +75,11 @@ namespace UniHttp
 					return BuildMessageBodyFromCache(response, destination);
 				}
 
-				if(response.Headers.Exist("Transfer-Encoding", "chunked")) {
+				if(response.Headers.Exist(HeaderField.TransferEncoding, "chunked")) {
 					return BuildMessageBodyFromChunked(response, source, destination);
 				}
 
-				if(response.Headers.Exist("Content-Length")) {
+				if(response.Headers.Exist(HeaderField.ContentLength)) {
 					return BuildMessageBodyFromContentLength(response, source, destination);
 				}
 
@@ -117,7 +117,7 @@ namespace UniHttp
 		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source, MemoryStream destination)
 		{
 			Progress progress = response.Request.DownloadProgress;
-			long contentLength = long.Parse(response.Headers["Content-Length"][0]);
+			long contentLength = long.Parse(response.Headers[HeaderField.ContentLength][0]);
 			progress.Start(contentLength);
 			source.CopyTo(destination, contentLength, progress);
 			progress.Finialize();
@@ -126,7 +126,7 @@ namespace UniHttp
 
 		byte[] DecodeMessageBody(HttpResponse response, MemoryStream stream)
 		{
-			if(response.Headers.Exist("Content-Encoding", "gzip")) {
+			if(response.Headers.Exist(HeaderField.ContentEncoding, "gzip")) {
 				return DecodeMessageBodyAsGzip(stream);
 			} else {
 				return stream.ToArray();

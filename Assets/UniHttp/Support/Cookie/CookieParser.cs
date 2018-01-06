@@ -12,8 +12,8 @@ namespace UniHttp
 		{
 			List<Cookie> setCookies = new List<Cookie>();
 
-			if(response.Headers.Exist("set-cookie")) {
-				List<string> setCookiesStr = response.Headers["set-cookie"];
+			if(response.Headers.Exist(HeaderField.SetCookie)) {
+				List<string> setCookiesStr = response.Headers[HeaderField.SetCookie];
 				setCookies.AddRange(setCookiesStr.Select(attributesAsString => ParseEach(response, attributesAsString)));
 			}
 			return setCookies;

@@ -28,20 +28,20 @@ namespace UniHttp
 
 			this.domain = uri.Authority;
 			this.path = uri.AbsolutePath;
-			if(response.Headers.Exist("Content-Type")) {
-				this.contentType = response.Headers["Content-Type"][0];
+			if(response.Headers.Exist(HeaderField.ContentType)) {
+				this.contentType = response.Headers[HeaderField.ContentType][0];
 			}
-			if(response.Headers.Exist("ETag")) {
-				this.eTag = response.Headers["ETag"][0];
+			if(response.Headers.Exist(HeaderField.ETag)) {
+				this.eTag = response.Headers[HeaderField.ETag][0];
 			}
-			if(response.Headers.Exist("Expires")) {
-				this.expireAt = DateTimeOffset.Parse(response.Headers["Expires"][0]);
+			if(response.Headers.Exist(HeaderField.Expires)) {
+				this.expireAt = DateTimeOffset.Parse(response.Headers[HeaderField.Expires][0]);
 			}
-			if(response.Headers.Exist("Last-Modified")) {
-				this.lastModified = DateTimeOffset.Parse(response.Headers["Last-Modified"][0]);
+			if(response.Headers.Exist(HeaderField.LastModified)) {
+				this.lastModified = DateTimeOffset.Parse(response.Headers[HeaderField.LastModified][0]);
 			}
-			if(response.Headers.Exist("Cache-Control") && response.Headers["Cache-Control"][0].Contains("max-age")) {
-				foreach(string directive in response.Headers["Cache-Control"][0].Split(',')) {
+			if(response.Headers.Exist(HeaderField.CacheControl) && response.Headers[HeaderField.CacheControl][0].Contains("max-age")) {
+				foreach(string directive in response.Headers[HeaderField.CacheControl][0].Split(',')) {
 					if(directive.Contains("max-age")) {
 						int maxAge = int.Parse(directive.Split('=')[1]);
 						this.expireAt = DateTimeOffset.Now + TimeSpan.FromSeconds(maxAge);

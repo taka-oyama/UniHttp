@@ -77,7 +77,7 @@ namespace UniHttp
 
 		HttpRequest MakeRedirectRequest(HttpResponse response)
 		{
-			Uri uri = new Uri(response.Headers["Location"][0]);
+			Uri uri = new Uri(response.Headers[HeaderField.Location][0]);
 			HttpRequest request = response.Request;
 			HttpMethod method = request.Method;
 			if(response.StatusCode == StatusCode.SeeOther) {
@@ -86,7 +86,7 @@ namespace UniHttp
 				}
 			}
 
-			request.Headers.Remove("Host");
+			request.Headers.Remove(HeaderField.Host);
 
 			return new HttpRequest(method, uri, request.Headers, request.Data);
 		}
