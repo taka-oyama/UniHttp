@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Text;
 
 namespace UniHttp
 {
@@ -26,6 +27,7 @@ namespace UniHttp
 
 			cookie.name = kvPair[0];
 			cookie.value = kvPair[1];
+			cookie.size = Encoding.ASCII.GetByteCount(attributesAsString);
 
 			foreach(string attr in attributes.Skip(1)) {
 				kvPair = attr.Split('=');

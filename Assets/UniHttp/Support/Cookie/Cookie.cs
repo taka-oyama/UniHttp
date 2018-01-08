@@ -15,9 +15,16 @@ namespace UniHttp
 		public bool secure;
 		public bool httpOnly;
 
-		// Set true when domain is not defined. See link below for details.
-		// https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
+		/// <summary>
+		/// Set true when domain is not defined. See link below for details.
+		/// https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
+		/// </summary>
 		public bool exactMatchOnly;
+
+		/// <summary>
+		/// used for calculating total size of cookies per domain (4096 bytes)
+		/// </summary>
+		internal int size;
 
 		public bool IsSession { get { return expires == null; } }
 		public bool IsExpired { get { return expires.HasValue && expires < DateTime.Now; } }
