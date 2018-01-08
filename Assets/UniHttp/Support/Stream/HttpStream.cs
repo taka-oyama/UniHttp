@@ -21,6 +21,8 @@ namespace UniHttp
 			this.tcpClient = new TcpClient();
 			this.sslVerifier = settings.sslVerifier;
 			this.tcpClient.NoDelay = settings.tcpNoDelay;
+			this.tcpClient.SendTimeout = settings.tcpWriteTimeout;
+			this.tcpClient.ReceiveTimeout = settings.tcpReadTimeout;
 		}
 
 		internal void Connect()

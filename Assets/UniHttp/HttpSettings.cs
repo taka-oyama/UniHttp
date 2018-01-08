@@ -9,6 +9,8 @@ namespace UniHttp
 		public bool allowResponseCompression = true;
 		public bool followRedirects = true;
 		public bool tcpNoDelay = true;
+		public int tcpReceiveTimeout = 10;
+		public int tcpSendTimeout = 10;
 		public bool useCookies = true;
 		public bool useCache = true;
 
