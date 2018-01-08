@@ -52,7 +52,7 @@ namespace UniHttp
 					if(target != null) {
 						jar[newCookie.domain].Remove(target);
 					}
-					if(newCookie.IsExpired) {
+					if(!newCookie.IsExpired) {
 						jar[newCookie.domain].Add(newCookie);
 					}
 				}
