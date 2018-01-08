@@ -13,13 +13,15 @@ namespace UniHttp
 			List<Cookie> setCookies = new List<Cookie>();
 
 			if(response.Headers.Exist(HeaderField.SetCookie)) {
-				List<string> setCookiesStr = response.Headers[HeaderField.SetCookie];
-				setCookies.AddRange(setCookiesStr.Select(attributesAsString => ParseEach(response, attributesAsString)));
+				foreach(string attributesAsString in response.Headers[HeaderField.SetCookie]) {
+					setCookies.Add(ParseEach(response.Request.Uri, attributesAsString));	
+				}
 			}
+
 			return setCookies;
 		}
 
-		Cookie ParseEach(HttpResponse response, string attributesAsString)
+		Cookie ParseEach(Uri uri, string attributesAsString)
 		{
 			Cookie cookie = new Cookie();
 			string[] attributes = attributesAsString.Split(new[]{ "; " }, StringSplitOptions.None);
@@ -43,10 +45,10 @@ namespace UniHttp
 
 			if(string.IsNullOrEmpty(cookie.domain)) {
 				cookie.exactMatchOnly = true;
-				cookie.domain = response.Request.Uri.Host;
+				cookie.domain = uri.Host;
 			}
 			if(string.IsNullOrEmpty(cookie.path)) {
-				cookie.path = response.Request.Uri.AbsolutePath;
+				cookie.path = uri.AbsolutePath;
 			}
 
 			return cookie;

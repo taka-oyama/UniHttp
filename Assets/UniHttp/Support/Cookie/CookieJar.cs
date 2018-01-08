@@ -11,7 +11,7 @@ namespace UniHttp
 	{
 		readonly FileStore fileStore;
 		readonly CookieParser parser;
-		readonly Dictionary<string, List<Cookie>> jar;
+		readonly Dictionary<string, CookieDomain> jar;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
@@ -26,35 +26,57 @@ namespace UniHttp
 
 			IPAddress address;
 			if(IPAddress.TryParse(uri.Host, out address)) {
-				relevants.AddRange(FindForDomain(uri, uri.Host));
+				AddRelevantsForDomain(relevants, uri, uri.Host);
 			} else {
 				string domain = uri.Host;
 				int index = 0;
 				do {
-					relevants.AddRange(FindForDomain(uri, domain));
+					AddRelevantsForDomain(relevants, uri, domain);
 					index = domain.IndexOf('.');
 					domain = domain.Substring(index + 1);
 				} while(index >= 0);
 			}
+
 			return relevants;
 		}
-
-		internal void ParseAndUpdate(HttpResponse response)
+		
+		void AddRelevantsForDomain(List<Cookie> relevants, Uri uri, string domain)
 		{
+			lock(jar) {
+				if(jar.ContainsKey(domain)) {
+					foreach(Cookie cookie in jar[domain]) {
+						if(cookie.IsExpired) {
+							continue;
+						}
+						if(cookie.secure && uri.Scheme != Uri.UriSchemeHttps) {
+							continue;
+						}
+						if(cookie.exactMatchOnly && uri.Host != domain) {
+							continue;
+						}
+						// add to qualification only if the path matches
+						if(uri.AbsolutePath.StartsWith(cookie.path)) {
+							relevants.Add(cookie);
+						}
+					}
+				}
+			}
+		}
+
+		internal void Update(HttpResponse response)
+		{
+			if(response.Headers.NotExist(HeaderField.SetCookie)) {
+				return;
+			}
+
 			List<Cookie> setCookies = parser.Parse(response);
 
 			lock(jar) {
-				foreach(Cookie setCookie in setCookies) {
-					if(!jar.ContainsKey(setCookie.domain)) {
-						jar.Add(setCookie.domain, new List<Cookie>());
+				foreach(Cookie cookie in setCookies) {
+					if(!jar.ContainsKey(cookie.domain)) {
+						jar.Add(cookie.domain, new CookieDomain(response.Request.Uri.Host));
 					}
-					Cookie target = jar[setCookie.domain].Find(c => c.name == setCookie.name);
-					if(target != null) {
-						jar[setCookie.domain].Remove(target);
-					}
-					if(!setCookie.IsExpired) {
-						jar[setCookie.domain].Add(setCookie);
-					}
+					jar[cookie.domain].AddOrReplace(cookie);
 				}
 			}
 		}
@@ -70,36 +92,9 @@ namespace UniHttp
 		{
 			lock(jar) {
 				foreach(string key in jar.Keys) {
-					jar[key].RemoveAll(c => c.IsExpired);
+					jar[key].RemoveExpiredCookies();
 				}
 			}
-		}
-
-		List<Cookie> FindForDomain(Uri uri, string domain)
-		{
-			List<Cookie> relevants = new List<Cookie>();
-
-			lock(jar) {
-				if(jar.ContainsKey(domain)) {
-					foreach(Cookie data in jar[domain]) {
-						if(data.IsExpired) {
-							continue;
-						}
-						if(data.secure && uri.Scheme != Uri.UriSchemeHttps) {
-							continue;
-						}
-						if(data.exactMatchOnly && uri.Host != domain) {
-							continue;
-						}
-						// add to qualification only if the path matches
-						if(uri.AbsolutePath.IndexOf(data.path) == 0) {
-							relevants.Add(data);
-						}
-					}
-				}
-			}
-
-			return relevants;
 		}
 
 		internal void SaveToFile()
@@ -108,22 +103,22 @@ namespace UniHttp
 				RemoveExpiredCookies();
 				Dictionary<string, List<Cookie>> saveable = new Dictionary<string, List<Cookie>>();
 				foreach(string key in jar.Keys) {
-					saveable.Add(key, jar[key].FindAll(c => !c.IsSession));
+					saveable.Add(key, jar[key].FindPersistedCookies());
 				}
 				fileStore.Write(saveable);
 			}
 		}
 
-		internal Dictionary<string, List<Cookie>> ReadFromFile()
+		internal Dictionary<string, CookieDomain> ReadFromFile()
 		{
 			if(!fileStore.Exists) {
-				return new Dictionary<string, List<Cookie>>();
+				return new Dictionary<string, CookieDomain>();
 			}
 			try {
-				return fileStore.Read<Dictionary<string, List<Cookie>>>();
+				return fileStore.Read<Dictionary<string, CookieDomain>>();
 			}
 			catch(IOException) {
-				return new Dictionary<string, List<Cookie>>();
+				return new Dictionary<string, CookieDomain>();
 			}
 		}
 

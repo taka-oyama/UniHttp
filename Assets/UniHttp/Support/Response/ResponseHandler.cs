@@ -154,7 +154,7 @@ namespace UniHttp
 		void ProcessCookie(HttpResponse response)
 		{
 			if(settings.useCookies) {
-				cookieJar.ParseAndUpdate(response);
+				cookieJar.Update(response);
 			}
 		}
 
