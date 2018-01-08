@@ -17,7 +17,7 @@ namespace UniHttp
 
 		// Set true when domain is not defined. See link below for details.
 		// https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
-		public bool ExactMatchOnly;
+		public bool exactMatchOnly;
 
 		public bool IsSession { get { return expires == null; } }
 		public bool IsExpired { get { return expires.HasValue && expires < DateTime.Now; } }

@@ -40,7 +40,7 @@ namespace UniHttp
 			}
 
 			if(string.IsNullOrEmpty(cookie.domain)) {
-				cookie.ExactMatchOnly = true;
+				cookie.exactMatchOnly = true;
 				cookie.domain = response.Request.Uri.Host;
 			}
 			if(string.IsNullOrEmpty(cookie.path)) {

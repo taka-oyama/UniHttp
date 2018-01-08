@@ -88,7 +88,7 @@ namespace UniHttp
 						if(data.secure && uri.Scheme != Uri.UriSchemeHttps) {
 							continue;
 						}
-						if(data.ExactMatchOnly && uri.Host != domain) {
+						if(data.exactMatchOnly && uri.Host != domain) {
 							continue;
 						}
 						// add to qualification only if the path matches
