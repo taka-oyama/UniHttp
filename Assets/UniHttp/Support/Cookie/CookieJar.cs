@@ -80,25 +80,19 @@ namespace UniHttp
 			List<Cookie> relevants = new List<Cookie>();
 
 			lock(jar) {
-				if (jar.ContainsKey(domain))
-				{
-					foreach (Cookie data in jar[domain])
-					{
-						if (data.IsExpired)
-						{
+				if(jar.ContainsKey(domain)) {
+					foreach(Cookie data in jar[domain]) {
+						if(data.IsExpired) {
 							continue;
 						}
-						if (data.secure && uri.Scheme != Uri.UriSchemeHttps)
-						{
+						if(data.secure && uri.Scheme != Uri.UriSchemeHttps) {
 							continue;
 						}
-						if (data.ExactMatchOnly && uri.Host != domain)
-						{
+						if(data.ExactMatchOnly && uri.Host != domain) {
 							continue;
 						}
 						// add to qualification only if the path matches
-						if (uri.AbsolutePath.IndexOf(data.path) == 0)
-						{
+						if(uri.AbsolutePath.IndexOf(data.path) == 0) {
 							relevants.Add(data);
 						}
 					}
