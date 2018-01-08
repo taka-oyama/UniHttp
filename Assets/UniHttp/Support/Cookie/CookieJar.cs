@@ -9,17 +9,15 @@ namespace UniHttp
 {
 	internal sealed class CookieJar
 	{
-		readonly object locker;
 		readonly ObjectStorage io;
 		readonly CookieParser parser;
-		readonly Dictionary<string, List<Cookie>> cookies;
+		readonly Dictionary<string, List<Cookie>> jar;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
-			this.locker = new object();
 			this.io = new ObjectStorage(fileHandler, dataDirectory + "/Cookie.bin");
 			this.parser = new CookieParser();
-			this.cookies = ReadFromFile();
+			this.jar = ReadFromFile();
 		}
 
 		internal List<Cookie> FindMatch(Uri uri)
@@ -27,55 +25,53 @@ namespace UniHttp
 			List<Cookie> relevants = new List<Cookie>();
 			IPAddress address;
 
-			lock(locker) {
-				if(IPAddress.TryParse(uri.Host, out address)) {
-					relevants.AddRange(FindForDomain(uri, uri.Host));
-				} else {
-					string domain = uri.Host;
-					int index = 0;
-					do {
-						relevants.AddRange(FindForDomain(uri, domain));
-						index = domain.IndexOf('.');
-						domain = domain.Substring(index + 1);
-					} while(index >= 0);
-				}
-				return relevants;
+			if(IPAddress.TryParse(uri.Host, out address)) {
+				relevants.AddRange(FindForDomain(uri, uri.Host));
+			} else {
+				string domain = uri.Host;
+				int index = 0;
+				do {
+					relevants.AddRange(FindForDomain(uri, domain));
+					index = domain.IndexOf('.');
+					domain = domain.Substring(index + 1);
+				} while(index >= 0);
 			}
+			return relevants;
 		}
 
 		internal void ParseAndUpdate(HttpResponse response)
 		{
 			List<Cookie> newCookies = parser.Parse(response);
 
-			lock(locker) {
+			lock(jar) {
 				foreach(Cookie newCookie in newCookies) {
-					if(!cookies.ContainsKey(newCookie.domain)) {
-						cookies.Add(newCookie.domain, new List<Cookie>());
+					if(!jar.ContainsKey(newCookie.domain)) {
+						jar.Add(newCookie.domain, new List<Cookie>());
 					}
-					Cookie target = cookies[newCookie.domain].Find(c => c.name == newCookie.name);
+					Cookie target = jar[newCookie.domain].Find(c => c.name == newCookie.name);
 					if(target != null) {
-						cookies[newCookie.domain].Remove(target);
+						jar[newCookie.domain].Remove(target);
 					}
-					if(newCookie.expires == null || newCookie.expires >= DateTime.Now) {
-						cookies[newCookie.domain].Add(newCookie);
+					if(newCookie.IsExpired) {
+						jar[newCookie.domain].Add(newCookie);
 					}
-				}
-			}
-		}
-
-		internal void CleanUp()
-		{
-			lock(locker) {
-				foreach(string key in cookies.Keys) {
-					cookies[key].RemoveAll(c => c.IsExpired);
 				}
 			}
 		}
 
 		internal void Clear()
 		{
-			lock(locker) {
-				cookies.Clear();
+			lock (jar) {
+				jar.Clear();
+			}
+		}
+
+		internal void RemoveExpiredCookies()
+		{
+			lock(jar) {
+				foreach(string key in jar.Keys) {
+					jar[key].RemoveAll(c => c.IsExpired);
+				}
 			}
 		}
 
@@ -83,20 +79,28 @@ namespace UniHttp
 		{
 			List<Cookie> relevants = new List<Cookie>();
 
-			if(cookies.ContainsKey(domain)) {
-				foreach(Cookie data in cookies[domain]) {
-					if(data.IsExpired) {
-						continue;
-					}
-					if(data.secure && uri.Scheme != Uri.UriSchemeHttps) {
-						continue;
-					}
-					if(data.ExactMatchOnly && uri.Host != domain) {
-						continue;
-					}
-					// add to qualification only if the path matches
-					if(uri.AbsolutePath.IndexOf(data.path) == 0) {
-						relevants.Add(data);
+			lock(jar) {
+				if (jar.ContainsKey(domain))
+				{
+					foreach (Cookie data in jar[domain])
+					{
+						if (data.IsExpired)
+						{
+							continue;
+						}
+						if (data.secure && uri.Scheme != Uri.UriSchemeHttps)
+						{
+							continue;
+						}
+						if (data.ExactMatchOnly && uri.Host != domain)
+						{
+							continue;
+						}
+						// add to qualification only if the path matches
+						if (uri.AbsolutePath.IndexOf(data.path) == 0)
+						{
+							relevants.Add(data);
+						}
 					}
 				}
 			}
@@ -106,11 +110,11 @@ namespace UniHttp
 
 		internal void SaveToFile()
 		{
-			lock(locker) {
-				CleanUp();
+			lock(jar) {
+				RemoveExpiredCookies();
 				Dictionary<string, List<Cookie>> saveable = new Dictionary<string, List<Cookie>>();
-				foreach(string key in cookies.Keys) {
-					saveable.Add(key, cookies[key].FindAll(c => !c.IsSession));
+				foreach(string key in jar.Keys) {
+					saveable.Add(key, jar[key].FindAll(c => !c.IsSession));
 				}
 				io.Write(saveable);
 			}
@@ -131,12 +135,12 @@ namespace UniHttp
 
 		public override string ToString()
 		{
-			lock(locker) {
+			lock(jar) {
 				StringBuilder sb = new StringBuilder();
-				foreach(string key in cookies.Keys) {
+				foreach(string key in jar.Keys) {
 					sb.Append(key + ":\n");
-					foreach(Cookie cookie in cookies[key]) {
-						sb.Append("   " + cookie.ToString() + "\n");
+					foreach(Cookie cookie in jar[key]) {
+						sb.Append("   " + cookie + "\n");
 					}
 				}
 				return sb.ToString();
