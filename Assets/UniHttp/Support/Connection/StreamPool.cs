@@ -10,26 +10,19 @@ namespace UniHttp
 		readonly object locker;
 		readonly List<HttpStream> unusedStreams;
 		readonly List<HttpStream> usedStreams;
-		readonly TimeSpan keepAliveTimeout;
-		readonly bool tcpNoDelay;
-		readonly HttpProxy httpProxy;
-		readonly ISslVerifier sslVerifier;
+		readonly HttpSettings settings;
 
 		internal StreamPool(HttpSettings settings)
 		{
 			this.locker = new object();
 			this.unusedStreams = new List<HttpStream>();
 			this.usedStreams = new List<HttpStream>();
-			this.keepAliveTimeout = settings.keepAliveTimeout;
-			this.tcpNoDelay = settings.tcpNoDelay;
-			this.httpProxy = settings.proxy;
-			this.sslVerifier = settings.sslVerifier;
+			this.settings = settings;
 		}
 
 		internal HttpStream CheckOut(HttpRequest request)
 		{
 			string baseUrl = string.Concat(request.Uri.Scheme, Uri.SchemeDelimiter, request.Uri.Authority);
-			DateTime expiresAt = DateTime.Now + keepAliveTimeout;
 
 			lock(locker) {
 				int index = unusedStreams.FindIndex(s => s.baseUrl == baseUrl);
@@ -41,9 +34,8 @@ namespace UniHttp
 					}
 				}
 
-				Uri uri = request.useProxy ? httpProxy.Uri : request.Uri;
-				HttpStream newStream = new HttpStream(uri, expiresAt, sslVerifier);
-				newStream.TcpNoDelay = tcpNoDelay;
+				Uri uri = request.useProxy ? settings.proxy.Uri : request.Uri;
+				HttpStream newStream = new HttpStream(uri, settings);
 				newStream.Connect();
 				usedStreams.Add(newStream);
 

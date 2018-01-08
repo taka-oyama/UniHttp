@@ -13,13 +13,14 @@ namespace UniHttp
 		readonly TcpClient tcpClient;
 		readonly ISslVerifier sslVerifier;
 
-		internal HttpStream(Uri uri, DateTime expiresAt, ISslVerifier sslVerifier) : base(null)
+		internal HttpStream(Uri uri, HttpSettings settings) : base(null)
 		{
 			this.baseUrl = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
-			this.keepAlive = new KeepAlive(expiresAt);
+			this.keepAlive = new KeepAlive(DateTime.Now + settings.keepAliveTimeout);
 			this.uri = uri;
 			this.tcpClient = new TcpClient();
-			this.sslVerifier = sslVerifier;
+			this.sslVerifier = settings.sslVerifier;
+			this.tcpClient.NoDelay = settings.tcpNoDelay;
 		}
 
 		internal void Connect()
@@ -40,12 +41,6 @@ namespace UniHttp
 		internal bool Connected
 		{
 			get { return tcpClient.Connected; }
-		}
-
-		internal bool TcpNoDelay
-		{
-			get { return tcpClient.NoDelay; }
-			set { tcpClient.NoDelay = value; }
 		}
 	}
 }
