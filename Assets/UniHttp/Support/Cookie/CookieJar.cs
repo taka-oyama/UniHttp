@@ -41,19 +41,19 @@ namespace UniHttp
 
 		internal void ParseAndUpdate(HttpResponse response)
 		{
-			List<Cookie> newCookies = parser.Parse(response);
+			List<Cookie> setCookies = parser.Parse(response);
 
 			lock(jar) {
-				foreach(Cookie newCookie in newCookies) {
-					if(!jar.ContainsKey(newCookie.domain)) {
-						jar.Add(newCookie.domain, new List<Cookie>());
+				foreach(Cookie setCookie in setCookies) {
+					if(!jar.ContainsKey(setCookie.domain)) {
+						jar.Add(setCookie.domain, new List<Cookie>());
 					}
-					Cookie target = jar[newCookie.domain].Find(c => c.name == newCookie.name);
+					Cookie target = jar[setCookie.domain].Find(c => c.name == setCookie.name);
 					if(target != null) {
-						jar[newCookie.domain].Remove(target);
+						jar[setCookie.domain].Remove(target);
 					}
-					if(!newCookie.IsExpired) {
-						jar[newCookie.domain].Add(newCookie);
+					if(!setCookie.IsExpired) {
+						jar[setCookie.domain].Add(setCookie);
 					}
 				}
 			}
