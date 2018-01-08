@@ -1,6 +1,8 @@
-﻿using System.Collections;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace UniHttp
@@ -65,7 +67,12 @@ namespace UniHttp
 			try {
 				return fileHandler.ReadObject<List<Cookie>>(filePath);
 			}
-			catch(IOException) {
+			catch(IOException e) {
+				Debug.LogWarning(e);
+				return new List<Cookie>();
+			}
+			catch(SerializationException e) {
+				Debug.LogWarning(e);
 				return new List<Cookie>();
 			}
 		}

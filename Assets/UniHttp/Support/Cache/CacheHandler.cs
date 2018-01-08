@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace UniHttp
 {
@@ -123,7 +125,12 @@ namespace UniHttp
 			try {
 				return infoStore.Read<Dictionary<string, CacheData>>();
 			}
-			catch(IOException) {
+			catch(IOException e) {
+				Debug.LogWarning(e);
+				return new Dictionary<string, CacheData>();
+			}
+			catch(SerializationException e) {
+				Debug.LogWarning(e);
 				return new Dictionary<string, CacheData>();
 			}
 		}
