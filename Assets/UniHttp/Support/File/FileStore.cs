@@ -3,13 +3,13 @@ using System.IO;
 
 namespace UniHttp
 {
-	public class ObjectStorage
+	public class FileStore
 	{
 		public IFileHandler fileHandler;
 
 		public string path;
 
-		public ObjectStorage(IFileHandler fileHandler, string path)
+		public FileStore(IFileHandler fileHandler, string path)
 		{
 			this.fileHandler = fileHandler;
 			this.path = path;

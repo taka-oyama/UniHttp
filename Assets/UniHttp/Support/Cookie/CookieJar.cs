@@ -9,13 +9,13 @@ namespace UniHttp
 {
 	internal sealed class CookieJar
 	{
-		readonly ObjectStorage io;
+		readonly FileStore io;
 		readonly CookieParser parser;
 		readonly Dictionary<string, List<Cookie>> jar;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
-			this.io = new ObjectStorage(fileHandler, dataDirectory + "/Cookie.bin");
+			this.io = new FileStore(fileHandler, dataDirectory + "/Cookie.bin");
 			this.parser = new CookieParser();
 			this.jar = ReadFromFile();
 		}

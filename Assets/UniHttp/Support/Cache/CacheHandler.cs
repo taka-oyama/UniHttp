@@ -7,14 +7,14 @@ namespace UniHttp
 	internal sealed class CacheHandler
 	{
 		readonly object locker;
-		ObjectStorage infoStorage;
+		readonly FileStore infoStorage;
 		Dictionary<string, CacheData> caches;
 		CacheStorage cacheStorage;
 
 		internal CacheHandler(IFileHandler fileHandler, string dataDirectory)
 		{
 			this.locker = new object();
-			this.infoStorage = new ObjectStorage(fileHandler, dataDirectory + "/CacheInfo.bin");
+			this.infoStorage = new FileStore(fileHandler, dataDirectory + "/CacheInfo.bin");
 			this.cacheStorage = new CacheStorage(fileHandler, dataDirectory);
 			this.caches = ReadFromFile();
 		}
