@@ -3,21 +3,22 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using System.IO;
 
 namespace UniHttp
 {
 	internal sealed class CookieJar
 	{
-		readonly FileStore fileStore;
+		readonly IFileHandler fileHandler;
+		readonly string baseDirectory;
 		readonly CookieParser parser;
 		readonly Dictionary<string, CookieDomain> jar;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
-			this.fileStore = new FileStore(fileHandler, dataDirectory + "/Cookie.bin");
+			this.fileHandler = fileHandler;
+			this.baseDirectory = dataDirectory + "/Cookies";
 			this.parser = new CookieParser();
-			this.jar = ReadFromFile();
+			this.jar = new Dictionary<string, CookieDomain>();
 		}
 
 		internal List<Cookie> FindMatch(Uri uri)
@@ -74,7 +75,7 @@ namespace UniHttp
 			lock(jar) {
 				foreach(Cookie cookie in setCookies) {
 					if(!jar.ContainsKey(cookie.domain)) {
-						jar.Add(cookie.domain, new CookieDomain(response.Request.Uri.Host));
+						jar.Add(cookie.domain, new CookieDomain(response, fileHandler, baseDirectory));
 					}
 					jar[cookie.domain].AddOrReplace(cookie);
 				}
@@ -88,37 +89,12 @@ namespace UniHttp
 			}
 		}
 
-		internal void RemoveExpiredCookies()
-		{
-			lock(jar) {
-				foreach(string key in jar.Keys) {
-					jar[key].RemoveExpiredCookies();
-				}
-			}
-		}
-
 		internal void SaveToFile()
 		{
 			lock(jar) {
-				RemoveExpiredCookies();
-				Dictionary<string, List<Cookie>> saveable = new Dictionary<string, List<Cookie>>();
 				foreach(string key in jar.Keys) {
-					saveable.Add(key, jar[key].FindPersistedCookies());
+					jar[key].SaveToFile();
 				}
-				fileStore.Write(saveable);
-			}
-		}
-
-		internal Dictionary<string, CookieDomain> ReadFromFile()
-		{
-			if(!fileStore.Exists) {
-				return new Dictionary<string, CookieDomain>();
-			}
-			try {
-				return fileStore.Read<Dictionary<string, CookieDomain>>();
-			}
-			catch(IOException) {
-				return new Dictionary<string, CookieDomain>();
 			}
 		}
 
