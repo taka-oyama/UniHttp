@@ -23,8 +23,8 @@ namespace UniHttp
 		internal List<Cookie> FindMatch(Uri uri)
 		{
 			List<Cookie> relevants = new List<Cookie>();
-			IPAddress address;
 
+			IPAddress address;
 			if(IPAddress.TryParse(uri.Host, out address)) {
 				relevants.AddRange(FindForDomain(uri, uri.Host));
 			} else {

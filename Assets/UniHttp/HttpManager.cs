@@ -135,7 +135,7 @@ namespace UniHttp
 			}
 		}
 
-		void OnApplicationQuit()
+		void OnDestroy()
 		{
 			streamPool.CloseAll();
 			Save();
