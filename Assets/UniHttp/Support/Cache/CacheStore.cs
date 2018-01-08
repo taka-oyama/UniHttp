@@ -6,7 +6,7 @@ using System.Text;
 
 namespace UniHttp
 {
-	public class CacheStore
+	internal class CacheStore
 	{
 		// for some reason File.Exists returns false when threading, so I'm forced to lock it.
 		readonly object locker;
@@ -15,7 +15,7 @@ namespace UniHttp
 		readonly MD5 hash;
 		readonly string password;
 
-		public CacheStore(IFileHandler fileHandler, string baseDirectory)
+		internal CacheStore(IFileHandler fileHandler, string baseDirectory)
 		{
 			this.locker = new object();
 			this.fileHandler = fileHandler;
@@ -24,35 +24,35 @@ namespace UniHttp
 			this.password = Application.identifier;
 		}
 
-		public virtual void Write(Uri uri, byte[] data)
+		internal virtual void Write(Uri uri, byte[] data)
 		{
 			lock(locker) {
 				fileHandler.Write(ComputePath(uri), data);
 			}
 		}
 
-		public virtual byte[] Read(Uri uri)
+		internal virtual byte[] Read(Uri uri)
 		{
 			lock(locker) {
 				return fileHandler.Read(ComputePath(uri));
 			}
 		}
 
-		public FileStream OpenReadStream(Uri uri)
+		internal FileStream OpenReadStream(Uri uri)
 		{
 			lock(locker) {
 				return fileHandler.OpenReadStream(ComputePath(uri));
 			}
 		}
 
-		public virtual bool Exists(Uri uri)
+		internal virtual bool Exists(Uri uri)
 		{
 			lock(locker) {
 				return fileHandler.Exists(ComputePath(uri));
 			}
 		}
 
-		public virtual void Clear()
+		internal virtual void Clear()
 		{
 			lock(locker) {
 				DirectoryInfo[] dirs = baseDirectory.GetDirectories();
