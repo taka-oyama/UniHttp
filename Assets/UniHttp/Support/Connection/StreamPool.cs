@@ -8,16 +8,16 @@ namespace UniHttp
 	internal sealed class StreamPool
 	{
 		readonly object locker;
+		readonly HttpSettings settings;
 		readonly List<HttpStream> unusedStreams;
 		readonly List<HttpStream> usedStreams;
-		readonly HttpSettings settings;
 
 		internal StreamPool(HttpSettings settings)
 		{
 			this.locker = new object();
+			this.settings = settings;
 			this.unusedStreams = new List<HttpStream>();
 			this.usedStreams = new List<HttpStream>();
-			this.settings = settings;
 		}
 
 		internal HttpStream CheckOut(HttpRequest request)
