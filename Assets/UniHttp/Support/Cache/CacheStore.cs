@@ -6,7 +6,7 @@ using System.Text;
 
 namespace UniHttp
 {
-	public class CacheStorage
+	public class CacheStore
 	{
 		// for some reason File.Exists returns false when threading, so I'm forced to lock it.
 		readonly object locker;
@@ -15,7 +15,7 @@ namespace UniHttp
 		readonly MD5 hash;
 		readonly string password;
 
-		public CacheStorage(IFileHandler fileHandler, string baseDirectory)
+		public CacheStore(IFileHandler fileHandler, string baseDirectory)
 		{
 			this.locker = new object();
 			this.fileHandler = fileHandler;

@@ -7,15 +7,15 @@ namespace UniHttp
 	internal sealed class CacheHandler
 	{
 		readonly object locker;
-		readonly FileStore infoStorage;
+		readonly FileStore infoStore;
 		Dictionary<string, CacheData> caches;
-		CacheStorage cacheStorage;
+		CacheStore cacheStorage;
 
 		internal CacheHandler(IFileHandler fileHandler, string dataDirectory)
 		{
 			this.locker = new object();
-			this.infoStorage = new FileStore(fileHandler, dataDirectory + "/CacheInfo.bin");
-			this.cacheStorage = new CacheStorage(fileHandler, dataDirectory);
+			this.infoStore = new FileStore(fileHandler, dataDirectory + "/CacheInfo.bin");
+			this.cacheStorage = new CacheStore(fileHandler, dataDirectory);
 			this.caches = ReadFromFile();
 		}
 
@@ -110,18 +110,18 @@ namespace UniHttp
 		internal void SaveToFile()
 		{
 			lock(locker) {
-				infoStorage.Write(caches);
+				infoStore.Write(caches);
 			}
 		}
 
 		Dictionary<string, CacheData> ReadFromFile()
 		{
-			if(!infoStorage.Exists) {
+			if(!infoStore.Exists) {
 				return new Dictionary<string, CacheData>();
 			}
 
 			try {
-				return infoStorage.Read<Dictionary<string, CacheData>>();
+				return infoStore.Read<Dictionary<string, CacheData>>();
 			}
 			catch(IOException) {
 				return new Dictionary<string, CacheData>();

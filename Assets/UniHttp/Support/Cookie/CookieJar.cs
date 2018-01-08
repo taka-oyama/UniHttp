@@ -9,13 +9,13 @@ namespace UniHttp
 {
 	internal sealed class CookieJar
 	{
-		readonly FileStore io;
+		readonly FileStore fileStore;
 		readonly CookieParser parser;
 		readonly Dictionary<string, List<Cookie>> jar;
 
 		internal CookieJar(IFileHandler fileHandler, string dataDirectory)
 		{
-			this.io = new FileStore(fileHandler, dataDirectory + "/Cookie.bin");
+			this.fileStore = new FileStore(fileHandler, dataDirectory + "/Cookie.bin");
 			this.parser = new CookieParser();
 			this.jar = ReadFromFile();
 		}
@@ -110,17 +110,17 @@ namespace UniHttp
 				foreach(string key in jar.Keys) {
 					saveable.Add(key, jar[key].FindAll(c => !c.IsSession));
 				}
-				io.Write(saveable);
+				fileStore.Write(saveable);
 			}
 		}
 
 		internal Dictionary<string, List<Cookie>> ReadFromFile()
 		{
-			if(!io.Exists) {
+			if(!fileStore.Exists) {
 				return new Dictionary<string, List<Cookie>>();
 			}
 			try {
-				return io.Read<Dictionary<string, List<Cookie>>>();
+				return fileStore.Read<Dictionary<string, List<Cookie>>>();
 			}
 			catch(IOException) {
 				return new Dictionary<string, List<Cookie>>();
