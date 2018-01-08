@@ -6,14 +6,16 @@ namespace UniHttp
 {
 	public class DefaultFileHandler : IFileHandler
 	{
+		readonly BinaryFormatter formatter;
+
+		public DefaultFileHandler()
+		{
+			this.formatter = new BinaryFormatter();
+		}
+
 		public bool Exists(string path)
 		{
 			return File.Exists(path);
-		}
-
-		public virtual FileStream OpenWriteStream(string path)
-		{
-			return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 		}
 
 		public virtual void Write(string path, byte[] data)
@@ -27,11 +29,14 @@ namespace UniHttp
 			File.Move(temp.FullName, info.FullName);
 		}
 
-		public void WriteObject<T>(string path, T obj) where T : class
+		public virtual byte[] Read(string path)
 		{
-			MemoryStream stream = new MemoryStream();
-			new BinaryFormatter().Serialize(stream, obj);
-			Write(path, stream.ToArray());
+			return File.ReadAllBytes(path);
+		}
+
+		public virtual FileStream OpenWriteStream(string path)
+		{
+			return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 		}
 
 		public virtual FileStream OpenReadStream(string path)
@@ -39,15 +44,17 @@ namespace UniHttp
 			return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 		}
 
-		public virtual byte[] Read(string path)
+		public void WriteObject<T>(string path, T obj) where T : class
 		{
-			return File.ReadAllBytes(path);
+			MemoryStream stream = new MemoryStream();
+			formatter.Serialize(stream, obj);
+			Write(path, stream.ToArray());
 		}
 
 		public T ReadObject<T>(string path) where T : class
 		{
 			MemoryStream stream = new MemoryStream(Read(path));
-			return new BinaryFormatter().Deserialize(stream) as T;
+			return formatter.Deserialize(stream) as T;
 		}
 	}
 }
