@@ -84,7 +84,7 @@ namespace UniHttp
 
 		internal void Clear()
 		{
-			lock (jar) {
+			lock(jar) {
 				jar.Clear();
 			}
 		}

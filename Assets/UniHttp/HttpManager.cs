@@ -116,7 +116,7 @@ namespace UniHttp
 
 			// Update every second
 			deltaTimer += Time.deltaTime;
-			if (deltaTimer >= 1f) {
+			if(deltaTimer >= 1f) {
 				streamPool.CheckExpiredStreams();
 				deltaTimer = 0f;
 			}
