@@ -22,43 +22,54 @@ namespace UniHttp
 
 		internal HttpStream CheckOut(HttpRequest request)
 		{
-			string baseUrl = string.Concat(request.Uri.Scheme, Uri.SchemeDelimiter, request.Uri.Authority);
+			string baseUrl = request.Uri.Scheme + Uri.SchemeDelimiter + request.Uri.Authority;
+
+			HttpStream stream = null;
 
 			lock(locker) {
 				int index = unusedStreams.FindIndex(s => s.baseUrl == baseUrl);
+
 				if(index >= 0) {
-					HttpStream stream = unusedStreams[index];
+					HttpStream unusedStream = unusedStreams[index];
 					unusedStreams.RemoveAt(index);
-					if(stream.Connected) {
-						return stream;
+					if(unusedStream.Connected) {
+						stream = unusedStream;
 					}
 				}
 
-				Uri uri = request.useProxy ? settings.proxy.Uri : request.Uri;
-				HttpStream newStream = new HttpStream(uri, settings);
-				newStream.Connect();
-				usedStreams.Add(newStream);
+				if(stream == null) {
+					Uri uri = request.useProxy ? settings.proxy.Uri : request.Uri;
+					stream = new HttpStream(uri, settings);
+					stream.Connect();
+				}
 
-				return newStream;
+				usedStreams.Add(stream);
+
+				return stream;
 			}
 		}
 
 		internal void CheckIn(HttpResponse response, HttpStream stream)
 		{
-			if(!IsPersistedConnection(response)) {
-				stream.Close();
-				return;
-			}
-
-			UpdateKeepAliveInfo(response, stream);
-
-			if(stream.keepAlive.Expired) {
-				stream.Close();
+			if(stream == null) {
 				return;
 			}
 
 			lock(locker) {
 				usedStreams.Remove(stream);
+
+				if(!IsPersistedConnection(response)) {
+					stream.Close();
+					return;
+				}
+
+				UpdateKeepAliveInfo(response, stream);
+
+				if(stream.keepAlive.Expired) {
+					stream.Close();
+					return;
+				}
+
 				unusedStreams.Add(stream);
 			}
 		}
