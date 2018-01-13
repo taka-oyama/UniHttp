@@ -25,9 +25,7 @@
 
 		public Progress()
 		{
-			this.Read = 0;
-			this.Total = null;
-			this.State = ProgressState.Pending;
+			this.Reset();
 		}
 
 		internal void Start(long? total = null)
@@ -44,6 +42,13 @@
 		internal void Finialize()
 		{
 			this.State = ProgressState.Done;
+		}
+
+		internal void Reset()
+		{
+			this.Read = 0;
+			this.Total = null;
+			this.State = ProgressState.Pending;
 		}
 	}
 

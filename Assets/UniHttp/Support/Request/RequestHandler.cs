@@ -58,6 +58,8 @@ namespace UniHttp
 						request.Headers.Add(HeaderField.ContentLength, request.Data.ToBytes().Length.ToString());
 					}
 				}
+
+				request.DownloadProgress.Reset();
 			}
 		}
 
