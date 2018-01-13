@@ -63,7 +63,10 @@ namespace UniHttp
 
 		internal void Send(HttpRequest request, HttpStream stream)
 		{
-			byte[] data = request.ToBytes();
+			byte[] data;
+			lock(request) {
+				data = request.ToBytes();
+			}
 			stream.Write(data, 0, data.Length);
 			stream.Flush();
 		}
