@@ -65,9 +65,9 @@ namespace UniHttp
 		public override string ToString()
 		{
 			List<string> fieldLines = new List<string>();
-			foreach(KeyValuePair<string, string> kvPair in fields) {
-				string name = string.Join("-", kvPair.Key.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
-				fieldLines.Add(name + ": " + kvPair.Value);
+			foreach(string key in fields.Keys) {
+				string name = string.Join("-", key.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
+				fieldLines.Add(name + ": " + fields[key]);
 			}
 			return string.Join(Constant.CRLF, fieldLines.ToArray());
 		}
