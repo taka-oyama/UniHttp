@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
-using System.Net.Sockets;
 using System;
+using System.Net.Sockets;
+using System.IO;
 
 namespace UniHttp
 {
@@ -46,6 +47,11 @@ namespace UniHttp
 				}
 				catch(SocketException exception) {
 					response = responseHandler.Process(request, exception);
+					stream.Close();
+				}
+				catch(IOException exception) {
+					response = responseHandler.Process(request, exception);
+					stream.Close();
 				}
 				finally {
 					if(stream != null) {
