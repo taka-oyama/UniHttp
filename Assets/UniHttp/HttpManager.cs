@@ -93,7 +93,8 @@ namespace UniHttp
 						}
 						TransmitIfPossible();
 					});
-				} catch(Exception exception) {
+				}
+				catch(Exception exception) {
 					ExecuteOnMainThread(() => {
 						throw exception;
 					});
