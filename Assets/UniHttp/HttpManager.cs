@@ -58,9 +58,23 @@ namespace UniHttp
 			return this;
 		}
 
-		public void Send(HttpRequest request, Action<HttpResponse> onResponse)
+		public IDisposable Send(HttpRequest request, Action<HttpResponse> onResponse)
 		{
-			pendingRequests.Enqueue(new DispatchInfo(request, onResponse));
+			DispatchInfo info = new DispatchInfo(request, onResponse);
+			SendInternal(info);
+			return info;
+		}
+
+		public WaitForResponse SendAsYieldInstruction(HttpRequest request)
+		{
+			WaitForResponse instruction = new WaitForResponse(request);
+			SendInternal(instruction.dispatchInfo);
+			return instruction;
+		}
+
+		void SendInternal(DispatchInfo info)
+		{
+			pendingRequests.Enqueue(info);
 			TransmitIfPossible();
 		}
 
