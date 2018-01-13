@@ -24,7 +24,7 @@ namespace UniHttp
 			this.cacheHandler = cacheHandler;
 		}
 
-		internal HttpResponse Process(HttpRequest request, HttpStream source)
+		internal HttpResponse Process(HttpRequest request, HttpStream source, CancellationToken cancellationToken)
 		{
 			DateTime then = DateTime.Now;
 			HttpResponse response = new HttpResponse(request);
@@ -43,7 +43,7 @@ namespace UniHttp
 			}
 
 			// Message Body
-			response.MessageBody = BuildMessageBody(response, source);
+			response.MessageBody = BuildMessageBody(response, source, cancellationToken);
 
 			// Roundtrip Time
 			response.RoundTripTime = DateTime.Now - then;
@@ -67,78 +67,78 @@ namespace UniHttp
 			return response;
 		}
 
-		byte[] BuildMessageBody(HttpResponse response, HttpStream source)
+		byte[] BuildMessageBody(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
 		{
 			if(response.StatusCode == StatusCode.NotModified) {
-				return BuildMessageBodyFromCache(response);
+				return BuildMessageBodyFromCache(response, cancellationToken);
 			}
 
 			if(response.Headers.Exist(HeaderField.TransferEncoding, "chunked")) {
-				return BuildMessageBodyFromChunked(response, source);
+				return BuildMessageBodyFromChunked(response, source, cancellationToken);
 			}
 
 			if(response.Headers.Exist(HeaderField.ContentLength)) {
-				return BuildMessageBodyFromContentLength(response, source);
+				return BuildMessageBodyFromContentLength(response, source, cancellationToken);
 			}
 
 			throw new Exception("Could not determine how to read message body!");
 		}
 
-		byte[] BuildMessageBodyFromCache(HttpResponse response)
+		byte[] BuildMessageBodyFromCache(HttpResponse response, CancellationToken cancellationToken)
 		{
 			using(CacheStream cacheStream = cacheHandler.GetReadStream(response.Request))
 			{
 				Progress progress = response.Request.DownloadProgress;
 				progress.Start(cacheStream.Length);
 				MemoryStream destination = new MemoryStream();
-				cacheStream.CopyTo(destination, cacheStream.Length, progress);
+				cacheStream.CopyTo(destination, cacheStream.Length, cancellationToken, progress);
 				progress.Finialize();
 				return destination.ToArray();
 			}
 		}
 
-		byte[] BuildMessageBodyFromChunked(HttpResponse response, HttpStream source)
+		byte[] BuildMessageBodyFromChunked(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
 		{
 			MemoryStream destination = new MemoryStream();
 			Progress progress = response.Request.DownloadProgress;
 			progress.Start();
 			long chunkSize = ReadChunkSize(source);
 			while(chunkSize > 0) {
-				source.CopyTo(destination, chunkSize, progress);
+				source.CopyTo(destination, chunkSize, cancellationToken, progress);
 				source.SkipTo(LF);
 				chunkSize = ReadChunkSize(source);
 			}
 			source.SkipTo(LF);
 			progress.Finialize();
-			return DecodeMessageBody(response, destination);
+			return DecodeMessageBody(response, destination, cancellationToken);
 		}
 
-		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source)
+		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
 		{
 			Progress progress = response.Request.DownloadProgress;
 			long contentLength = long.Parse(response.Headers[HeaderField.ContentLength][0]);
 			MemoryStream destination = new MemoryStream();
 			progress.Start(contentLength);
-			source.CopyTo(destination, contentLength, progress);
+			source.CopyTo(destination, contentLength, cancellationToken, progress);
 			progress.Finialize();
-			return DecodeMessageBody(response, destination);
+			return DecodeMessageBody(response, destination, cancellationToken);
 		}
 
-		byte[] DecodeMessageBody(HttpResponse response, MemoryStream messageStream)
+		byte[] DecodeMessageBody(HttpResponse response, MemoryStream messageStream, CancellationToken cancellationToken)
 		{
 			if(response.Headers.Exist(HeaderField.ContentEncoding, "gzip")) {
 				messageStream.Seek(0, SeekOrigin.Begin);
-				return DecodeMessageBodyAsGzip(messageStream);
+				return DecodeMessageBodyAsGzip(messageStream, cancellationToken);
 			} else {
 				return messageStream.ToArray();
 			}
 		}
 
-		byte[] DecodeMessageBodyAsGzip(MemoryStream compressedStream)
+		byte[] DecodeMessageBodyAsGzip(MemoryStream compressedStream, CancellationToken cancellationToken)
 		{
 			using(GzipDecompressStream gzipStream = new GzipDecompressStream(compressedStream)) {
 				MemoryStream destination = new MemoryStream();
-				gzipStream.CopyTo(destination);
+				gzipStream.CopyTo(destination, cancellationToken);
 				return destination.ToArray();
 			}
 		}

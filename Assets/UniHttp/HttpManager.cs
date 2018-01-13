@@ -85,12 +85,10 @@ namespace UniHttp
 
 			ThreadPool.QueueUserWorkItem(state => {
 				try {
-					HttpResponse response = messenger.Send(info.Request);
+					HttpResponse response = messenger.Send(info.request, info.cancellationToken);
 					ExecuteOnMainThread(() => {
 						ongoingRequests.Remove(info);
-						if(info.OnResponse != null) {
-							info.OnResponse(response);
-						}
+						info.InvokeCallback(response);
 						TransmitIfPossible();
 					});
 				}

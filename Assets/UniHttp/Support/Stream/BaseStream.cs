@@ -111,12 +111,15 @@ namespace UniHttp
 			while(Array.TrueForAll(stopChars, s => b != (int)s));
 		}
 
-		public void CopyTo(Stream destination, long count, Progress progress = null)
+		public void CopyTo(Stream destination, long count, CancellationToken cancellationToken, Progress progress = null)
 		{
 			byte[] buffer = new byte[bufferSize];
 			long remainingBytes = count;
 			int readBytes = 0;
 			while(remainingBytes > 0) {
+				if(cancellationToken.IsCancellationRequested) {
+					cancellationToken.ThrowCancellationException();
+				}
 				readBytes = Read(buffer, 0, (int) Math.Min(buffer.LongLength, remainingBytes));
 				destination.Write(buffer, 0, readBytes);
 				remainingBytes -= readBytes;
@@ -127,12 +130,15 @@ namespace UniHttp
 			}
 		}
 
-		public void CopyTo(Stream destination)
+		public void CopyTo(Stream destination, CancellationToken cancellationToken)
 		{
 			byte[] buffer = new byte[bufferSize];
 			int readBytes = 0;
 			while((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0)
 			{
+				if(cancellationToken.IsCancellationRequested) {
+					cancellationToken.ThrowCancellationException();
+				}
 				destination.Write(buffer, 0, readBytes);
 			}
 		}

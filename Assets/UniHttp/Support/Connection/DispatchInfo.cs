@@ -3,15 +3,34 @@ using System;
 
 namespace UniHttp
 {
-	internal class DispatchInfo
+	internal class DispatchInfo : IDisposable
 	{
-		internal HttpRequest Request { get; private set; }
-		internal Action<HttpResponse> OnResponse { get; private set; }
+		readonly internal HttpRequest request;
+		readonly internal CancellationToken cancellationToken;
+		readonly Action<HttpResponse> onResponse;
+
+		public bool IsDisposed { get; private set; }
 
 		internal DispatchInfo(HttpRequest request, Action<HttpResponse> onResponse)
 		{
-			this.Request = request;
-			this.OnResponse = onResponse;
+			this.request = request;
+			this.onResponse = onResponse;
+			this.cancellationToken = new CancellationToken(this);
+			this.IsDisposed = false;
+		}
+
+		internal void InvokeCallback(HttpResponse response)
+		{
+			if(!IsDisposed && onResponse != null) {
+				onResponse.Invoke(response);
+			}
+		}
+
+		public void Dispose()
+		{
+			if(!IsDisposed) {
+				IsDisposed = true;
+			}
 		}
 	}
 }
