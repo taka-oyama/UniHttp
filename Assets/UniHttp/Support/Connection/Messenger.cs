@@ -35,7 +35,9 @@ namespace UniHttp
 			while(true) {
 				requestHandler.Prepare(request);
 
-				settings.logger.Log(string.Concat(request.Uri, Constant.CRLF, request));
+				lock(request) {
+					settings.logger.Log(request.Uri + Constant.CRLF + request);
+				}
 
 				try {
 					stream = streamPool.CheckOut(request);
@@ -51,7 +53,7 @@ namespace UniHttp
 					}
 				}
 
-				settings.logger.Log(string.Concat(response.Request.Uri, Constant.CRLF, response));
+				settings.logger.Log(response.Request.Uri + Constant.CRLF + response);
 
 				if(IsRedirect(response)) {
 					request = MakeRedirectRequest(response);
