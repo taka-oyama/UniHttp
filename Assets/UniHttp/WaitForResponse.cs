@@ -20,7 +20,7 @@ namespace UniHttp
 
 		public float progress
 		{
-			get { return dispatchInfo.request.DownloadProgress.Ratio; }
+			get { return dispatchInfo.DownloadProgress.Ratio; }
 		}
 
 		public override bool keepWaiting

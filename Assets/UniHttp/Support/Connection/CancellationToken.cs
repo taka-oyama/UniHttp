@@ -6,17 +6,17 @@ namespace UniHttp
 	{
 		readonly DispatchInfo source;
 
-		public CancellationToken(DispatchInfo source)
+		internal CancellationToken(DispatchInfo source)
 		{
 			this.source = source;
 		}
 
-		public bool IsCancellationRequested
+		internal bool IsCancellationRequested
 		{
 			get { return source != null && source.IsDisposed; }
 		}
 
-		public void ThrowCancellationException()
+		internal void ThrowCancellationException()
 		{
 			throw new OperationCanceledException(source.request.Uri + " was cancelled");
 		}

@@ -58,7 +58,7 @@ namespace UniHttp
 			return this;
 		}
 
-		public IDisposable Send(HttpRequest request, Action<HttpResponse> onResponse)
+		public DispatchInfo Send(HttpRequest request, Action<HttpResponse> onResponse)
 		{
 			DispatchInfo info = new DispatchInfo(request, onResponse);
 			SendInternal(info);
@@ -99,7 +99,7 @@ namespace UniHttp
 
 			ThreadPool.QueueUserWorkItem(state => {
 				try {
-					HttpResponse response = messenger.Send(info.request, info.cancellationToken);
+					HttpResponse response = messenger.Send(info);
 					ExecuteOnMainThread(() => {
 						ongoingRequests.Remove(info);
 						info.InvokeCallback(response);

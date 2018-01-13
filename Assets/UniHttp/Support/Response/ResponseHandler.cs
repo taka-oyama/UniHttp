@@ -24,7 +24,7 @@ namespace UniHttp
 			this.cacheHandler = cacheHandler;
 		}
 
-		internal HttpResponse Process(HttpRequest request, HttpStream source, CancellationToken cancellationToken)
+		internal HttpResponse Process(HttpRequest request, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			DateTime then = DateTime.Now;
 			HttpResponse response = new HttpResponse(request);
@@ -43,7 +43,7 @@ namespace UniHttp
 			}
 
 			// Message Body
-			response.MessageBody = BuildMessageBody(response, source, cancellationToken);
+			response.MessageBody = BuildMessageBody(response, source, progress, cancellationToken);
 
 			// Roundtrip Time
 			response.RoundTripTime = DateTime.Now - then;
@@ -67,28 +67,27 @@ namespace UniHttp
 			return response;
 		}
 
-		byte[] BuildMessageBody(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
+		byte[] BuildMessageBody(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			if(response.StatusCode == StatusCode.NotModified) {
-				return BuildMessageBodyFromCache(response, cancellationToken);
+				return BuildMessageBodyFromCache(response, progress, cancellationToken);
 			}
 
 			if(response.Headers.Exist(HeaderField.TransferEncoding, "chunked")) {
-				return BuildMessageBodyFromChunked(response, source, cancellationToken);
+				return BuildMessageBodyFromChunked(response, source, progress, cancellationToken);
 			}
 
 			if(response.Headers.Exist(HeaderField.ContentLength)) {
-				return BuildMessageBodyFromContentLength(response, source, cancellationToken);
+				return BuildMessageBodyFromContentLength(response, source, progress, cancellationToken);
 			}
 
 			throw new Exception("Could not determine how to read message body!");
 		}
 
-		byte[] BuildMessageBodyFromCache(HttpResponse response, CancellationToken cancellationToken)
+		byte[] BuildMessageBodyFromCache(HttpResponse response, Progress progress, CancellationToken cancellationToken)
 		{
 			using(CacheStream cacheStream = cacheHandler.GetReadStream(response.Request))
 			{
-				Progress progress = response.Request.DownloadProgress;
 				progress.Start(cacheStream.Length);
 				MemoryStream destination = new MemoryStream();
 				cacheStream.CopyTo(destination, cacheStream.Length, cancellationToken, progress);
@@ -97,10 +96,9 @@ namespace UniHttp
 			}
 		}
 
-		byte[] BuildMessageBodyFromChunked(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
+		byte[] BuildMessageBodyFromChunked(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			MemoryStream destination = new MemoryStream();
-			Progress progress = response.Request.DownloadProgress;
 			progress.Start();
 			long chunkSize = ReadChunkSize(source);
 			while(chunkSize > 0) {
@@ -113,9 +111,8 @@ namespace UniHttp
 			return DecodeMessageBody(response, destination, cancellationToken);
 		}
 
-		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
+		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
-			Progress progress = response.Request.DownloadProgress;
 			long contentLength = long.Parse(response.Headers[HeaderField.ContentLength][0]);
 			MemoryStream destination = new MemoryStream();
 			progress.Start(contentLength);

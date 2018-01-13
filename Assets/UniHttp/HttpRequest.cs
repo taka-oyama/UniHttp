@@ -11,7 +11,6 @@ namespace UniHttp
 		public string Version { get { return "1.1"; } }
 		public RequestHeaders Headers { get; private set; }
 		public IHttpData Data { get; private set; }
-		public Progress DownloadProgress { get; private set; }
 
 		internal bool useProxy;
 
@@ -28,7 +27,6 @@ namespace UniHttp
 			this.Uri = ConstructUri(uri, query);
 			this.Headers = headers ?? new RequestHeaders();
 			this.Data = data;
-			this.DownloadProgress = new Progress();
 			this.useProxy = false;
 		}
 

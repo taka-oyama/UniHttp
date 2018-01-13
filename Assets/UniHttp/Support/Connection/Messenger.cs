@@ -28,8 +28,9 @@ namespace UniHttp
 			this.responseHandler = new ResponseHandler(settings, cookieJar, cacheHandler);
 		}
 
-		internal HttpResponse Send(HttpRequest request, CancellationToken cancellationToken)
+		internal HttpResponse Send(DispatchInfo info)
 		{
+			HttpRequest request = info.request;
 			HttpStream stream = null;
 			HttpResponse response = null;
 
@@ -43,7 +44,7 @@ namespace UniHttp
 				try {
 					stream = streamPool.CheckOut(request);
 					requestHandler.Send(request, stream);
-					response = responseHandler.Process(request, stream, cancellationToken);
+					response = responseHandler.Process(request, stream, info.DownloadProgress, info.cancellationToken);
 				}
 				catch(SocketException exception) {
 					response = responseHandler.Process(request, exception);

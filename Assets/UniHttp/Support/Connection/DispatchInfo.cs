@@ -3,19 +3,22 @@ using System;
 
 namespace UniHttp
 {
-	internal class DispatchInfo : IDisposable
+	public class DispatchInfo : IDisposable
 	{
 		readonly internal HttpRequest request;
-		readonly internal CancellationToken cancellationToken;
 		readonly Action<HttpResponse> onResponse;
+		readonly internal CancellationToken cancellationToken;
 
 		public bool IsDisposed { get; private set; }
+
+		public Progress DownloadProgress { get; private set; }
 
 		internal DispatchInfo(HttpRequest request, Action<HttpResponse> onResponse)
 		{
 			this.request = request;
 			this.onResponse = onResponse;
 			this.cancellationToken = new CancellationToken(this);
+			this.DownloadProgress = new Progress();
 			this.IsDisposed = false;
 		}
 
