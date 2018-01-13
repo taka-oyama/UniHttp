@@ -76,7 +76,7 @@ namespace UniHttp
 
 		public override void Close()
 		{
-			Dispose(true);
+			stream.Close();
 			base.Close();
 		}
 
