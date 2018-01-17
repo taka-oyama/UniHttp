@@ -33,13 +33,13 @@ namespace UniHttp
 
 			foreach(string attr in attributes.Skip(1)) {
 				kvPair = attr.Split('=');
-				switch(kvPair[0]) {
-				case "Domain": cookie.domain = kvPair[1]; break;
-				case "Path": cookie.path = kvPair[1]; break;
-				case "Expires": cookie.expires = DateTime.Parse(kvPair[1]); break;
-				case "Max-Age": cookie.expires = DateTime.Now + TimeSpan.FromSeconds(int.Parse(kvPair[1])); break;
-				case "Secure": cookie.secure = true; break;
-				case "HttpOnly": cookie.httpOnly = true; break;
+				switch(kvPair[0].ToLower()) {
+				case "domain": cookie.domain = kvPair[1]; break;
+				case "path": cookie.path = kvPair[1]; break;
+				case "expires": cookie.expires = DateTime.Parse(kvPair[1]); break;
+				case "max-age": cookie.expires = DateTime.Now + TimeSpan.FromSeconds(int.Parse(kvPair[1])); break;
+				case "secure": cookie.secure = true; break;
+				case "httpOnly": cookie.httpOnly = true; break;
 				}
 			}
 
