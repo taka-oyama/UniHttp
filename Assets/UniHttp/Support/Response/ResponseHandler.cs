@@ -37,7 +37,7 @@ namespace UniHttp
 			// Headers
 			string name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			while(name != String.Empty) {
-				string valuesStr = source.ReadTo(LF).TrimEnd(CR, LF);
+				string valuesStr = source.ReadTo(LF).TrimStart(SPACE).TrimEnd(CR, LF);
 				response.Headers.Append(name, valuesStr);
 				name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			}
