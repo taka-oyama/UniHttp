@@ -103,7 +103,7 @@ namespace UniHttp
 					sb.Append(kv.Value);
 					sb.Append("; ");
 				}
-				sb.Remove(sb.Length - 1, 2);
+				sb.Remove(sb.Length - 2, 2);
 				request.Headers.AddOrReplace(HeaderField.Cookie, sb.ToString());
 			}
 		}
