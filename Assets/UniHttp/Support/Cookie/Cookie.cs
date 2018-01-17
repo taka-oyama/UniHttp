@@ -15,12 +15,7 @@ namespace UniHttp
 		public bool secure;
 		public bool httpOnly;
 
-		/// <summary>
-		/// Set true when domain is not defined. See link below for details.
-		/// https://en.wikipedia.org/wiki/HTTP_cookie#Domain_and_Path
-		/// </summary>
-		public bool exactMatchOnly;
-
+		internal string original;
 		/// <summary>
 		/// used for calculating total size of cookies per domain (4096 bytes)
 		/// </summary>
@@ -33,7 +28,7 @@ namespace UniHttp
 		{
 			List<string> list = new List<string>();
 			list.Add(name + "=" + value);
-			list.Add("Domain=" + domain);
+			if(!string.IsNullOrEmpty(domain)) list.Add("Domain=" + domain);
 			list.Add("Path=" + path);
 			if(secure) list.Add("Secure");
 			if(httpOnly) list.Add("HttpOnly");

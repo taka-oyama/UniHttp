@@ -14,14 +14,30 @@ namespace UniHttp
 
 			if(response.Headers.Exist(HeaderField.SetCookie)) {
 				foreach(string attributesAsString in response.Headers[HeaderField.SetCookie]) {
-					setCookies.Add(ParseEach(response.Request.Uri, attributesAsString));	
+					Cookie cookie = ParseEach(attributesAsString);
+					if(string.IsNullOrEmpty(cookie.path)) {
+						cookie.path = response.Request.Uri.AbsolutePath;
+					}
+					setCookies.Add(cookie);
 				}
 			}
 
 			return setCookies;
 		}
 
-		Cookie ParseEach(Uri uri, string attributesAsString)
+		internal List<Cookie> Parse(byte[] data)
+		{
+			List<Cookie> setCookies = new List<Cookie>();
+
+			foreach(string attributesAsString in Encoding.ASCII.GetString(data).Split('\n')) {
+				if(!string.IsNullOrEmpty(attributesAsString)) {
+					setCookies.Add(ParseEach(attributesAsString));
+				}
+			}
+			return setCookies;
+		}
+
+		Cookie ParseEach(string attributesAsString)
 		{
 			Cookie cookie = new Cookie();
 			string[] attributes = attributesAsString.Split(new[]{ "; " }, StringSplitOptions.None);
@@ -29,6 +45,7 @@ namespace UniHttp
 
 			cookie.name = kvPair[0];
 			cookie.value = kvPair[1];
+			cookie.original = attributesAsString;
 			cookie.size = Encoding.ASCII.GetByteCount(attributesAsString);
 
 			foreach(string attr in attributes.Skip(1)) {
@@ -41,14 +58,6 @@ namespace UniHttp
 				case "secure": cookie.secure = true; break;
 				case "httpOnly": cookie.httpOnly = true; break;
 				}
-			}
-
-			if(string.IsNullOrEmpty(cookie.domain)) {
-				cookie.exactMatchOnly = true;
-				cookie.domain = uri.Host;
-			}
-			if(string.IsNullOrEmpty(cookie.path)) {
-				cookie.path = uri.AbsolutePath;
 			}
 
 			return cookie;

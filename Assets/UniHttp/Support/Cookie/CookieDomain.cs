@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
+using System.Text;
 using UnityEngine;
 
 namespace UniHttp
@@ -11,15 +12,21 @@ namespace UniHttp
 	{
 		readonly IFileHandler fileHandler;
 		readonly string filePath;
+		readonly CookieParser parser;
 		readonly List<Cookie> cookies;
 		internal readonly string name;
 
-		internal CookieDomain(HttpResponse response, IFileHandler fileHandler, string baseDirectory)
-		{
-			this.filePath = baseDirectory + "/" + response.Request.Uri.Host + ".bin";
+		internal CookieDomain(string baseDirectory, string domain, CookieParser parser, IFileHandler fileHandler) {
+			this.filePath = BuildPath(baseDirectory, domain);
 			this.fileHandler = fileHandler;
+			this.parser = parser;
 			this.cookies = ReadFromFile();
-			this.name = response.Request.Uri.Host;
+			this.name = domain;
+		}
+
+		internal static string BuildPath(string baseDirectory, string domain)
+		{
+			return baseDirectory + "/" + domain + ".bin";
 		}
 
 		public IEnumerator GetEnumerator()
@@ -56,7 +63,17 @@ namespace UniHttp
 		internal void SaveToFile()
 		{
 			RemoveExpiredCookies();
-			fileHandler.WriteObject(filePath, cookies.FindAll(c => !c.IsSession));
+
+			StringBuilder sb = new StringBuilder();
+			foreach(Cookie cookie in cookies) {
+				if(cookie.IsSession) {
+					continue;
+				}
+				sb.Append(cookie.original);
+				sb.Append("\n");
+			}
+			byte[] bytes = Encoding.ASCII.GetBytes(sb.ToString());
+			fileHandler.Write(filePath, bytes);
 		}
 
 		List<Cookie> ReadFromFile()
@@ -65,14 +82,14 @@ namespace UniHttp
 				return new List<Cookie>();
 			}
 			try {
-				return fileHandler.ReadObject<List<Cookie>>(filePath);
+				return parser.Parse(fileHandler.Read(filePath));
 			}
-			catch(IOException e) {
-				Debug.LogWarning(e);
+			catch(IOException exception) {
+				Debug.LogWarning(exception);
 				return new List<Cookie>();
 			}
-			catch(SerializationException e) {
-				Debug.LogWarning(e);
+			catch(SerializationException exception) {
+				Debug.LogWarning(exception);
 				return new List<Cookie>();
 			}
 		}

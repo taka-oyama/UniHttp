@@ -44,21 +44,20 @@ namespace UniHttp
 		void AddRelevantsForDomain(List<Cookie> relevants, Uri uri, string domain)
 		{
 			lock(jar) {
-				if(jar.ContainsKey(domain)) {
-					foreach(Cookie cookie in jar[domain]) {
-						if(cookie.IsExpired) {
-							continue;
-						}
-						if(cookie.secure && uri.Scheme != Uri.UriSchemeHttps) {
-							continue;
-						}
-						if(cookie.exactMatchOnly && uri.Host != domain) {
-							continue;
-						}
-						// add to qualification only if the path matches
-						if(uri.AbsolutePath.StartsWith(cookie.path)) {
-							relevants.Add(cookie);
-						}
+				if(!jar.ContainsKey(domain)) {
+					jar.Add(domain, new CookieDomain(baseDirectory, domain, parser, fileHandler));
+				}
+
+				foreach(Cookie cookie in jar[domain]) {
+					if(cookie.IsExpired) {
+						continue;
+					}
+					if(cookie.secure && uri.Scheme != Uri.UriSchemeHttps) {
+						continue;
+					}
+					// add to qualification only if the path matches
+					if(uri.AbsolutePath.StartsWith(cookie.path)) {
+						relevants.Add(cookie);
 					}
 				}
 			}
@@ -74,10 +73,11 @@ namespace UniHttp
 
 			lock(jar) {
 				foreach(Cookie cookie in setCookies) {
-					if(!jar.ContainsKey(cookie.domain)) {
-						jar.Add(cookie.domain, new CookieDomain(response, fileHandler, baseDirectory));
+					string domain = response.Request.Uri.Host;
+					if(!jar.ContainsKey(domain)) {
+						jar.Add(domain, new CookieDomain(baseDirectory, domain, parser, fileHandler));
 					}
-					jar[cookie.domain].AddOrReplace(cookie);
+					jar[domain].AddOrReplace(cookie);
 				}
 			}
 		}
@@ -95,20 +95,6 @@ namespace UniHttp
 				foreach(string key in jar.Keys) {
 					jar[key].SaveToFile();
 				}
-			}
-		}
-
-		public override string ToString()
-		{
-			lock(jar) {
-				StringBuilder sb = new StringBuilder();
-				foreach(string key in jar.Keys) {
-					sb.Append(key + ":\n");
-					foreach(Cookie cookie in jar[key]) {
-						sb.Append("   " + cookie + "\n");
-					}
-				}
-				return sb.ToString();
 			}
 		}
 	}
