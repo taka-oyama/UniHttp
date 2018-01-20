@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UniHttp
 {
-	[Serializable()]
+	[Serializable]
 	internal sealed class CacheData
 	{
 		internal string domain;
@@ -13,11 +13,9 @@ namespace UniHttp
 		internal string eTag;
 		internal DateTimeOffset? expireAt;
 		internal DateTimeOffset? lastModified;
-		internal readonly DateTimeOffset createdAt;
 
 		internal CacheData(HttpResponse response)
 		{
-			this.createdAt = DateTimeOffset.Now;
 			Update(response);
 		}
 
