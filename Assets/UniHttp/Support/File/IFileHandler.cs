@@ -8,13 +8,13 @@ namespace UniHttp
 
 		void Write(string path, byte[] data);
 
-		void WriteObject<T>(string path, T obj) where T : class;
+		byte[] Read(string path);
 
 		FileStream OpenWriteStream(string path);
 
-		byte[] Read(string path);
-
 		FileStream OpenReadStream(string path);
+
+		void WriteObject<T>(string path, T obj) where T : class;
 
 		T ReadObject<T>(string path) where T : class;
 	}
