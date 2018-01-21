@@ -29,7 +29,7 @@ namespace UniHttp
 				baseDirectory,
 				Path.DirectorySeparatorChar,
 				domain,
-				".cookies.txt"
+				".cookies"
 			);
 		}
 
