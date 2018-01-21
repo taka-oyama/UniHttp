@@ -85,7 +85,8 @@ namespace UniHttp
 			Dictionary<string, string> cookies = new Dictionary<string, string>();
 
 			if(request.Headers.Exist(HeaderField.Cookie)) {
-				string[] presets = request.Headers[HeaderField.Cookie].Split(new string[] { "=", "; " }, StringSplitOptions.None);
+				string cookieString = request.Headers[HeaderField.Cookie];
+				string[] presets = cookieString.Split(new string[] { "=", "; " }, StringSplitOptions.None);
 				for(int i = 0; presets.Length > i; i += 2) {
 					cookies.Add(presets[i], presets[i + 1]);
 				}

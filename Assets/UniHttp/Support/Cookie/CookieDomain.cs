@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -26,7 +25,12 @@ namespace UniHttp
 
 		internal static string BuildPath(string baseDirectory, string domain)
 		{
-			return baseDirectory + "/" + domain + ".bin";
+			return string.Concat(
+				baseDirectory,
+				Path.DirectorySeparatorChar,
+				domain,
+				".cookies.txt"
+			);
 		}
 
 		public IEnumerator GetEnumerator()
