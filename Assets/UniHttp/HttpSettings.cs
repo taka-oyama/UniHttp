@@ -9,8 +9,8 @@ namespace UniHttp
 		public bool allowResponseCompression = true;
 		public bool followRedirects = true;
 		public bool tcpNoDelay = true;
-		public int tcpReceiveTimeout = 10;
-		public int tcpSendTimeout = 10;
+		public TimeSpan tcpReceiveTimeout = TimeSpan.FromSeconds(30);
+		public TimeSpan tcpSendTimeout = TimeSpan.FromSeconds(30);
 		public bool useCookies = true;
 		public bool useCache = true;
 
