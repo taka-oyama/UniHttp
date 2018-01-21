@@ -86,7 +86,7 @@ namespace UniHttp
 
 		byte[] BuildMessageBodyFromCache(HttpResponse response, Progress progress, CancellationToken cancellationToken)
 		{
-			using(CacheStream cacheStream = cacheHandler.GetReadStream(response.Request))
+			using(CacheStream cacheStream = cacheHandler.GetDataReadStream(response.Request))
 			{
 				progress.Start(cacheStream.Length);
 				MemoryStream destination = new MemoryStream();
@@ -159,7 +159,7 @@ namespace UniHttp
 		{
 			if(settings.useCache) {
 				if(response.StatusCode == StatusCode.NotModified) {
-					CacheData cache = cacheHandler.Find(response.Request);
+					CacheMetadata cache = cacheHandler.FindMetadata(response.Request);
 					response.Headers.Append(HeaderField.ContentType, cache.contentType);
 				}
 				if(cacheHandler.IsCachable(response)) {

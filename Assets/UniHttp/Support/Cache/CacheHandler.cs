@@ -1,24 +1,19 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
+using System.Threading;
 
 namespace UniHttp
 {
 	internal sealed class CacheHandler
 	{
-		readonly object locker;
-		readonly FileStore infoStore;
-		Dictionary<string, CacheData> caches;
-		CacheStore cacheStorage;
+		readonly IFileHandler fileHandler;
+		readonly DirectoryInfo baseDirectory;
 
 		internal CacheHandler(IFileHandler fileHandler, string dataDirectory)
 		{
-			this.locker = new object();
-			this.infoStore = new FileStore(fileHandler, dataDirectory + "/CacheInfo.bin");
-			this.cacheStorage = new CacheStore(fileHandler, dataDirectory);
-			this.caches = ReadFromFile();
+			this.fileHandler = fileHandler;
+			this.baseDirectory = new DirectoryInfo(dataDirectory).CreateSubdirectory("Cache");
 		}
 
 		internal bool IsCachable(HttpRequest request)
@@ -64,75 +59,95 @@ namespace UniHttp
 			return false;
 		}
 
-		internal CacheData Find(HttpRequest request)
+		internal CacheMetadata FindMetadata(HttpRequest request)
 		{
-			CacheData cache = null;
+			string metaPath = GetMetaPath(request.Uri);
+			CacheMetadata data = null;
 
-			lock(locker) {
-				if(caches.ContainsKey(request.Uri.AbsoluteUri)) {
-					cache = caches[request.Uri.AbsoluteUri];	
-				}
-			}
-
-			if(cache != null && cacheStorage.Exists(request.Uri)) {
-				return cache;
-			}
-
-			return null;
-		}
-
-		internal CacheData CacheResponse(HttpResponse response)
-		{
-			string url = response.Request.Uri.AbsoluteUri;
-
-			lock(locker) {
-				if(caches.ContainsKey(url)) {
-					caches[url].Update(response);
-				} else {
-					caches.Add(url, new CacheData(response));
-				}
-				cacheStorage.Write(response.Request.Uri, response.MessageBody);
-				return caches[url];
-			}
-		}
-
-		internal CacheStream GetReadStream(HttpRequest request)
-		{
-			return new CacheStream(cacheStorage.OpenReadStream(request.Uri));
-		}
-
-		internal void Clear()
-		{
-			lock(locker) {
-				caches.Clear();
-				cacheStorage.Clear();
-			}
-		}
-
-		internal void SaveToFile()
-		{
-			lock(locker) {
-				infoStore.Write(caches);
-			}
-		}
-
-		Dictionary<string, CacheData> ReadFromFile()
-		{
-			if(!infoStore.Exists) {
-				return new Dictionary<string, CacheData>();
-			}
-
+			Mutex mutex = new Mutex(false, metaPath);
+			mutex.WaitOne();
 			try {
-				return infoStore.Read<Dictionary<string, CacheData>>();
+				if(fileHandler.Exists(metaPath)) {
+					data = fileHandler.ReadObject<CacheMetadata>(metaPath);
+				}
 			}
-			catch(IOException e) {
-				Debug.LogWarning(e);
-				return new Dictionary<string, CacheData>();
+			finally {
+				mutex.ReleaseMutex();
 			}
-			catch(SerializationException e) {
-				Debug.LogWarning(e);
-				return new Dictionary<string, CacheData>();
+
+			return data;
+		}
+
+		internal CacheStream GetDataReadStream(HttpRequest request)
+		{
+			string dataPath = GetDataPath(request.Uri);
+			Mutex mutex = new Mutex(false, dataPath);
+			mutex.WaitOne();
+			try {
+				Stream stream = fileHandler.OpenReadStream(dataPath);
+				return new CacheStream(stream, mutex);
 			}
+			catch(Exception exception) {
+				mutex.ReleaseMutex();
+				throw exception;
+			}
+		}
+
+		internal void CacheResponse(HttpResponse response)
+		{
+			string metaPath = GetMetaPath(response.Request.Uri);
+			string dataPath = GetDataPath(response.Request.Uri);
+
+			Mutex indexMutex = new Mutex(false, metaPath);
+			Mutex dataMutex = new Mutex(false, dataPath);
+			indexMutex.WaitOne();
+			dataMutex.WaitOne();
+			try {
+				fileHandler.Write(dataPath, response.MessageBody);
+				fileHandler.WriteObject(metaPath, new CacheMetadata(response));
+			}
+			finally {
+				indexMutex.ReleaseMutex();
+				dataMutex.ReleaseMutex();
+			}
+		}
+
+		internal void ClearAll()
+		{
+			foreach(DirectoryInfo dir in baseDirectory.GetDirectories()) {
+				foreach(FileInfo file in dir.GetFiles()) {
+					Mutex mutex = new Mutex(false, file.FullName);
+					mutex.WaitOne();
+					try {
+						fileHandler.Delete(file.FullName);
+					}
+					finally {
+						mutex.ReleaseMutex();
+					}
+				}
+				dir.Delete(true);
+			}
+		}
+
+		string GetMetaPath(Uri uri)
+		{
+			return GetDataPath(uri) + ".meta";
+		}
+
+		string GetDataPath(Uri uri)
+		{
+			return GetBasePath(uri) + ".cache";
+		}
+
+		string GetBasePath(Uri uri)
+		{
+			return string.Concat(
+				baseDirectory.FullName,
+				Path.DirectorySeparatorChar,
+				uri.Authority.Replace(":", "_"),
+			    Path.DirectorySeparatorChar,
+				uri.AbsolutePath
+			);
 		}
 	}
 }

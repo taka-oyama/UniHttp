@@ -138,7 +138,6 @@ namespace UniHttp
 		void Save()
 		{
 			cookieJar.SaveToFile();
-			cacheHandler.SaveToFile();
 		}
 
 		void OnApplicationPause(bool isPaused)

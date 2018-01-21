@@ -113,13 +113,19 @@ namespace UniHttp
 
 		void AddCacheDirectiveToRequest(HttpRequest request)
 		{
-			CacheData cache = cacheHandler.Find(request);
+			CacheMetadata cache = cacheHandler.FindMetadata(request);
+
+			request.Headers.Remove(HeaderField.IfNoneMatch);
+			request.Headers.Remove(HeaderField.IfModifiedSince);
+
 			if(cache == null) {
 				return;
 			}
+
 			if(!string.IsNullOrEmpty(cache.eTag)) {
 				request.Headers.AddOrReplace(HeaderField.IfNoneMatch, cache.eTag);
 			}
+
 			if(cache.lastModified.HasValue) {
 				DateTimeOffset modifiedSince = cache.lastModified.Value + cache.lastModified.Value.Offset;
 				request.Headers.AddOrReplace(HeaderField.IfModifiedSince, modifiedSince.ToString("r"));
