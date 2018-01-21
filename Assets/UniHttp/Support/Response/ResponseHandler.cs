@@ -159,10 +159,11 @@ namespace UniHttp
 		{
 			if(settings.useCache) {
 				if(response.StatusCode == StatusCode.NotModified) {
-					response.CacheData = cacheHandler.Find(response.Request);
+					CacheData cache = cacheHandler.Find(response.Request);
+					response.Headers.Append(HeaderField.ContentType, cache.contentType);
 				}
 				if(cacheHandler.IsCachable(response)) {
-					response.CacheData = cacheHandler.CacheResponse(response);
+					cacheHandler.CacheResponse(response);
 				}
 			}
 		}

@@ -14,7 +14,6 @@ namespace UniHttp
 		public List<Cookie> Cookies { get; internal set; }
 		public byte[] MessageBody { get; internal set; }
 		public TimeSpan RoundTripTime { get; internal set; }
-		internal CacheData CacheData { get; set; }
 
 		public HttpResponse(HttpRequest request)
 		{
@@ -49,11 +48,6 @@ namespace UniHttp
 				if(Headers[HeaderField.ContentType][0].Contains("text/")) return true;
 				if(Headers[HeaderField.ContentType][0].Contains("application/json")) return true;
 				if(Headers[HeaderField.ContentType][0].Contains("application/xml")) return true;
-			}
-			if(CacheData != null) {
-				if(CacheData.contentType.Contains("text/")) return true;
-				if(CacheData.contentType.Contains("application/json")) return true;
-				if(CacheData.contentType.Contains("application/xml")) return true;
 			}
 			return false;
 		}
