@@ -15,9 +15,5 @@ namespace UniHttp
 		FileStream OpenReadStream(string path);
 
 		FileStream OpenWriteStream(string path);
-
-		T ReadObject<T>(string path) where T : class;
-
-		void WriteObject<T>(string path, T obj) where T : class;
 	}
 }

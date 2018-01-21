@@ -2,16 +2,19 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace UniHttp
 {
 	internal sealed class CacheHandler
 	{
+		readonly BinaryFormatter formatter;
 		readonly IFileHandler fileHandler;
 		readonly DirectoryInfo baseDirectory;
 
 		internal CacheHandler(IFileHandler fileHandler, string dataDirectory)
 		{
+			this.formatter = new BinaryFormatter();
 			this.fileHandler = fileHandler;
 			this.baseDirectory = new DirectoryInfo(dataDirectory).CreateSubdirectory("Cache");
 		}
@@ -68,7 +71,7 @@ namespace UniHttp
 			mutex.WaitOne();
 			try {
 				if(fileHandler.Exists(metaPath)) {
-					data = fileHandler.ReadObject<CacheMetadata>(metaPath);
+					data = ReadFromFile(metaPath);
 				}
 			}
 			finally {
@@ -103,8 +106,8 @@ namespace UniHttp
 			indexMutex.WaitOne();
 			dataMutex.WaitOne();
 			try {
-				fileHandler.Write(dataPath, response.MessageBody);
-				fileHandler.WriteObject(metaPath, new CacheMetadata(response));
+				WriteToFile(dataPath, response);
+				WriteToFile(metaPath, new CacheMetadata(response));
 			}
 			finally {
 				indexMutex.ReleaseMutex();
@@ -148,6 +151,24 @@ namespace UniHttp
 			    Path.DirectorySeparatorChar,
 				uri.AbsolutePath
 			);
+		}
+
+		public CacheMetadata ReadFromFile(string path)
+		{
+			MemoryStream stream = new MemoryStream(fileHandler.Read(path));
+			return formatter.Deserialize(stream) as CacheMetadata;
+		}
+
+		public void WriteToFile(string path, HttpResponse response)
+		{
+			fileHandler.Write(path, response.MessageBody);
+		}
+
+		public void WriteToFile(string path, CacheMetadata metadata)
+		{
+			MemoryStream stream = new MemoryStream();
+			formatter.Serialize(stream, metadata);
+			fileHandler.Write(path, stream.ToArray());
 		}
 	}
 }

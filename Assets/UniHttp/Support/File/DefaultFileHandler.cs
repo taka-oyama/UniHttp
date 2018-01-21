@@ -6,13 +6,6 @@ namespace UniHttp
 {
 	public class DefaultFileHandler : IFileHandler
 	{
-		readonly BinaryFormatter formatter;
-
-		public DefaultFileHandler()
-		{
-			this.formatter = new BinaryFormatter();
-		}
-
 		public bool Exists(string path)
 		{
 			return File.Exists(path);
@@ -47,19 +40,6 @@ namespace UniHttp
 		public virtual FileStream OpenWriteStream(string path)
 		{
 			return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-		}
-
-		public T ReadObject<T>(string path) where T : class
-		{
-			MemoryStream stream = new MemoryStream(Read(path));
-			return formatter.Deserialize(stream) as T;
-		}
-
-		public void WriteObject<T>(string path, T obj) where T : class
-		{
-			MemoryStream stream = new MemoryStream();
-			formatter.Serialize(stream, obj);
-			Write(path, stream.ToArray());
 		}
 	}
 }
