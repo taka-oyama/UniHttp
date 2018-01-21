@@ -18,6 +18,11 @@ namespace UniHttp
 			return File.Exists(path);
 		}
 
+		public virtual byte[] Read(string path)
+		{
+			return File.ReadAllBytes(path);
+		}
+
 		public virtual void Write(string path, byte[] data)
 		{
 			FileInfo info = new FileInfo(path);
@@ -29,14 +34,9 @@ namespace UniHttp
 			File.Move(temp.FullName, info.FullName);
 		}
 
-		public virtual byte[] Read(string path)
+		public virtual void Delete(string path)
 		{
-			return File.ReadAllBytes(path);
-		}
-
-		public virtual FileStream OpenWriteStream(string path)
-		{
-			return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+			File.Delete(path);
 		}
 
 		public virtual FileStream OpenReadStream(string path)
@@ -44,17 +44,22 @@ namespace UniHttp
 			return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 		}
 
-		public void WriteObject<T>(string path, T obj) where T : class
+		public virtual FileStream OpenWriteStream(string path)
 		{
-			MemoryStream stream = new MemoryStream();
-			formatter.Serialize(stream, obj);
-			Write(path, stream.ToArray());
+			return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 		}
 
 		public T ReadObject<T>(string path) where T : class
 		{
 			MemoryStream stream = new MemoryStream(Read(path));
 			return formatter.Deserialize(stream) as T;
+		}
+
+		public void WriteObject<T>(string path, T obj) where T : class
+		{
+			MemoryStream stream = new MemoryStream();
+			formatter.Serialize(stream, obj);
+			Write(path, stream.ToArray());
 		}
 	}
 }

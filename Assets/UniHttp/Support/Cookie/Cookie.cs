@@ -28,10 +28,16 @@ namespace UniHttp
 		{
 			List<string> list = new List<string>();
 			list.Add(name + "=" + value);
-			if(!string.IsNullOrEmpty(domain)) list.Add("Domain=" + domain);
+			if(!string.IsNullOrEmpty(domain)) {
+				list.Add("Domain=" + domain);
+			}
 			list.Add("Path=" + path);
-			if(secure) list.Add("Secure");
-			if(httpOnly) list.Add("HttpOnly");
+			if(secure) {
+				list.Add("Secure");
+			}
+			if(httpOnly) {
+				list.Add("HttpOnly");
+			}
 			return string.Join("; ", list.ToArray());
 		}
 	}

@@ -6,16 +6,18 @@ namespace UniHttp
 	{
 		bool Exists(string path);
 
-		void Write(string path, byte[] data);
-
 		byte[] Read(string path);
 
-		FileStream OpenWriteStream(string path);
+		void Write(string path, byte[] data);
+
+		void Delete(string path);
 
 		FileStream OpenReadStream(string path);
 
-		void WriteObject<T>(string path, T obj) where T : class;
+		FileStream OpenWriteStream(string path);
 
 		T ReadObject<T>(string path) where T : class;
+
+		void WriteObject<T>(string path, T obj) where T : class;
 	}
 }
