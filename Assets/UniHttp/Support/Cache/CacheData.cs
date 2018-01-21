@@ -16,11 +16,6 @@ namespace UniHttp
 
 		internal CacheData(HttpResponse response)
 		{
-			Update(response);
-		}
-
-		internal void Update(HttpResponse response)
-		{
 			Uri uri = response.Request.Uri;
 
 			this.domain = uri.Authority;
