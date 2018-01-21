@@ -84,14 +84,16 @@ namespace UniHttp
 		{
 			Dictionary<string, string> cookies = new Dictionary<string, string>();
 
-			foreach(Cookie cookie in cookieJar.FindMatch(request.Uri)) {
-				cookies.Add(cookie.name, cookie.value);
+			if(request.Headers.Exist(HeaderField.Cookie)) {
+				string[] presets = request.Headers[HeaderField.Cookie].Split(new string[] { "=", "; " }, StringSplitOptions.None);
+				for(int i = 0; presets.Length > i; i += 2) {
+					cookies.Add(presets[i], presets[i + 1]);
+				}
 			}
 
-			if(request.Headers.Exist(HeaderField.Cookie)) {
-				string[] presets = request.Headers[HeaderField.Cookie].Split(new string[]{"=", "; "}, StringSplitOptions.None);
-				for(int i = 0; presets.Length > 0; i += 2) {
-					cookies.Add(presets[i], presets[i + 1]);
+			foreach(Cookie cookie in cookieJar.FindMatch(request.Uri)) {
+				if(!cookies.ContainsKey(cookie.name)) {
+					cookies.Add(cookie.name, cookie.value);
 				}
 			}
 
