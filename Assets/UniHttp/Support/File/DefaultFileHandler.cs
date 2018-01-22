@@ -28,7 +28,6 @@ namespace UniHttp
 			string tempPath = filePath + ".tmp";
 			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 			File.Delete(tempPath);
-			File.Delete(filePath);
 			using(Stream output = OpenWriteStream(tempPath)) {
 				output.Write(data, 0, data.Length);
 			}
