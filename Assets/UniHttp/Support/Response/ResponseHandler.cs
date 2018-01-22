@@ -86,8 +86,7 @@ namespace UniHttp
 
 		byte[] BuildMessageBodyFromCache(HttpResponse response, Progress progress, CancellationToken cancellationToken)
 		{
-			using(CacheStream cacheStream = cacheHandler.GetDataReadStream(response.Request))
-			{
+			using(CacheStream cacheStream = cacheHandler.GetDataReadStream(response.Request)) {
 				progress.Start(cacheStream.Length);
 				MemoryStream destination = new MemoryStream();
 				cacheStream.CopyTo(destination, cacheStream.Length, cancellationToken, progress);
@@ -126,9 +125,8 @@ namespace UniHttp
 			if(response.Headers.Exist(HeaderField.ContentEncoding, "gzip")) {
 				messageStream.Seek(0, SeekOrigin.Begin);
 				return DecodeMessageBodyAsGzip(messageStream, cancellationToken);
-			} else {
-				return messageStream.ToArray();
 			}
+			return messageStream.ToArray();
 		}
 
 		byte[] DecodeMessageBodyAsGzip(MemoryStream compressedStream, CancellationToken cancellationToken)
