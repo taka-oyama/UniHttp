@@ -127,8 +127,7 @@ namespace UniHttp
 			}
 
 			if(cache.lastModified.HasValue) {
-				DateTimeOffset modifiedSince = cache.lastModified.Value + cache.lastModified.Value.Offset;
-				request.Headers.AddOrReplace(HeaderField.IfModifiedSince, modifiedSince.ToString("r"));
+				request.Headers.AddOrReplace(HeaderField.IfModifiedSince, cache.lastModified.Value.ToString("r"));
 			}
 		}
 	}

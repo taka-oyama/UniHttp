@@ -11,8 +11,8 @@ namespace UniHttp
 		internal string path;
 		internal string contentType;
 		internal string eTag;
-		internal DateTimeOffset? expireAt;
-		internal DateTimeOffset? lastModified;
+		internal DateTime? expireAt;
+		internal DateTime? lastModified;
 
 		internal CacheMetadata(HttpResponse response)
 		{
@@ -27,16 +27,16 @@ namespace UniHttp
 				this.eTag = response.Headers[HeaderField.ETag][0];
 			}
 			if(response.Headers.Exist(HeaderField.Expires)) {
-				this.expireAt = DateTimeOffset.Parse(response.Headers[HeaderField.Expires][0]);
+				this.expireAt = DateTime.Parse(response.Headers[HeaderField.Expires][0]);
 			}
 			if(response.Headers.Exist(HeaderField.LastModified)) {
-				this.lastModified = DateTimeOffset.Parse(response.Headers[HeaderField.LastModified][0]);
+				this.lastModified = DateTime.Parse(response.Headers[HeaderField.LastModified][0]);
 			}
 			if(response.Headers.Exist(HeaderField.CacheControl) && response.Headers[HeaderField.CacheControl][0].Contains("max-age")) {
 				foreach(string directive in response.Headers[HeaderField.CacheControl][0].Split(',')) {
 					if(directive.Contains("max-age")) {
 						int maxAge = int.Parse(directive.Split('=')[1]);
-						this.expireAt = DateTimeOffset.Now + TimeSpan.FromSeconds(maxAge);
+						this.expireAt = DateTime.Now + TimeSpan.FromSeconds(maxAge);
 					}
 				}
 			}
