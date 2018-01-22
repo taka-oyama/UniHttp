@@ -6,7 +6,7 @@ namespace UniHttp
 {
 	internal sealed class CacheStream : BaseStream
 	{
-		Mutex mutex;
+		readonly Mutex mutex;
 
 		internal CacheStream(Stream stream, Mutex mutex) : base(stream)
 		{
