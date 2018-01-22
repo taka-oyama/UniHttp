@@ -12,8 +12,8 @@ namespace UniHttp
 
 		void Delete(string path);
 
-		FileStream OpenReadStream(string path);
+		Stream OpenReadStream(string path);
 
-		FileStream OpenWriteStream(string path);
+		Stream OpenWriteStream(string path);
 	}
 }

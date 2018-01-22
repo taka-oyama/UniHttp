@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace UniHttp
 {
@@ -11,33 +10,43 @@ namespace UniHttp
 			return File.Exists(path);
 		}
 
-		public virtual byte[] Read(string path)
+		public byte[] Read(string path)
 		{
-			return File.ReadAllBytes(path);
+			using(Stream input = OpenReadStream(path)) {
+				MemoryStream output = new MemoryStream();
+				byte[] bytes = new byte[64 * 1024];
+				int readBytes;
+				while((readBytes = input.Read(bytes, 0, bytes.Length)) > 0) {
+					output.Write(bytes, 0, readBytes);
+				}
+				return output.ToArray();
+			}
 		}
 
-		public virtual void Write(string path, byte[] data)
+		public void Write(string path, byte[] data)
 		{
 			FileInfo info = new FileInfo(path);
 			FileInfo temp = new FileInfo(info.FullName + ".tmp");
 			info.Directory.Create();
 			temp.Delete();
-			File.WriteAllBytes(temp.FullName, data);
+			using(Stream output = OpenWriteStream(temp.FullName)) {
+				output.Write(data, 0, data.Length);
+			}
 			info.Delete();
 			File.Move(temp.FullName, info.FullName);
 		}
 
-		public virtual void Delete(string path)
+		public void Delete(string path)
 		{
 			File.Delete(path);
 		}
 
-		public virtual FileStream OpenReadStream(string path)
+		public virtual Stream OpenReadStream(string path)
 		{
 			return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 		}
 
-		public virtual FileStream OpenWriteStream(string path)
+		public virtual Stream OpenWriteStream(string path)
 		{
 			return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 		}
