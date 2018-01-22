@@ -35,6 +35,11 @@ namespace UniHttp
 			get { return stream.Length; }
 		}
 
+		public long BytesRemaining
+		{
+			get { return stream.Length - stream.Position; }
+		}
+
 		public override long Position
 		{
 			get { return stream.Position; }

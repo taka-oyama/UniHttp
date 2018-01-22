@@ -2,19 +2,16 @@
 using System;
 using System.IO;
 using System.Threading;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace UniHttp
 {
 	internal sealed class CacheHandler
 	{
-		readonly BinaryFormatter formatter;
 		readonly IFileHandler fileHandler;
 		readonly DirectoryInfo baseDirectory;
 
 		internal CacheHandler(IFileHandler fileHandler, string dataDirectory)
 		{
-			this.formatter = new BinaryFormatter();
 			this.fileHandler = fileHandler;
 			this.baseDirectory = new DirectoryInfo(dataDirectory).CreateSubdirectory("Cache");
 		}
@@ -64,33 +61,36 @@ namespace UniHttp
 
 		internal CacheMetadata FindMetadata(HttpRequest request)
 		{
-			string metaPath = GetMetaPath(request.Uri);
+			string filePath = GetFilePath(request.Uri);
 			CacheMetadata data = null;
-
-			Mutex mutex = new Mutex(false, metaPath);
+			Mutex mutex = new Mutex(false, filePath);
 			mutex.WaitOne();
 			try {
-				if(fileHandler.Exists(metaPath)) {
-					data = ReadFromFile(metaPath);
+				if(fileHandler.Exists(filePath)) {
+					data = ReadMetaData(filePath);
 				}
 			}
 			finally {
 				mutex.ReleaseMutex();
 			}
-
 			return data;
 		}
 
-		internal CacheStream GetDataReadStream(HttpRequest request)
+		internal CacheStream GetMessageBodyStream(HttpRequest request)
 		{
-			string dataPath = GetDataPath(request.Uri);
-			Mutex mutex = new Mutex(false, dataPath);
+			string filePath = GetFilePath(request.Uri);
+			Mutex mutex = new Mutex(false, filePath);
+			Stream stream = null;
 			mutex.WaitOne();
 			try {
-				Stream stream = fileHandler.OpenReadStream(dataPath);
+				stream = fileHandler.OpenReadStream(filePath);
+				SkipMetaData(stream);
 				return new CacheStream(stream, mutex);
 			}
 			catch(Exception exception) {
+				if(stream != null) {
+					stream.Dispose();
+				}
 				mutex.ReleaseMutex();
 				throw exception;
 			}
@@ -98,20 +98,14 @@ namespace UniHttp
 
 		internal void CacheResponse(HttpResponse response)
 		{
-			string metaPath = GetMetaPath(response.Request.Uri);
-			string dataPath = GetDataPath(response.Request.Uri);
-
-			Mutex indexMutex = new Mutex(false, metaPath);
-			Mutex dataMutex = new Mutex(false, dataPath);
-			indexMutex.WaitOne();
-			dataMutex.WaitOne();
+			string filePath = GetFilePath(response.Request.Uri);
+			Mutex mutex = new Mutex(false, filePath);
+			mutex.WaitOne();
 			try {
-				WriteToFile(dataPath, response);
-				WriteToFile(metaPath, new CacheMetadata(response));
+				WriteToFile(filePath, response);
 			}
 			finally {
-				indexMutex.ReleaseMutex();
-				dataMutex.ReleaseMutex();
+				mutex.ReleaseMutex();
 			}
 		}
 
@@ -132,43 +126,75 @@ namespace UniHttp
 			}
 		}
 
-		string GetMetaPath(Uri uri)
+		CacheMetadata ReadMetaData(string path)
 		{
-			return GetDataPath(uri) + ".meta";
+			using(Stream stream = fileHandler.OpenReadStream(path)) {
+				using(BinaryReader reader = new BinaryReader(stream)) {
+					int fileVersion = reader.ReadInt32();
+					if(fileVersion != CacheMetadata.version) {
+						return null;
+					}
+					return new CacheMetadata {
+						domain = reader.ReadBoolean() ? reader.ReadString() : null,
+						path = reader.ReadBoolean() ? reader.ReadString() : null,
+						contentType = reader.ReadBoolean() ? reader.ReadString() : null,
+						eTag = reader.ReadBoolean() ? reader.ReadString() : null,
+						expireAt = reader.ReadBoolean() ? (DateTime?)DateTime.FromBinary(reader.ReadInt64()) : null,
+						lastModified = reader.ReadBoolean() ? (DateTime?)DateTime.FromBinary(reader.ReadInt64()) : null
+					};
+				}
+			}
 		}
 
-		string GetDataPath(Uri uri)
+		void SkipMetaData(Stream stream)
 		{
-			return GetBasePath(uri) + ".cache";
+			BinaryReader reader = new BinaryReader(stream);
+			reader.ReadInt32();
+			if(reader.ReadBoolean()) reader.ReadString();
+			if(reader.ReadBoolean()) reader.ReadString();
+			if(reader.ReadBoolean()) reader.ReadString();
+			if(reader.ReadBoolean()) reader.ReadString();
+			if(reader.ReadBoolean()) reader.ReadInt64();
+			if(reader.ReadBoolean()) reader.ReadInt64();
 		}
 
-		string GetBasePath(Uri uri)
+		void WriteToFile(string path, HttpResponse response)
+		{
+			using(Stream stream = fileHandler.OpenWriteStream(path)) {
+				using(BinaryWriter writer = new BinaryWriter(stream)) {
+					CacheMetadata meta = new CacheMetadata(response);
+					writer.Write(CacheMetadata.version);
+					writer.Write(meta.domain != null);
+					writer.Write(meta.domain);
+					writer.Write(meta.path != null);
+					writer.Write(meta.path);
+					writer.Write(meta.contentType != null);
+					writer.Write(meta.contentType);
+					writer.Write(meta.eTag != null);
+					writer.Write(meta.eTag);
+					writer.Write(meta.expireAt.HasValue);
+					if(meta.expireAt.HasValue) {
+						writer.Write(meta.expireAt.Value.ToBinary());
+					}
+					writer.Write(meta.lastModified.HasValue);
+					if(meta.lastModified.HasValue) {
+						writer.Write(meta.lastModified.Value.ToBinary());
+					}
+					writer.Write(response.MessageBody);
+				}
+			}
+		}
+
+		string GetFilePath(Uri uri)
 		{
 			return string.Concat(
 				baseDirectory.FullName,
 				Path.DirectorySeparatorChar,
 				uri.Authority.Replace(":", "_"),
 			    Path.DirectorySeparatorChar,
-				uri.AbsolutePath
+				uri.AbsolutePath,
+				".cache"
 			);
-		}
-
-		public CacheMetadata ReadFromFile(string path)
-		{
-			MemoryStream stream = new MemoryStream(fileHandler.Read(path));
-			return formatter.Deserialize(stream) as CacheMetadata;
-		}
-
-		public void WriteToFile(string path, HttpResponse response)
-		{
-			fileHandler.Write(path, response.MessageBody);
-		}
-
-		public void WriteToFile(string path, CacheMetadata metadata)
-		{
-			MemoryStream stream = new MemoryStream();
-			formatter.Serialize(stream, metadata);
-			fileHandler.Write(path, stream.ToArray());
 		}
 	}
 }

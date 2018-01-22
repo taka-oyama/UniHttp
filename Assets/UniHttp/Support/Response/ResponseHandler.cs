@@ -86,10 +86,10 @@ namespace UniHttp
 
 		byte[] BuildMessageBodyFromCache(HttpResponse response, Progress progress, CancellationToken cancellationToken)
 		{
-			using(CacheStream cacheStream = cacheHandler.GetDataReadStream(response.Request)) {
-				progress.Start(cacheStream.Length);
+			using(CacheStream source = cacheHandler.GetMessageBodyStream(response.Request)) {
+				progress.Start(source.BytesRemaining);
 				MemoryStream destination = new MemoryStream();
-				cacheStream.CopyTo(destination, cacheStream.Length, cancellationToken, progress);
+				source.CopyTo(destination, source.BytesRemaining, cancellationToken, progress);
 				progress.Finialize();
 				return destination.ToArray();
 			}

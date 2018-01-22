@@ -1,18 +1,26 @@
 ﻿using UnityEngine;
 using System;
 using System.Text;
+using System.Collections.Generic;
+using System.IO;
 
 namespace UniHttp
 {
 	[Serializable]
 	internal sealed class CacheMetadata
 	{
+		internal const int version = 1;
+
 		internal string domain;
 		internal string path;
 		internal string contentType;
 		internal string eTag;
 		internal DateTime? expireAt;
 		internal DateTime? lastModified;
+
+		internal CacheMetadata()
+		{
+		}
 
 		internal CacheMetadata(HttpResponse response)
 		{
