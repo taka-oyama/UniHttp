@@ -87,28 +87,28 @@ namespace UniHttp
 
 		public string ReadTo(MemoryStream destination, params char[] stoppers)
 		{
-			int b;
-			int count = 0;
+			int readByte;
 			do {
-				b = ReadByte();
-				destination.WriteByte((byte)b);
-				if(b == -1) break;
-				count += 1;
+				readByte = ReadByte();
+				destination.WriteByte((byte)readByte);
+				if(readByte == -1) {
+					break;
+				}
 			}
-			while(Array.TrueForAll(stoppers, s => b != (int)s));
+			while(Array.TrueForAll(stoppers, stopper => readByte != (int)stopper));
 			return Encoding.UTF8.GetString(destination.ToArray());
 		}
 
-		public void SkipTo(params char[] stopChars)
+		public void SkipTo(params char[] stoppers)
 		{
-			int b;
-			int count = 0;
+			int readByte;
 			do {
-				b = ReadByte();
-				if(b == -1) break;
-				count += 1;
+				readByte = ReadByte();
+				if(readByte == -1) {
+					break;
+				}
 			}
-			while(Array.TrueForAll(stopChars, s => b != (int)s));
+			while(Array.TrueForAll(stoppers, stopper => readByte != (int)stopper));
 		}
 
 		public void CopyTo(Stream destination, long count, CancellationToken cancellationToken, Progress progress = null)
