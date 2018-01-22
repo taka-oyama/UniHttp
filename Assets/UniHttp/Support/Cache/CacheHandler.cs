@@ -160,6 +160,8 @@ namespace UniHttp
 
 		void WriteToFile(string path, HttpResponse response)
 		{
+			Directory.CreateDirectory(Path.GetDirectoryName(path));
+
 			using(Stream stream = fileHandler.OpenWriteStream(path)) {
 				using(BinaryWriter writer = new BinaryWriter(stream)) {
 					CacheMetadata meta = new CacheMetadata(response);

@@ -23,17 +23,17 @@ namespace UniHttp
 			}
 		}
 
-		public void Write(string path, byte[] data)
+		public void Write(string filePath, byte[] data)
 		{
-			FileInfo info = new FileInfo(path);
-			FileInfo temp = new FileInfo(info.FullName + ".tmp");
-			info.Directory.Create();
-			temp.Delete();
-			using(Stream output = OpenWriteStream(temp.FullName)) {
+			string tempPath = filePath + ".tmp";
+			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+			File.Delete(tempPath);
+			File.Delete(filePath);
+			using(Stream output = OpenWriteStream(tempPath)) {
 				output.Write(data, 0, data.Length);
 			}
-			info.Delete();
-			File.Move(temp.FullName, info.FullName);
+			File.Delete(filePath);
+			File.Move(tempPath, filePath);
 		}
 
 		public void Delete(string path)
