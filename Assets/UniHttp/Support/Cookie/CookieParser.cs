@@ -56,7 +56,7 @@ namespace UniHttp
 				case "expires": cookie.expires = DateTime.Parse(kvPair[1]); break;
 				case "max-age": cookie.expires = DateTime.Now + TimeSpan.FromSeconds(int.Parse(kvPair[1])); break;
 				case "secure": cookie.secure = true; break;
-				case "httpOnly": cookie.httpOnly = true; break;
+				case "httponly": cookie.httpOnly = true; break;
 				}
 			}
 
