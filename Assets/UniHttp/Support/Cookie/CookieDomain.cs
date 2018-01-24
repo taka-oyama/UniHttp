@@ -36,16 +36,6 @@ namespace UniHttp
 			return cookies.GetEnumerator();
 		}
 
-		internal Cookie FindMatch(Cookie matcher)
-		{
-			foreach(Cookie cookie in cookies) {
-				if(matcher.name == cookie.name) {
-					return cookie;
-				}
-			}
-			return null;
-		}
-
 		internal void AddOrReplace(Cookie cookie)
 		{
 			Cookie target = FindMatch(cookie);
@@ -57,19 +47,26 @@ namespace UniHttp
 			}
 		}
 
-		internal void RemoveExpiredCookies()
+		Cookie FindMatch(Cookie matcher)
 		{
-			cookies.RemoveAll(c => c.IsExpired);
+			foreach(Cookie cookie in cookies) {
+				if(matcher.name == cookie.name) {
+					return cookie;
+				}
+			}
+			return null;
 		}
 
 		internal void WriteToFile()
 		{
-			List<Cookie> targets = cookies.FindAll(cookie => {
-				return !cookie.IsExpired && !cookie.IsSession;
-			});
+			cookies.RemoveAll(c => c.IsExpired);
+
+			List<Cookie> targets = cookies.FindAll(cookie => !cookie.IsSession);
+
 			if(targets.Count == 0) {
 				return;
 			}
+
 			using(Stream stream = fileHandler.OpenWriteStream(filePath)) {
 				BinaryWriter writer = new BinaryWriter(stream);
 				writer.Write(targets.Count);
