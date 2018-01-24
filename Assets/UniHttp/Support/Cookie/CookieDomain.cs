@@ -64,7 +64,7 @@ namespace UniHttp
 			cookies.RemoveAll(c => c.IsExpired);
 		}
 
-		internal void SaveToFile()
+		internal void WriteToFile()
 		{
 			RemoveExpiredCookies();
 

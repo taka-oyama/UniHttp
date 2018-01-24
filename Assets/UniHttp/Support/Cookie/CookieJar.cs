@@ -88,11 +88,11 @@ namespace UniHttp
 			}
 		}
 
-		internal void SaveToFile()
+		internal void WriteToFile()
 		{
 			lock(jar) {
 				foreach(string key in jar.Keys) {
-					jar[key].SaveToFile();
+					jar[key].WriteToFile();
 				}
 			}
 		}
