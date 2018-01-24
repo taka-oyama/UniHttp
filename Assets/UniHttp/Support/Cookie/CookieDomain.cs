@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine;
 
@@ -89,10 +88,6 @@ namespace UniHttp
 				return parser.Parse(fileHandler.Read(filePath));
 			}
 			catch(IOException exception) {
-				Debug.LogWarning(exception);
-				return new List<Cookie>();
-			}
-			catch(SerializationException exception) {
 				Debug.LogWarning(exception);
 				return new List<Cookie>();
 			}

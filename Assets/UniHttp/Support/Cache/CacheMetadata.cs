@@ -1,12 +1,9 @@
 ﻿using UnityEngine;
 using System;
 using System.Text;
-using System.Collections.Generic;
-using System.IO;
 
 namespace UniHttp
 {
-	[Serializable]
 	internal sealed class CacheMetadata
 	{
 		internal const int version = 1;
