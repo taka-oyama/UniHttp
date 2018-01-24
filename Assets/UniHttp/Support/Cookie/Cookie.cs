@@ -14,7 +14,6 @@ namespace UniHttp
 		public bool secure;
 		public bool httpOnly;
 
-		internal string original;
 		/// <summary>
 		/// used for calculating total size of cookies per domain (4096 bytes)
 		/// </summary>

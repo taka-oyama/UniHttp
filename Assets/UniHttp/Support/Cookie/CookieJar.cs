@@ -44,7 +44,7 @@ namespace UniHttp
 		{
 			lock(jar) {
 				if(!jar.ContainsKey(domain)) {
-					jar.Add(domain, new CookieDomain(baseDirectory, domain, parser, fileHandler));
+					jar.Add(domain, new CookieDomain(baseDirectory, domain, fileHandler));
 				}
 
 				foreach(Cookie cookie in jar[domain]) {
@@ -74,7 +74,7 @@ namespace UniHttp
 				foreach(Cookie cookie in setCookies) {
 					string domain = response.Request.Uri.Host;
 					if(!jar.ContainsKey(domain)) {
-						jar.Add(domain, new CookieDomain(baseDirectory, domain, parser, fileHandler));
+						jar.Add(domain, new CookieDomain(baseDirectory, domain, fileHandler));
 					}
 					jar[domain].AddOrReplace(cookie);
 				}

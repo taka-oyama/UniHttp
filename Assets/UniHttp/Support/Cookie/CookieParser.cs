@@ -25,18 +25,6 @@ namespace UniHttp
 			return setCookies;
 		}
 
-		internal List<Cookie> Parse(byte[] data)
-		{
-			List<Cookie> setCookies = new List<Cookie>();
-
-			foreach(string attributesAsString in Encoding.ASCII.GetString(data).Split('\n')) {
-				if(!string.IsNullOrEmpty(attributesAsString)) {
-					setCookies.Add(ParseEach(attributesAsString));
-				}
-			}
-			return setCookies;
-		}
-
 		Cookie ParseEach(string attributesAsString)
 		{
 			Cookie cookie = new Cookie();
@@ -45,7 +33,6 @@ namespace UniHttp
 
 			cookie.name = kvPair[0];
 			cookie.value = kvPair[1];
-			cookie.original = attributesAsString;
 			cookie.size = Encoding.ASCII.GetByteCount(attributesAsString);
 
 			foreach(string attr in attributes.Skip(1)) {
