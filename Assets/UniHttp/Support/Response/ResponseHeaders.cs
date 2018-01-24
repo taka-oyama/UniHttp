@@ -59,7 +59,9 @@ namespace UniHttp
 		{
 			List<string> fieldLines = new List<string>();
 			foreach(KeyValuePair<string, List<string>> kvPair in fields) {
-				fieldLines.Add(Titleize(kvPair.Key) + ": " + string.Join(",", kvPair.Value.ToArray()));
+				foreach(string line in kvPair.Value) {
+					fieldLines.Add(Titleize(kvPair.Key) + ": " + line);
+				}
 			}
 			return string.Join(Constant.CRLF, fieldLines.ToArray());
 		}
