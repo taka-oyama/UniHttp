@@ -48,11 +48,11 @@ namespace UniHttp
 				}
 				catch(SocketException exception) {
 					response = responseHandler.Process(request, exception);
-					stream.Close();
+					CloseStreamIfExists(stream);
 				}
 				catch(IOException exception) {
 					response = responseHandler.Process(request, exception);
-					stream.Close();
+					CloseStreamIfExists(stream);
 				}
 				finally {
 					streamPool.CheckIn(response, stream);
@@ -68,6 +68,13 @@ namespace UniHttp
 			}
 
 			return response;
+		}
+
+		void CloseStreamIfExists(Stream stream)
+		{
+			if(stream != null) {
+				stream.Close();
+			}
 		}
 
 		bool IsRedirect(HttpResponse response)
