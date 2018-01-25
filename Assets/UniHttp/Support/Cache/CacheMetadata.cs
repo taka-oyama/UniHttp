@@ -44,16 +44,15 @@ namespace UniHttp
 			if(response.Headers.Exist(HeaderField.Expires)) {
 				this.expireAt = DateTime.Parse(response.Headers[HeaderField.Expires][0]);
 			}
-			if(response.Headers.Exist(HeaderField.LastModified)) {
-				this.lastModified = DateTime.Parse(response.Headers[HeaderField.LastModified][0]);
-			}
 			if(response.Headers.Exist(HeaderField.CacheControl) && response.Headers[HeaderField.CacheControl][0].Contains("max-age")) {
 				foreach(string directive in response.Headers[HeaderField.CacheControl][0].Split(',')) {
 					if(directive.Contains("max-age")) {
-						int maxAge = int.Parse(directive.Split('=')[1]);
-						this.expireAt = DateTime.Now + TimeSpan.FromSeconds(maxAge);
+						this.expireAt = DateTime.Now.AddSeconds(int.Parse(directive.Split('=')[1]));
 					}
 				}
+			}
+			if(response.Headers.Exist(HeaderField.LastModified)) {
+				this.lastModified = DateTime.Parse(response.Headers[HeaderField.LastModified][0]);
 			}
 		}
 
