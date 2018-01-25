@@ -12,9 +12,9 @@ namespace UniHttp
 		const char CR = '\r';
 		const char LF = '\n';
 
-		HttpSettings settings;
-		CookieJar cookieJar;
-		CacheHandler cacheHandler;
+		readonly HttpSettings settings;
+		readonly CookieJar cookieJar;
+		readonly CacheHandler cacheHandler;
 
 		internal ResponseHandler(HttpSettings settings, CookieJar cookieJar, CacheHandler cacheHandler)
 		{
