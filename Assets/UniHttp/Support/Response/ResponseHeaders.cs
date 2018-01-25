@@ -38,13 +38,6 @@ namespace UniHttp
 			return !Contains(name);
 		}
 
-		internal void Append(string name, List<string> values)
-		{
-			for(int i = 0; i < values.Count; i++) {
-				Append(name, values[0]);
-			}
-		}
-
 		internal void Append(string name, string value)
 		{
 			name = name.ToLower();
