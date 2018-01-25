@@ -64,7 +64,7 @@ namespace UniHttp
 
 		internal void Update(HttpResponse response)
 		{
-			if(response.Headers.NotExist(HeaderField.SetCookie)) {
+			if(response.Headers.NotContains(HeaderField.SetCookie)) {
 				return;
 			}
 

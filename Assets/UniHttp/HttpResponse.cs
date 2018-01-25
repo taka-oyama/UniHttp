@@ -46,7 +46,7 @@ namespace UniHttp
 
 		bool IsStringableContentType()
 		{
-			if(Headers.Exist(HeaderField.ContentType)) {
+			if(Headers.Contains(HeaderField.ContentType)) {
 				if(Headers[HeaderField.ContentType][0].Contains("text/")) return true;
 				if(Headers[HeaderField.ContentType][0].Contains("application/json")) return true;
 				if(Headers[HeaderField.ContentType][0].Contains("application/xml")) return true;

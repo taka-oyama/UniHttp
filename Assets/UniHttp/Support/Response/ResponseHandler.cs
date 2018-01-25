@@ -57,10 +57,10 @@ namespace UniHttp
 			if(response.StatusCode == StatusCode.NotModified) {
 				return BuildMessageBodyFromCache(response, progress, cancellationToken);
 			}
-			if(response.Headers.Exist(HeaderField.TransferEncoding, "chunked")) {
+			if(response.Headers.Contains(HeaderField.TransferEncoding, "chunked")) {
 				return BuildMessageBodyFromChunked(response, source, progress, cancellationToken);
 			}
-			if(response.Headers.Exist(HeaderField.ContentLength)) {
+			if(response.Headers.Contains(HeaderField.ContentLength)) {
 				return BuildMessageBodyFromContentLength(response, source, progress, cancellationToken);
 			}
 			throw new Exception("Could not determine how to read message body!");
@@ -110,7 +110,7 @@ namespace UniHttp
 
 		byte[] DecodeMessageBody(HttpResponse response, MemoryStream messageStream, CancellationToken cancellationToken)
 		{
-			if(response.Headers.Exist(HeaderField.ContentEncoding, "gzip")) {
+			if(response.Headers.Contains(HeaderField.ContentEncoding, "gzip")) {
 				messageStream.Seek(0, SeekOrigin.Begin);
 				return DecodeMessageBodyAsGzip(messageStream, cancellationToken);
 			}

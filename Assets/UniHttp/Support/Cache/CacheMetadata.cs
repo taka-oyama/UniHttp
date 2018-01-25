@@ -35,23 +35,23 @@ namespace UniHttp
 
 			this.domain = uri.Authority;
 			this.path = uri.AbsolutePath;
-			if(response.Headers.Exist(HeaderField.ContentType)) {
+			if(response.Headers.Contains(HeaderField.ContentType)) {
 				this.contentType = response.Headers[HeaderField.ContentType][0];
 			}
-			if(response.Headers.Exist(HeaderField.ETag)) {
+			if(response.Headers.Contains(HeaderField.ETag)) {
 				this.eTag = response.Headers[HeaderField.ETag][0];
 			}
-			if(response.Headers.Exist(HeaderField.Expires)) {
+			if(response.Headers.Contains(HeaderField.Expires)) {
 				this.expireAt = DateTime.Parse(response.Headers[HeaderField.Expires][0]);
 			}
-			if(response.Headers.Exist(HeaderField.CacheControl) && response.Headers[HeaderField.CacheControl][0].Contains("max-age")) {
+			if(response.Headers.Contains(HeaderField.CacheControl) && response.Headers[HeaderField.CacheControl][0].Contains("max-age")) {
 				foreach(string directive in response.Headers[HeaderField.CacheControl][0].Split(',')) {
 					if(directive.Contains("max-age")) {
 						this.expireAt = DateTime.Now.AddSeconds(int.Parse(directive.Split('=')[1]));
 					}
 				}
 			}
-			if(response.Headers.Exist(HeaderField.LastModified)) {
+			if(response.Headers.Contains(HeaderField.LastModified)) {
 				this.lastModified = DateTime.Parse(response.Headers[HeaderField.LastModified][0]);
 			}
 		}

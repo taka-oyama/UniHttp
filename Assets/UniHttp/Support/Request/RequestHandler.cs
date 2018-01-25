@@ -32,13 +32,13 @@ namespace UniHttp
 			lock(request) {
 				request.useProxy = settings.proxy != null;
 
-				if(request.Headers.NotExist(HeaderField.Host)) {
+				if(request.Headers.NotContains(HeaderField.Host)) {
 					request.Headers.Add(HeaderField.Host, GenerateHost(request.Uri));
 				}
-				if(settings.allowResponseCompression && request.Headers.NotExist(HeaderField.AcceptEncoding)) {
+				if(settings.allowResponseCompression && request.Headers.NotContains(HeaderField.AcceptEncoding)) {
 					request.Headers.Add(HeaderField.AcceptEncoding, "gzip");
 				}
-				if(settings.appendDefaultUserAgentToRequest && request.Headers.NotExist(HeaderField.UserAgent)) {
+				if(settings.appendDefaultUserAgentToRequest && request.Headers.NotContains(HeaderField.UserAgent)) {
 					request.Headers.Add(HeaderField.UserAgent, UserAgent.value);
 				}
 				if(settings.useCookies) {
@@ -51,10 +51,10 @@ namespace UniHttp
 					AddCacheDirectiveToRequest(request);
 				}
 				if(request.Data != null) {
-					if(request.Headers.NotExist(HeaderField.ContentType)) {
+					if(request.Headers.NotContains(HeaderField.ContentType)) {
 						request.Headers.Add(HeaderField.ContentType, request.Data.GetContentType());
 					}
-					if(request.Headers.NotExist(HeaderField.ContentLength)) {
+					if(request.Headers.NotContains(HeaderField.ContentLength)) {
 						request.Headers.Add(HeaderField.ContentLength, request.Data.ToBytes().Length.ToString());
 					}
 				}
@@ -84,7 +84,7 @@ namespace UniHttp
 		{
 			Dictionary<string, string> cookies = new Dictionary<string, string>();
 
-			if(request.Headers.Exist(HeaderField.Cookie)) {
+			if(request.Headers.Contains(HeaderField.Cookie)) {
 				string cookieString = request.Headers[HeaderField.Cookie];
 				string[] presets = cookieString.Split(new string[] { "=", "; " }, StringSplitOptions.None);
 				for(int i = 0; presets.Length > i; i += 2) {

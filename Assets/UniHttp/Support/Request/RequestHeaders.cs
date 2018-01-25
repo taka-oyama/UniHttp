@@ -23,19 +23,19 @@ namespace UniHttp
 			get { return fields[name.ToLower()]; }
 		}
 
-		public bool Exist(string name)
+		public bool Contains(string name)
 		{
 			return fields.ContainsKey(name.ToLower());
 		}
 
-		public bool Exist(string name, string value)
+		public bool Contains(string name, string value)
 		{
-			return Exist(name) && this[name].Contains(value);
+			return Contains(name) && this[name].Contains(value);
 		}
 
-		public bool NotExist(string name)
+		public bool NotContains(string name)
 		{
-			return !Exist(name);
+			return !Contains(name);
 		}
 
 		public void Add(string name, string value)

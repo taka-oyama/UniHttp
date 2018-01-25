@@ -80,7 +80,7 @@ namespace UniHttp
 				return false;
 			}
 
-			if(response.Request.Headers.Exist(HeaderField.Connection, "close")) {
+			if(response.Request.Headers.Contains(HeaderField.Connection, "close")) {
 				return false;
 			}
 			return true;
@@ -88,13 +88,13 @@ namespace UniHttp
 
 		void UpdateKeepAliveInfo(HttpResponse response, HttpStream stream)
 		{
-			if(response.Headers.Exist(HeaderField.KeepAlive)) {
+			if(response.Headers.Contains(HeaderField.KeepAlive)) {
 				foreach(string parameter in response.Headers[HeaderField.KeepAlive][0].Split(',')) {
 					string[] pair = parameter.Trim().Split('=');
 
 					if(pair[0] == "timeout") {
 						DateTime now;
-						if(response.Headers.Exist(HeaderField.Date)) {
+						if(response.Headers.Contains(HeaderField.Date)) {
 							now = DateTime.ParseExact(
 								response.Headers[HeaderField.Date][0],
 								CultureInfo.CurrentCulture.DateTimeFormat.RFC1123Pattern,

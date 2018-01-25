@@ -12,7 +12,7 @@ namespace UniHttp
 		{
 			List<Cookie> setCookies = new List<Cookie>();
 
-			if(response.Headers.Exist(HeaderField.SetCookie)) {
+			if(response.Headers.Contains(HeaderField.SetCookie)) {
 				foreach(string attributesAsString in response.Headers[HeaderField.SetCookie]) {
 					Cookie cookie = ParseEach(attributesAsString);
 					if(string.IsNullOrEmpty(cookie.path)) {
