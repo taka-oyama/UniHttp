@@ -25,7 +25,6 @@ namespace UniHttp
 
 		internal HttpResponse Process(HttpRequest request, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
-			DateTime then = DateTime.Now;
 			HttpResponse response = new HttpResponse(request);
 
 			// Status Line
@@ -44,9 +43,6 @@ namespace UniHttp
 			// Message Body
 			response.MessageBody = BuildMessageBody(response, source, progress, cancellationToken);
 
-			// Roundtrip Time
-			response.RoundTripTime = DateTime.Now - then;
-
 			// Post process for response
 			ProcessCookie(response);
 			ProcessCache(response);
@@ -62,7 +58,6 @@ namespace UniHttp
 			response.StatusPhrase = exception.Message.Trim();
 			response.Headers.Append(HeaderField.ContentType, "text/plain");
 			response.MessageBody = Encoding.UTF8.GetBytes(string.Concat(exception.GetType(), CR, LF, exception.StackTrace));
-
 			return response;
 		}
 

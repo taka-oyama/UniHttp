@@ -13,7 +13,7 @@ namespace UniHttp
 		public ResponseHeaders Headers { get; private set; }
 		public List<Cookie> Cookies { get; internal set; }
 		public byte[] MessageBody { get; internal set; }
-		public TimeSpan RoundTripTime { get; internal set; }
+		public TimeSpan Duration { get; internal set; }
 
 		public HttpResponse(HttpRequest request)
 		{
@@ -29,6 +29,8 @@ namespace UniHttp
 			sb.Append(StatusCode);
 			sb.Append(Constant.Space);
 			sb.Append(StatusPhrase);
+			sb.Append(Constant.Space);
+			sb.AppendFormat(" ({0} ms)", Duration.TotalMilliseconds);
 			sb.Append(Constant.CRLF);
 			if(Headers.Length > 0) {
 				sb.Append(Headers.ToString());

@@ -33,6 +33,7 @@ namespace UniHttp
 			HttpRequest request = info.request;
 			HttpStream stream = null;
 			HttpResponse response = null;
+			DateTime then = DateTime.Now;
 
 			while(true) {
 				requestHandler.Prepare(request);
@@ -62,10 +63,13 @@ namespace UniHttp
 
 				if(IsRedirect(response)) {
 					request = MakeRedirectRequest(response);
-				} else {
+				}
+				else {
 					break;
 				}
 			}
+
+			response.Duration = DateTime.Now - then;
 
 			return response;
 		}
