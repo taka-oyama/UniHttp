@@ -57,6 +57,8 @@ namespace UniHttp
 					streamPool.CheckIn(response, stream);
 				}
 
+				response.Duration = DateTime.Now - then;
+
 				LogResponse(response);
 
 				if(IsRedirect(response)) {
@@ -66,8 +68,6 @@ namespace UniHttp
 					break;
 				}
 			}
-
-			response.Duration = DateTime.Now - then;
 
 			return response;
 		}
