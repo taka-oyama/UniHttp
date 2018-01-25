@@ -125,7 +125,6 @@ namespace UniHttp
 			if(!string.IsNullOrEmpty(cache.eTag)) {
 				request.Headers.AddOrReplace(HeaderField.IfNoneMatch, cache.eTag);
 			}
-
 			if(cache.lastModified.HasValue) {
 				request.Headers.AddOrReplace(HeaderField.IfModifiedSince, cache.lastModified.Value.ToString("r"));
 			}

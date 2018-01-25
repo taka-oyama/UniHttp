@@ -26,27 +26,18 @@ namespace UniHttp
 		internal HttpResponse Process(HttpRequest request, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			HttpResponse response = new HttpResponse(request);
-
-			// Status Line
 			response.HttpVersion = source.ReadTo(SPACE).TrimEnd(SPACE);
 			response.StatusCode = int.Parse(source.ReadTo(SPACE).TrimEnd(SPACE));
 			response.StatusPhrase = source.ReadTo(LF).TrimEnd();
-
-			// Headers
 			string name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			while(name != String.Empty) {
 				string valuesStr = source.ReadTo(LF).TrimStart(SPACE).TrimEnd(CR, LF);
 				response.Headers.Append(name, valuesStr);
 				name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			}
-
-			// Message Body
 			response.MessageBody = BuildMessageBody(response, source, progress, cancellationToken);
-
-			// Post process for response
 			ProcessCookie(response);
 			ProcessCache(response);
-
 			return response;
 		}
 
@@ -66,15 +57,12 @@ namespace UniHttp
 			if(response.StatusCode == StatusCode.NotModified) {
 				return BuildMessageBodyFromCache(response, progress, cancellationToken);
 			}
-
 			if(response.Headers.Exist(HeaderField.TransferEncoding, "chunked")) {
 				return BuildMessageBodyFromChunked(response, source, progress, cancellationToken);
 			}
-
 			if(response.Headers.Exist(HeaderField.ContentLength)) {
 				return BuildMessageBodyFromContentLength(response, source, progress, cancellationToken);
 			}
-
 			throw new Exception("Could not determine how to read message body!");
 		}
 

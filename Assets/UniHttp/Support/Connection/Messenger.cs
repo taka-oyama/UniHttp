@@ -103,9 +103,7 @@ namespace UniHttp
 					method = HttpMethod.GET;
 				}
 			}
-
 			request.Headers.Remove(HeaderField.Host);
-
 			return new HttpRequest(method, uri, null, request.Headers, request.Data);
 		}
 	}
