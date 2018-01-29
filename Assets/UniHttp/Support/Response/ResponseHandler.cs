@@ -41,6 +41,17 @@ namespace UniHttp
 			return response;
 		}
 
+		internal HttpResponse Process(HttpRequest request, CacheMetadata cache, Progress progress, CancellationToken cancellationToken)
+		{
+			HttpResponse response = new HttpResponse(request);
+			response.HttpVersion = "HTTP/1.1";
+			response.StatusCode = 200;
+			response.StatusPhrase = "OK (cache)";
+			response.Headers.Append(HeaderField.ContentType, cache.contentType);
+			response.MessageBody = BuildMessageBodyFromCache(response, progress, cancellationToken);
+			return response;
+		}
+
 		internal HttpResponse Process(HttpRequest request, Exception exception)
 		{
 			HttpResponse response = new HttpResponse(request);
@@ -145,8 +156,7 @@ namespace UniHttp
 		{
 			if(settings.useCache) {
 				if(response.StatusCode == StatusCode.NotModified) {
-					CacheMetadata cache = cacheHandler.FindMetadata(response.Request);
-					response.Headers.Append(HeaderField.ContentType, cache.contentType);
+					response.Headers.Append(HeaderField.ContentType, response.Request.cache.contentType);
 				}
 				if(cacheHandler.IsCachable(response)) {
 					cacheHandler.CacheResponse(response);

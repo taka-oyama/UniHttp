@@ -31,7 +31,6 @@ namespace UniHttp
 		internal HttpResponse Send(DispatchInfo info)
 		{
 			HttpRequest request = info.request;
-			HttpStream stream = null;
 			HttpResponse response = null;
 			DateTime then = DateTime.Now;
 
@@ -40,22 +39,9 @@ namespace UniHttp
 
 				LogRequest(request);
 
-				try {
-					stream = streamPool.CheckOut(request);
-					requestHandler.Send(request, stream);
-					response = responseHandler.Process(request, stream, info.DownloadProgress, info.cancellationToken);
-				}
-				catch(SocketException exception) {
-					response = responseHandler.Process(request, exception);
-					CloseStreamIfExists(stream);
-				}
-				catch(IOException exception) {
-					response = responseHandler.Process(request, exception);
-					CloseStreamIfExists(stream);
-				}
-				finally {
-					streamPool.CheckIn(response, stream);
-				}
+				response = IsCacheAvailable(request)
+					? GetResponseFromCache(request, info.DownloadProgress, info.cancellationToken)
+					: GetResponseFromSocket(request, info.DownloadProgress, info.cancellationToken);
 
 				response.Duration = DateTime.Now - then;
 
@@ -70,6 +56,46 @@ namespace UniHttp
 			}
 
 			return response;
+		}
+
+		HttpResponse GetResponseFromCache(HttpRequest request, Progress progress, CancellationToken cancellationToken)
+		{
+			try {
+				return responseHandler.Process(request, request.cache, progress, cancellationToken);
+			}
+			catch(IOException exception) {
+				return responseHandler.Process(request, exception);
+			}
+		}
+
+		HttpResponse GetResponseFromSocket(HttpRequest request, Progress progress, CancellationToken cancellationToken)
+		{
+			HttpStream stream = null;
+			HttpResponse response = null;
+
+			try {
+				stream = streamPool.CheckOut(request);
+				requestHandler.Send(request, stream);
+				response = responseHandler.Process(request, stream, progress, cancellationToken);
+			}
+			catch(SocketException exception) {
+				response = responseHandler.Process(request, exception);
+				CloseStreamIfExists(stream);
+			}
+			catch(IOException exception) {
+				response = responseHandler.Process(request, exception);
+				CloseStreamIfExists(stream);
+			}
+			finally {
+				streamPool.CheckIn(response, stream);
+			}
+
+			return response;
+		}
+
+		bool IsCacheAvailable(HttpRequest request)
+		{
+			return request.cache != null && request.cache.IsFresh;
 		}
 
 		void CloseStreamIfExists(Stream stream)

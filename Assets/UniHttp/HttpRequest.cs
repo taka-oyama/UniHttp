@@ -13,6 +13,7 @@ namespace UniHttp
 		public IHttpData Data { get; private set; }
 
 		internal bool useProxy;
+		internal CacheMetadata cache;
 
 		public HttpRequest(HttpMethod method, Uri uri) : this(method, uri, null, null, null) {}
 		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query) : this(method, uri, query, null, null) {}

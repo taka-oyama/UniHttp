@@ -48,6 +48,7 @@ namespace UniHttp
 					request.Headers.AddOrReplace(HeaderField.CacheControl, "no-store");
 				}
 				if(cacheHandler.IsCachable(request)) {
+					request.cache = cacheHandler.FindMetadata(request);
 					AddCacheDirectiveToRequest(request);
 				}
 				if(request.Data != null) {
