@@ -55,7 +55,7 @@ namespace UniHttp
 						continue;
 					}
 					// add to qualification only if the path matches
-					if(uri.AbsolutePath.StartsWith(cookie.path)) {
+					if(uri.AbsolutePath.StartsWith(cookie.path, StringComparison.Ordinal)) {
 						relevants.Add(cookie);
 					}
 				}
