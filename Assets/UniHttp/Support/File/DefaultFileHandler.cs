@@ -26,7 +26,6 @@ namespace UniHttp
 		public void Write(string filePath, byte[] data)
 		{
 			string tempPath = filePath + ".tmp";
-			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 			File.Delete(tempPath);
 			using(Stream output = OpenWriteStream(tempPath)) {
 				output.Write(data, 0, data.Length);
@@ -47,6 +46,7 @@ namespace UniHttp
 
 		public virtual Stream OpenWriteStream(string path)
 		{
+			Directory.CreateDirectory(Path.GetDirectoryName(path));
 			return new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 		}
 	}
