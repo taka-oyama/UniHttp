@@ -30,7 +30,7 @@ namespace UniHttp
 			this.useProxy = false;
 		}
 
-		public byte[] ToBytes()
+		internal byte[] ToBytes()
 		{
 			List<byte> bytes = new List<byte>();
 			bytes.AddRange(Encoding.UTF8.GetBytes(ConstructHeader()));

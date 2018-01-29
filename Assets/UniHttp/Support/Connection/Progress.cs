@@ -58,5 +58,4 @@
 		InProgress,
 		Done
 	};
-
 }
