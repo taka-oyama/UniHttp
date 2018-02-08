@@ -6,8 +6,8 @@ namespace UniHttp
 	public class DispatchInfo : IDisposable
 	{
 		readonly internal HttpRequest request;
-		readonly Action<HttpResponse> onResponse;
 		readonly internal CancellationToken cancellationToken;
+        Action<HttpResponse> onResponse;
 
 		public bool IsDisposed { get; private set; }
 
@@ -31,7 +31,9 @@ namespace UniHttp
 
 		public void Dispose()
 		{
-			if(!IsDisposed) {
+            this.onResponse = null;
+
+            if(!IsDisposed) {
 				IsDisposed = true;
 			}
 		}
