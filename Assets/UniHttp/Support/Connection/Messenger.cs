@@ -75,7 +75,7 @@ namespace UniHttp
 
 			try {
 				stream = streamPool.CheckOut(request);
-				requestHandler.Send(request, stream);
+                requestHandler.Send(request, stream, cancellationToken);
 				response = responseHandler.Process(request, stream, progress, cancellationToken);
 			}
 			catch(SocketException exception) {

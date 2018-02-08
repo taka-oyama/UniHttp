@@ -62,12 +62,15 @@ namespace UniHttp
 			}
 		}
 
-		internal void Send(HttpRequest request, HttpStream stream)
+        internal void Send(HttpRequest request, HttpStream stream, CancellationToken cancellationToken)
 		{
 			byte[] data;
 			lock(request) {
 				data = request.ToBytes();
 			}
+            if(cancellationToken.IsCancellationRequested) {
+                cancellationToken.ThrowCancellationException();
+            }
 			stream.Write(data, 0, data.Length);
 			stream.Flush();
 		}
