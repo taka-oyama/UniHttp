@@ -87,16 +87,17 @@ namespace UniHttp
 		{
 			if(pendingRequests.Count > 0) {
 				if(ongoingRequests.Count < settings.maxConcurrentRequests) {
-					TransmitInWorkerThread();
+                    DispatchInfo info = pendingRequests.Dequeue();
+                    if(!info.IsDisposed) {
+                        ongoingRequests.Add(info);
+                        TransmitInWorkerThread(info);
+                    }
 				}
 			}
 		}
 
-		void TransmitInWorkerThread()
+        void TransmitInWorkerThread(DispatchInfo info)
 		{
-			DispatchInfo info = pendingRequests.Dequeue();
-			ongoingRequests.Add(info);
-
 			ThreadPool.QueueUserWorkItem(state => {
 				try {
 					HttpResponse response = messenger.Send(info);
