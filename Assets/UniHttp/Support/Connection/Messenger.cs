@@ -2,6 +2,8 @@
 using System;
 using System.Net.Sockets;
 using System.IO;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace UniHttp
 {
@@ -28,20 +30,18 @@ namespace UniHttp
 			this.responseHandler = new ResponseHandler(settings, cookieJar, cacheHandler);
 		}
 
-		internal HttpResponse Send(DispatchInfo info)
+		internal async Task<HttpResponse> SendAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)
 		{
-			HttpRequest request = info.request;
 			HttpResponse response = null;
 			DateTime then = DateTime.Now;
-
 			while(true) {
 				requestHandler.Prepare(request);
 
 				LogRequest(request);
 
 				response = IsCacheAvailable(request)
-					? GetResponseFromCache(request, info.DownloadProgress, info.cancellationToken)
-					: GetResponseFromSocket(request, info.DownloadProgress, info.cancellationToken);
+					? await GetResponseFromCacheAsync(request, progress, cancellationToken)
+					: await GetResponseFromSocketAsync(request, progress, cancellationToken);
 
 				response.Duration = DateTime.Now - then;
 
@@ -58,25 +58,25 @@ namespace UniHttp
 			return response;
 		}
 
-		HttpResponse GetResponseFromCache(HttpRequest request, Progress progress, CancellationToken cancellationToken)
+		async Task<HttpResponse> GetResponseFromCacheAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)
 		{
 			try {
-				return responseHandler.Process(request, request.cache, progress, cancellationToken);
+				return await responseHandler.ProcessAsync(request, request.cache, progress, cancellationToken);
 			}
 			catch(IOException exception) {
 				return responseHandler.Process(request, exception);
 			}
 		}
 
-		HttpResponse GetResponseFromSocket(HttpRequest request, Progress progress, CancellationToken cancellationToken)
+		async Task<HttpResponse> GetResponseFromSocketAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)
 		{
 			HttpStream stream = null;
 			HttpResponse response = null;
 
 			try {
-				stream = streamPool.CheckOut(request);
-                requestHandler.Send(request, stream, cancellationToken);
-				response = responseHandler.Process(request, stream, progress, cancellationToken);
+				stream = await streamPool.CheckOutAsync(request);
+				await requestHandler.SendAsync(request, stream, cancellationToken);
+				response = await responseHandler.ProcessAsync(request, stream, progress, cancellationToken);
 			}
 			catch(SocketException exception) {
 				response = responseHandler.Process(request, exception);

@@ -1,36 +1,39 @@
 ﻿using UnityEngine;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace UniHttp
 {
-	public class DispatchInfo : IDisposable
+	internal class DispatchInfo : IDisposable
 	{
 		readonly internal HttpRequest request;
-        readonly Action<HttpResponse> onResponse;
+		readonly CancellationTokenSource cancellationTokenSource;
 		readonly internal CancellationToken cancellationToken;
+		readonly internal TaskCompletionSource<HttpResponse> taskCompletion;
+		readonly internal Progress downloadProgress;
 
 		public bool IsDisposed { get; private set; }
 
-		public Progress DownloadProgress { get; private set; }
-
-		internal DispatchInfo(HttpRequest request, Action<HttpResponse> onResponse)
+		internal DispatchInfo(HttpRequest request, Progress downloadProgress = null)
 		{
 			this.request = request;
-			this.onResponse = onResponse;
-			this.cancellationToken = new CancellationToken(this);
-			this.DownloadProgress = new Progress();
+			this.taskCompletion = new TaskCompletionSource<HttpResponse>();
+			this.cancellationTokenSource = new CancellationTokenSource();
+			this.cancellationToken = cancellationTokenSource.Token;
+			this.downloadProgress = downloadProgress ?? new Progress();
 			this.IsDisposed = false;
 		}
 
-		internal void InvokeCallback(HttpResponse response)
+		internal void SetResult(HttpResponse response)
 		{
-			if(!IsDisposed && onResponse != null) {
-				onResponse.Invoke(response);
-			}
+			taskCompletion.SetResult(response);
 		}
 
 		public void Dispose()
 		{
+			taskCompletion.SetCanceled();
+			cancellationTokenSource.Cancel();
             if(!IsDisposed) {
 				IsDisposed = true;
 			}

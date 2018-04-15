@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace UniHttp
 {
@@ -20,7 +21,7 @@ namespace UniHttp
 			this.usedStreams = new List<HttpStream>();
 		}
 
-		internal HttpStream CheckOut(HttpRequest request)
+		internal async Task<HttpStream> CheckOutAsync(HttpRequest request)
 		{
 			string baseUrl = request.Uri.Scheme + Uri.SchemeDelimiter + request.Uri.Authority;
 
@@ -40,13 +41,16 @@ namespace UniHttp
 				if(stream == null) {
 					Uri uri = request.useProxy ? settings.proxy.Uri : request.Uri;
 					stream = new HttpStream(uri, settings);
-					stream.Connect();
 				}
 
 				usedStreams.Add(stream);
-
-				return stream;
 			}
+
+			if(!stream.Connected) {
+				await stream.ConnectAsync();
+			}
+
+			return stream;
 		}
 
 		internal void CheckIn(HttpResponse response, HttpStream stream)

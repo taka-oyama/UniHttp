@@ -2,28 +2,33 @@
 using System;
 using UniHttp;
 using System.Collections;
+using System.Text;
+using System.IO;
 
 public class Test : MonoBehaviour
 {
 	HttpManager httpManager;
+	HttpRequest request;
 
 	void Awake()
 	{
 		var httpSettings = new HttpSettings();
-//		httpSettings.useCache = false;
+		httpSettings.allowResponseCompression = false;
+//		httpSettings.fileHandler = new CryptoFileHandler("testedav", "password");
+		httpSettings.useCache = false;
+		httpSettings.tcpNoDelay = true;
+//		httpSettings.useCookies = false;
 //		httpSettings.proxy = new HttpProxy("localhost", 3128);
 		httpManager = HttpManager.Initalize(httpSettings);
 	}
 
-	public void Send ()
+	async void Start()
 	{
-		var uri0 = new Uri("http://localhost:3000/large_file");
-		var request0 = new HttpRequest(HttpMethod.GET, uri0);
+		var uri0 = new Uri("http://localhost:3000/random");
+		// var uri0 = new Uri("http://localhost:3000/static/100mb.bin");
+		this.request = new HttpRequest(HttpMethod.GET, uri0);
 
-		httpManager.Send(request0, response => {
-		});
-
-		httpManager.Send(request0, response => {
-		});
+		httpManager.SendAsync(request);
+		httpManager.SendAsync(request);
 	}
 }

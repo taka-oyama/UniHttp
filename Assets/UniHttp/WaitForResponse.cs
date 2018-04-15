@@ -10,7 +10,7 @@ namespace UniHttp
 
 		internal WaitForResponse(HttpRequest request)
 		{
-			this.dispatchInfo = new DispatchInfo(request, SetResponse);
+			this.dispatchInfo = new DispatchInfo(request);
 		}
 
 		internal void SetResponse(HttpResponse _response)
@@ -20,7 +20,7 @@ namespace UniHttp
 
 		public float progress
 		{
-			get { return dispatchInfo.DownloadProgress.Ratio; }
+			get { return dispatchInfo.downloadProgress.Ratio; }
 		}
 
 		public override bool keepWaiting

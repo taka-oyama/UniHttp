@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace UniHttp
 {
@@ -62,17 +64,14 @@ namespace UniHttp
 			}
 		}
 
-        internal void Send(HttpRequest request, HttpStream stream, CancellationToken cancellationToken)
+        internal async Task SendAsync(HttpRequest request, HttpStream stream, CancellationToken cancellationToken)
 		{
 			byte[] data;
 			lock(request) {
 				data = request.ToBytes();
 			}
-            if(cancellationToken.IsCancellationRequested) {
-                cancellationToken.ThrowCancellationException();
-            }
-			stream.Write(data, 0, data.Length);
-			stream.Flush();
+			await stream.WriteAsync(data, 0, data.Length, cancellationToken);
+			await stream.FlushAsync(cancellationToken);
 		}
 
 		string GenerateHost(Uri uri)

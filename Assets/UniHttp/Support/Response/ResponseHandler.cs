@@ -2,6 +2,8 @@
 using System.IO;
 using System.Text;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace UniHttp
 {
@@ -23,7 +25,7 @@ namespace UniHttp
 			this.cacheHandler = cacheHandler;
 		}
 
-		internal HttpResponse Process(HttpRequest request, HttpStream source, Progress progress, CancellationToken cancellationToken)
+		internal async Task<HttpResponse> ProcessAsync(HttpRequest request, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			HttpResponse response = new HttpResponse(request);
 			response.HttpVersion = source.ReadTo(SPACE).TrimEnd(SPACE);
@@ -35,20 +37,20 @@ namespace UniHttp
 				response.Headers.Append(name, valuesStr);
 				name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			}
-			response.MessageBody = BuildMessageBody(response, source, progress, cancellationToken);
+			response.MessageBody = await BuildMessageBody(response, source, progress, cancellationToken);
 			ProcessCookie(response);
 			ProcessCache(response);
 			return response;
 		}
 
-		internal HttpResponse Process(HttpRequest request, CacheMetadata cache, Progress progress, CancellationToken cancellationToken)
+		internal async Task<HttpResponse> ProcessAsync(HttpRequest request, CacheMetadata cache, Progress progress, CancellationToken cancellationToken)
 		{
 			HttpResponse response = new HttpResponse(request);
 			response.HttpVersion = "HTTP/1.1";
 			response.StatusCode = 200;
 			response.StatusPhrase = "OK (cache)";
 			response.Headers.Append(HeaderField.ContentType, cache.contentType);
-			response.MessageBody = BuildMessageBodyFromCache(response, progress, cancellationToken);
+			response.MessageBody = await BuildMessageBodyFromCacheAsync(response, progress, cancellationToken);
 			return response;
 		}
 
@@ -63,76 +65,76 @@ namespace UniHttp
 			return response;
 		}
 
-		byte[] BuildMessageBody(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
+		Task<byte[]> BuildMessageBody(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			if(response.StatusCode == StatusCode.NotModified) {
-				return BuildMessageBodyFromCache(response, progress, cancellationToken);
+				return BuildMessageBodyFromCacheAsync(response, progress, cancellationToken);
 			}
 			if(response.Headers.Contains(HeaderField.TransferEncoding, "chunked")) {
-				return BuildMessageBodyFromChunked(response, source, progress, cancellationToken);
+				return BuildMessageBodyFromChunkedAsync(response, source, progress, cancellationToken);
 			}
 			if(response.Headers.Contains(HeaderField.ContentLength)) {
-				return BuildMessageBodyFromContentLength(response, source, progress, cancellationToken);
+				return BuildMessageBodyFromContentLengthAsync(response, source, progress, cancellationToken);
 			}
 			throw new Exception("Could not determine how to read message body!");
 		}
 
-		byte[] BuildMessageBodyFromCache(HttpResponse response, Progress progress, CancellationToken cancellationToken)
+		async Task<byte[]> BuildMessageBodyFromCacheAsync(HttpResponse response, Progress progress, CancellationToken cancellationToken)
 		{
 			using(CacheStream source = cacheHandler.GetMessageBodyStream(response.Request)) {
 				MemoryStream destination = new MemoryStream();
 				if(source.CanSeek) {
 					progress.Start(source.BytesRemaining);
-					source.CopyTo(destination, source.BytesRemaining, cancellationToken, progress);
+					await source.CopyToAsync(destination, source.BytesRemaining, cancellationToken, progress);
 				}
 				else {
 					progress.Start();
-					source.CopyTo(destination, cancellationToken);
+					await source.CopyToAsync(destination, cancellationToken);
 				}
 				progress.Finialize();
 				return destination.ToArray();
 			}
 		}
 
-		byte[] BuildMessageBodyFromChunked(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
+		async Task<byte[]> BuildMessageBodyFromChunkedAsync(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			MemoryStream destination = new MemoryStream();
 			progress.Start();
 			long chunkSize = ReadChunkSize(source);
 			while(chunkSize > 0) {
-				source.CopyTo(destination, chunkSize, cancellationToken, progress);
+				await source.CopyToAsync(destination, chunkSize, cancellationToken, progress);
 				source.SkipTo(LF);
 				chunkSize = ReadChunkSize(source);
 			}
 			source.SkipTo(LF);
 			progress.Finialize();
-			return DecodeMessageBody(response, destination, cancellationToken);
+			return await DecodeMessageBodyAsync(response, destination, cancellationToken);
 		}
 
-		byte[] BuildMessageBodyFromContentLength(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
+		async Task<byte[]> BuildMessageBodyFromContentLengthAsync(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			long contentLength = long.Parse(response.Headers[HeaderField.ContentLength][0]);
 			MemoryStream destination = new MemoryStream();
 			progress.Start(contentLength);
-			source.CopyTo(destination, contentLength, cancellationToken, progress);
+			await source.CopyToAsync(destination, contentLength, cancellationToken, progress);
 			progress.Finialize();
-			return DecodeMessageBody(response, destination, cancellationToken);
+			return await DecodeMessageBodyAsync(response, destination, cancellationToken);
 		}
 
-		byte[] DecodeMessageBody(HttpResponse response, MemoryStream messageStream, CancellationToken cancellationToken)
+		async Task<byte[]> DecodeMessageBodyAsync(HttpResponse response, MemoryStream messageStream, CancellationToken cancellationToken)
 		{
 			if(response.Headers.Contains(HeaderField.ContentEncoding, "gzip")) {
 				messageStream.Seek(0, SeekOrigin.Begin);
-				return DecodeMessageBodyAsGzip(messageStream, cancellationToken);
+				return await DecodeMessageBodyAsGzipAsync(messageStream, cancellationToken);
 			}
 			return messageStream.ToArray();
 		}
 
-		byte[] DecodeMessageBodyAsGzip(MemoryStream compressedStream, CancellationToken cancellationToken)
+		async Task<byte[]> DecodeMessageBodyAsGzipAsync(MemoryStream compressedStream, CancellationToken cancellationToken)
 		{
 			using(GzipDecompressStream gzipStream = new GzipDecompressStream(compressedStream)) {
 				MemoryStream destination = new MemoryStream();
-				gzipStream.CopyTo(destination, cancellationToken);
+				await gzipStream.CopyToAsync(destination, cancellationToken);
 				return destination.ToArray();
 			}
 		}

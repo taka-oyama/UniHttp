@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace UniHttp
 {
@@ -71,6 +73,21 @@ namespace UniHttp
 			stream.Flush();
 		}
 
+		public override Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
+		{
+			return stream.ReadAsync(buffer, offset, count, cancellationToken);
+		}
+
+		public override Task WriteAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
+		{
+			return stream.WriteAsync(buffer, offset, count, cancellationToken);
+		}
+
+		public override Task FlushAsync(System.Threading.CancellationToken cancellationToken)
+		{
+			return stream.FlushAsync(cancellationToken);
+		}
+
 		protected override void Dispose(bool disposing)
 		{
 			if(disposing) {
@@ -130,17 +147,17 @@ namespace UniHttp
 			}
 		}
 
-		public void CopyTo(Stream destination, long count, CancellationToken cancellationToken, Progress progress = null)
+		public async Task CopyToAsync(Stream destination, long count, CancellationToken cancellationToken, Progress progress = null)
 		{
 			byte[] buffer = new byte[bufferSize];
 			long remainingBytes = count;
 			int readBytes = 0;
 			while(remainingBytes > 0) {
 				if(cancellationToken.IsCancellationRequested) {
-					cancellationToken.ThrowCancellationException();
+					cancellationToken.ThrowIfCancellationRequested();
 				}
-				readBytes = Read(buffer, 0, (int) Math.Min(buffer.LongLength, remainingBytes));
-				destination.Write(buffer, 0, readBytes);
+				readBytes = await ReadAsync(buffer, 0, (int)Math.Min(buffer.LongLength, remainingBytes), cancellationToken);
+				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken);
 				remainingBytes -= readBytes;
 
 				if(progress != null) {
@@ -149,16 +166,16 @@ namespace UniHttp
 			}
 		}
 
-		public void CopyTo(Stream destination, CancellationToken cancellationToken)
+		public async Task CopyToAsync(Stream destination, CancellationToken cancellationToken)
 		{
 			byte[] buffer = new byte[bufferSize];
 			int readBytes = 0;
-			while((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0)
+			while((readBytes = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
 			{
 				if(cancellationToken.IsCancellationRequested) {
-					cancellationToken.ThrowCancellationException();
+					cancellationToken.ThrowIfCancellationRequested();
 				}
-				destination.Write(buffer, 0, readBytes);
+				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken);
 			}
 		}
 	}

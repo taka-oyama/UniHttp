@@ -1,6 +1,8 @@
-﻿namespace UniHttp
+﻿using System;
+
+namespace UniHttp
 {
-	public class Progress
+	public class Progress : IProgress<long>
 	{
 		public ProgressState State { get; private set; }
 
@@ -34,9 +36,9 @@
 			this.State = ProgressState.InProgress;
 		}
 
-		internal void Report(long amount)
+		public void Report(long value)
 		{
-			this.Read = amount;
+			this.Read = value;
 		}
 
 		internal void Finialize()

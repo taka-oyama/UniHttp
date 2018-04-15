@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace UniHttp
 {
@@ -16,9 +17,6 @@ namespace UniHttp
 
 		List<DispatchInfo> ongoingRequests;
 		Queue<DispatchInfo> pendingRequests;
-		Queue<Action> mainThreadQueue;
-
-		float deltaTimer;
 
 		public static HttpManager Initalize(HttpSettings httpSettings = null, bool dontDestroyOnLoad = true)
 		{
@@ -50,32 +48,20 @@ namespace UniHttp
 
 			this.ongoingRequests = new List<DispatchInfo>();
 			this.pendingRequests = new Queue<DispatchInfo>();
-			this.mainThreadQueue = new Queue<Action>();
-			this.deltaTimer = 0f;
 
 			UserAgent.Build();
 
 			return this;
 		}
 
-		public DispatchInfo Send(HttpRequest request, Action<HttpResponse> onResponse)
+		public async Task<HttpResponse> SendAsync(HttpRequest request, Progress progress = null)
 		{
-			DispatchInfo info = new DispatchInfo(request, onResponse);
-			SendInternal(info);
-			return info;
-		}
-
-		public WaitForResponse SendAsYieldInstruction(HttpRequest request)
-		{
-			WaitForResponse instruction = new WaitForResponse(request);
-			SendInternal(instruction.dispatchInfo);
-			return instruction;
-		}
-
-		void SendInternal(DispatchInfo info)
-		{
+			DispatchInfo info = new DispatchInfo(request, progress);
 			pendingRequests.Enqueue(info);
-			TransmitIfPossible();
+			#pragma warning disable CS4014
+			TransmitIfPossibleAsync();
+			#pragma warning restore CS4014
+			return await info.taskCompletion.Task;
 		}
 
 		public void ClearCache()
@@ -83,57 +69,25 @@ namespace UniHttp
 			Directory.Delete(string.Concat(settings.dataDirectory, "/", GetType().Namespace), true);
 		}
 
-		void TransmitIfPossible()
+		async Task TransmitIfPossibleAsync()
 		{
-			if(pendingRequests.Count > 0) {
-				if(ongoingRequests.Count < settings.maxConcurrentRequests) {
-                    DispatchInfo info = pendingRequests.Dequeue();
-                    if(!info.IsDisposed) {
-                        ongoingRequests.Add(info);
-                        TransmitInWorkerThread(info);
-                    }
-				}
+			if(pendingRequests.Count == 0) {
+				return;
 			}
-		}
-
-        void TransmitInWorkerThread(DispatchInfo info)
-		{
-			ThreadPool.QueueUserWorkItem(state => {
-				try {
-					HttpResponse response = messenger.Send(info);
-					ExecuteOnMainThread(() => {
-						ongoingRequests.Remove(info);
-						info.InvokeCallback(response);
-						TransmitIfPossible();
-					});
-				}
-				catch(Exception exception) {
-					ExecuteOnMainThread(() => {
-						throw exception;
-					});
-				}
-			});
-		}
-
-		void ExecuteOnMainThread(Action callback)
-		{
-			lock(mainThreadQueue) {
-				mainThreadQueue.Enqueue(callback);
+			if(ongoingRequests.Count >= settings.maxConcurrentRequests) {
+				return;
 			}
-		}
-
-		void Update()
-		{
-			while(mainThreadQueue.Count > 0) {
-				mainThreadQueue.Dequeue().Invoke();
+			DispatchInfo info = pendingRequests.Dequeue();
+			if(!info.IsDisposed) {
+				ongoingRequests.Add(info);
+				HttpResponse response = await messenger.SendAsync(info.request, info.downloadProgress, info.cancellationToken);
+				ongoingRequests.Remove(info);
+				info.SetResult(response);
 			}
 
-			// Update every second
-			deltaTimer += Time.deltaTime;
-			if(deltaTimer >= 1f) {
-				streamPool.CheckExpiredStreams();
-				deltaTimer = 0f;
-			}
+			#pragma warning disable CS4014
+			TransmitIfPossibleAsync();
+			#pragma warning restore CS4014
 		}
 
 		void Save()
