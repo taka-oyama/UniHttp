@@ -36,7 +36,6 @@ namespace UniHttp
 			DateTime then = DateTime.Now;
 
 			return await Task.Run(async () => {
-				Debug.Log(Thread.CurrentThread.ManagedThreadId);
 				while(true) {
 					requestHandler.Prepare(request);
 
