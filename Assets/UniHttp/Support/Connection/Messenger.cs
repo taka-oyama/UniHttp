@@ -34,28 +34,31 @@ namespace UniHttp
 		{
 			HttpResponse response = null;
 			DateTime then = DateTime.Now;
-			while(true) {
-				requestHandler.Prepare(request);
 
-				LogRequest(request);
+			return await Task.Run(async () => {
+				Debug.Log(Thread.CurrentThread.ManagedThreadId);
+				while(true) {
+					requestHandler.Prepare(request);
 
-				response = IsCacheAvailable(request)
-					? await GetResponseFromCacheAsync(request, progress, cancellationToken)
-					: await GetResponseFromSocketAsync(request, progress, cancellationToken);
+					LogRequest(request);
 
-				response.Duration = DateTime.Now - then;
+					response = IsCacheAvailable(request)
+						? await GetResponseFromCacheAsync(request, progress, cancellationToken)
+						: await GetResponseFromSocketAsync(request, progress, cancellationToken);
 
-				LogResponse(response);
+					response.Duration = DateTime.Now - then;
 
-				if(IsRedirect(response)) {
-					request = MakeRedirectRequest(response);
+					LogResponse(response);
+
+					if(IsRedirect(response)) {
+						request = MakeRedirectRequest(response);
+					}
+					else {
+						break;
+					}
 				}
-				else {
-					break;
-				}
-			}
-
-			return response;
+				return response;
+			});
 		}
 
 		async Task<HttpResponse> GetResponseFromCacheAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)

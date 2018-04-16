@@ -74,9 +74,11 @@ namespace UniHttp
 			if(pendingRequests.Count == 0) {
 				return;
 			}
+
 			if(ongoingRequests.Count >= settings.maxConcurrentRequests) {
 				return;
 			}
+
 			DispatchInfo info = pendingRequests.Dequeue();
 			if(!info.IsDisposed) {
 				ongoingRequests.Add(info);

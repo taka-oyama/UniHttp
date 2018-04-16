@@ -28,7 +28,7 @@ namespace UniHttp
 		internal async Task<HttpResponse> ProcessAsync(HttpRequest request, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			HttpResponse response = new HttpResponse(request);
-			response.HttpVersion = source.ReadTo(SPACE).TrimEnd(SPACE);
+			response.HttpVersion = (await source.ReadToAsync(cancellationToken, SPACE)).TrimEnd(SPACE);
 			response.StatusCode = int.Parse(source.ReadTo(SPACE).TrimEnd(SPACE));
 			response.StatusPhrase = source.ReadTo(LF).TrimEnd();
 			string name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
@@ -100,11 +100,11 @@ namespace UniHttp
 		{
 			MemoryStream destination = new MemoryStream();
 			progress.Start();
-			long chunkSize = ReadChunkSize(source);
+			long chunkSize = await ReadChunkSizeAsync(source, cancellationToken);
 			while(chunkSize > 0) {
 				await source.CopyToAsync(destination, chunkSize, cancellationToken, progress);
 				source.SkipTo(LF);
-				chunkSize = ReadChunkSize(source);
+				chunkSize = await ReadChunkSizeAsync(source, cancellationToken);
 			}
 			source.SkipTo(LF);
 			progress.Finialize();
@@ -139,10 +139,10 @@ namespace UniHttp
 			}
 		}
 
-		long ReadChunkSize(HttpStream source)
+		async Task<long> ReadChunkSizeAsync(HttpStream source, CancellationToken cancellationToken)
 		{
 			MemoryStream destination = new MemoryStream();
-			source.ReadTo(destination, LF);
+			await source.ReadToAsync(destination, cancellationToken, LF);
 			string hexStr = Encoding.ASCII.GetString(destination.ToArray()).TrimEnd(CR, LF);
 			return long.Parse(hexStr, NumberStyles.HexNumber);
 		}

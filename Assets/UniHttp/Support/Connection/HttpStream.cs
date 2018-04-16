@@ -35,7 +35,6 @@ namespace UniHttp
 			tcpClient.ReceiveBufferSize = bufferSize;
 
 			this.stream = tcpClient.GetStream();
-
 			if(uri.Scheme == Uri.UriSchemeHttps) {
 				SslStream sslStream = new SslStream(stream, false, sslVerifier.Verify);
 				sslStream.AuthenticateAsClient(uri.Host);
@@ -46,7 +45,7 @@ namespace UniHttp
 
 		internal async Task ConnectAsync()
 		{
-			await tcpClient.ConnectAsync(uri.Host, uri.Port);
+			await tcpClient.ConnectAsync(uri.Host, uri.Port).ConfigureAwait(false);
 			tcpClient.SendBufferSize = bufferSize;
 			tcpClient.ReceiveBufferSize = bufferSize;
 
@@ -54,7 +53,7 @@ namespace UniHttp
 
 			if(uri.Scheme == Uri.UriSchemeHttps) {
 				SslStream sslStream = new SslStream(stream, false, sslVerifier.Verify);
-				await sslStream.AuthenticateAsClientAsync(uri.Host);
+				await sslStream.AuthenticateAsClientAsync(uri.Host).ConfigureAwait(false);
 				this.stream = sslStream;
 			}
 			isConnected = true;

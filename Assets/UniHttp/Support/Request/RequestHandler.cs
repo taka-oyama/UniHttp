@@ -70,8 +70,8 @@ namespace UniHttp
 			lock(request) {
 				data = request.ToBytes();
 			}
-			await stream.WriteAsync(data, 0, data.Length, cancellationToken);
-			await stream.FlushAsync(cancellationToken);
+			await stream.WriteAsync(data, 0, data.Length, cancellationToken).ConfigureAwait(false);
+			await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		string GenerateHost(Uri uri)

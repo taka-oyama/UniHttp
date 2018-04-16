@@ -73,17 +73,17 @@ namespace UniHttp
 			stream.Flush();
 		}
 
-		public override Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
+		public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
 			return stream.ReadAsync(buffer, offset, count, cancellationToken);
 		}
 
-		public override Task WriteAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken)
+		public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
 			return stream.WriteAsync(buffer, offset, count, cancellationToken);
 		}
 
-		public override Task FlushAsync(System.Threading.CancellationToken cancellationToken)
+		public override Task FlushAsync(CancellationToken cancellationToken)
 		{
 			return stream.FlushAsync(cancellationToken);
 		}
@@ -102,6 +102,25 @@ namespace UniHttp
 			base.Close();
 		}
 
+		public async Task<string> ReadToAsync(CancellationToken cancellationToken, params char[] stoppers)
+		{
+			return await ReadToAsync(new MemoryStream(), cancellationToken, stoppers);
+		}
+
+		public async Task<string> ReadToAsync(MemoryStream destination, CancellationToken cancellationToken, params char[] stoppers)
+		{
+			byte[] buffer = new byte[1];
+			while(true) {
+				await ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+				destination.WriteByte(buffer[0]);
+				foreach(char stopper in stoppers) {
+					if(buffer[0] == stopper) {
+						return Encoding.UTF8.GetString(destination.ToArray());
+					}
+				}
+			}
+		}
+
 		public string ReadTo(params char[] stoppers)
 		{
 			return ReadTo(new MemoryStream(), stoppers);
@@ -110,38 +129,32 @@ namespace UniHttp
 		public string ReadTo(MemoryStream destination, params char[] stoppers)
 		{
 			int readByte;
-			bool done = false;
-
-			while(!done) {
+			while(true) {
 				readByte = ReadByte();
-				destination.WriteByte((byte)readByte);
 				if(readByte == -1) {
 					break;
 				}
+				destination.WriteByte((byte)readByte);
 				foreach(char stopper in stoppers) {
 					if(readByte == stopper) {
-						done = true;
-						break;
+						return Encoding.UTF8.GetString(destination.ToArray());
 					}
 				}
 			}
-			return Encoding.UTF8.GetString(destination.ToArray());
+			return null;
 		}
 
 		public void SkipTo(params char[] stoppers)
 		{
 			int readByte;
-			bool done = false;
-
-			while(!done) {
+			while(true) {
 				readByte = ReadByte();
 				if(readByte == -1) {
 					break;
 				}
 				foreach(char stopper in stoppers) {
 					if(readByte == stopper) {
-						done = true;
-						break;
+						return;
 					}
 				}
 			}
@@ -153,11 +166,8 @@ namespace UniHttp
 			long remainingBytes = count;
 			int readBytes = 0;
 			while(remainingBytes > 0) {
-				if(cancellationToken.IsCancellationRequested) {
-					cancellationToken.ThrowIfCancellationRequested();
-				}
-				readBytes = await ReadAsync(buffer, 0, (int)Math.Min(buffer.LongLength, remainingBytes), cancellationToken);
-				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken);
+				readBytes = await ReadAsync(buffer, 0, (int)Math.Min(buffer.LongLength, remainingBytes), cancellationToken).ConfigureAwait(false);
+				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken).ConfigureAwait(false);
 				remainingBytes -= readBytes;
 
 				if(progress != null) {
@@ -172,9 +182,6 @@ namespace UniHttp
 			int readBytes = 0;
 			while((readBytes = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
 			{
-				if(cancellationToken.IsCancellationRequested) {
-					cancellationToken.ThrowIfCancellationRequested();
-				}
 				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken);
 			}
 		}

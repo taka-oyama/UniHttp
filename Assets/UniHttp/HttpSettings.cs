@@ -14,7 +14,7 @@ namespace UniHttp
 		public bool useCookies = true;
 		public bool useCache = true;
 
-		public int maxConcurrentRequests = 1;
+		public int maxConcurrentRequests = 4;
 		public TimeSpan keepAliveTimeout = TimeSpan.FromSeconds(10f);
 
 		public string dataDirectory;
