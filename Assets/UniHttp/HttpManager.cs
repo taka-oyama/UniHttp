@@ -15,7 +15,7 @@ namespace UniHttp
 		StreamPool streamPool;
 		Messenger messenger;
 
-		List<DispatchInfo> ongoingRequests;
+		List<DispatchInfo> processingRequests;
 		Queue<DispatchInfo> pendingRequests;
 
 		public static HttpManager Initalize(HttpSettings httpSettings = null, bool dontDestroyOnLoad = true)
@@ -34,7 +34,7 @@ namespace UniHttp
 			return go.AddComponent<HttpManager>().Setup(httpSettings);
 		}
 
-		public HttpManager Setup(HttpSettings httpSettings = null)
+		HttpManager Setup(HttpSettings httpSettings = null)
 		{
 			this.settings = (httpSettings ?? new HttpSettings()).FillWithDefaults();
 
@@ -46,7 +46,7 @@ namespace UniHttp
 			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
 			this.messenger = new Messenger(settings, streamPool, cacheHandler, cookieJar);
 
-			this.ongoingRequests = new List<DispatchInfo>();
+			this.processingRequests = new List<DispatchInfo>();
 			this.pendingRequests = new Queue<DispatchInfo>();
 
 			UserAgent.Build();
@@ -75,15 +75,15 @@ namespace UniHttp
 				return;
 			}
 
-			if(ongoingRequests.Count >= settings.maxConcurrentRequests) {
+			if(processingRequests.Count >= settings.maxConcurrentRequests) {
 				return;
 			}
 
 			DispatchInfo info = pendingRequests.Dequeue();
 			if(!info.IsDisposed) {
-				ongoingRequests.Add(info);
+				processingRequests.Add(info);
 				HttpResponse response = await messenger.SendAsync(info.request, info.downloadProgress, info.cancellationToken);
-				ongoingRequests.Remove(info);
+				processingRequests.Remove(info);
 				info.SetResult(response);
 			}
 
