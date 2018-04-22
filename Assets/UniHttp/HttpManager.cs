@@ -55,34 +55,34 @@ namespace UniHttp
 			return this;
 		}
 
-		public async Task<HttpResponse> DeleteAsync(Uri uri, IHttpData data = null, Progress progress = null)
+		public async Task<HttpResponse> DeleteAsync(Uri uri, IHttpData data = null)
 		{
-			return await SendAsync(new HttpRequest(HttpMethod.DELETE, uri, data), progress);
+			return await SendAsync(new HttpRequest(HttpMethod.DELETE, uri, data));
 		}
 
-		public async Task<HttpResponse> GetAsync(Uri uri, HttpQuery query = null, Progress progress = null)
+		public async Task<HttpResponse> GetAsync(Uri uri, HttpQuery query = null)
 		{
-			return await SendAsync(new HttpRequest(HttpMethod.GET, uri, query), progress);
+			return await SendAsync(new HttpRequest(HttpMethod.GET, uri, query));
 		}
 
-		public async Task<HttpResponse> PatchAsync(Uri uri, IHttpData data = null, Progress progress = null)
+		public async Task<HttpResponse> PatchAsync(Uri uri, IHttpData data = null)
 		{
-			return await SendAsync(new HttpRequest(HttpMethod.PATCH, uri, data), progress);
+			return await SendAsync(new HttpRequest(HttpMethod.PATCH, uri, data));
 		}
 
-		public async Task<HttpResponse> PostAsync(Uri uri, IHttpData data = null, Progress progress = null)
+		public async Task<HttpResponse> PostAsync(Uri uri, IHttpData data = null)
 		{
-			return await SendAsync(new HttpRequest(HttpMethod.POST, uri, data), progress);
+			return await SendAsync(new HttpRequest(HttpMethod.POST, uri, data));
 		}
 
-		public async Task<HttpResponse> PutAsync(Uri uri, IHttpData data = null, Progress progress = null)
+		public async Task<HttpResponse> PutAsync(Uri uri, IHttpData data = null)
 		{
-			return await SendAsync(new HttpRequest(HttpMethod.PUT, uri, data), progress);
+			return await SendAsync(new HttpRequest(HttpMethod.PUT, uri, data));
 		}
 
-		public async Task<HttpResponse> SendAsync(HttpRequest request, Progress progress = null)
+		public async Task<HttpResponse> SendAsync(HttpRequest request)
 		{
-			DispatchInfo info = new DispatchInfo(request, progress);
+			DispatchInfo info = new DispatchInfo(request);
 			pendingRequests.Enqueue(info);
 			#pragma warning disable CS4014
 			TransmitIfPossibleAsync();
@@ -108,7 +108,7 @@ namespace UniHttp
 			DispatchInfo info = pendingRequests.Dequeue();
 			if(!info.IsDisposed) {
 				processingRequests.Add(info);
-				HttpResponse response = await messenger.SendAsync(info.request, info.downloadProgress, info.cancellationToken);
+				HttpResponse response = await messenger.SendAsync(info.request, info.cancellationToken);
 				processingRequests.Remove(info);
 				info.SetResult(response);
 			}

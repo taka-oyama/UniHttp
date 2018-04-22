@@ -30,7 +30,7 @@ namespace UniHttp
 			this.responseHandler = new ResponseHandler(cookieJar, cacheHandler);
 		}
 
-		internal async Task<HttpResponse> SendAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)
+		internal async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
 		{
 			HttpResponse response = null;
 			DateTime then = DateTime.Now;
@@ -44,8 +44,8 @@ namespace UniHttp
 					LogRequest(request);
 
 					response = IsCacheAvailable(request)
-						? await GetResponseFromCacheAsync(request, progress, cancellationToken)
-						: await GetResponseFromSocketAsync(request, progress, cancellationToken);
+						? await GetResponseFromCacheAsync(request, cancellationToken)
+						: await GetResponseFromSocketAsync(request, cancellationToken);
 
 					response.Duration = DateTime.Now - then;
 
@@ -62,17 +62,17 @@ namespace UniHttp
 			});
 		}
 
-		async Task<HttpResponse> GetResponseFromCacheAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)
+		async Task<HttpResponse> GetResponseFromCacheAsync(HttpRequest request, CancellationToken cancellationToken)
 		{
 			try {
-				return await responseHandler.ProcessAsync(request, request.Cache, progress, cancellationToken);
+				return await responseHandler.ProcessAsync(request, request.Cache, cancellationToken);
 			}
 			catch(IOException exception) {
 				return responseHandler.Process(request, exception);
 			}
 		}
 
-		async Task<HttpResponse> GetResponseFromSocketAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)
+		async Task<HttpResponse> GetResponseFromSocketAsync(HttpRequest request, CancellationToken cancellationToken)
 		{
 			HttpStream stream = null;
 			HttpResponse response = null;
@@ -80,7 +80,7 @@ namespace UniHttp
 			try {
 				stream = await streamPool.CheckOutAsync(request);
 				await requestHandler.SendAsync(request, stream, cancellationToken);
-				response = await responseHandler.ProcessAsync(request, stream, progress, cancellationToken);
+				response = await responseHandler.ProcessAsync(request, stream, cancellationToken);
 			}
 			catch(SocketException exception) {
 				response = responseHandler.Process(request, exception);
@@ -137,7 +137,7 @@ namespace UniHttp
 				}
 			}
 			request.Headers.Remove(HeaderField.Host);
-			return new HttpRequest(method, uri, null, request.Data, request.Headers);
+			return new HttpRequest(uri, request);
 		}
 	}
 }

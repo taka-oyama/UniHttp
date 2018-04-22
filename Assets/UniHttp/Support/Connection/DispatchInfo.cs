@@ -11,17 +11,15 @@ namespace UniHttp
 		readonly CancellationTokenSource cancellationTokenSource;
 		readonly internal CancellationToken cancellationToken;
 		readonly internal TaskCompletionSource<HttpResponse> taskCompletion;
-		readonly internal Progress downloadProgress;
 
 		public bool IsDisposed { get; private set; }
 
-		internal DispatchInfo(HttpRequest request, Progress downloadProgress = null)
+		internal DispatchInfo(HttpRequest request)
 		{
 			this.request = request;
 			this.taskCompletion = new TaskCompletionSource<HttpResponse>();
 			this.cancellationTokenSource = new CancellationTokenSource();
 			this.cancellationToken = cancellationTokenSource.Token;
-			this.downloadProgress = downloadProgress;
 			this.IsDisposed = false;
 		}
 

@@ -11,20 +11,31 @@ namespace UniHttp
 		public string Version { get { return "1.1"; } }
 		public RequestHeaders Headers { get; }
 		public IHttpData Data { get; }
+		public Progress Progress { get; }
 		public HttpSettings Settings { get; }
 		internal CacheMetadata Cache;
 
-		public HttpRequest(HttpMethod method, Uri uri) : this(method, uri, null, null, null) {}
-		public HttpRequest(HttpMethod method, Uri uri, IHttpData data) : this(method, uri, null, data, null) {}
-		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query) : this(method, uri, query, null, null) { }
-		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query, IHttpData data) : this(method, uri, query, data, null) {}
-		internal HttpRequest(HttpMethod method, Uri uri, HttpQuery query, IHttpData data, RequestHeaders headers)
+		public HttpRequest(HttpMethod method, Uri uri) : this(method, uri, null, null) {}
+		public HttpRequest(HttpMethod method, Uri uri, IHttpData data) : this(method, uri, null, data) {}
+		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query) : this(method, uri, query, null) { }
+		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query, IHttpData data)
 		{
 			this.Method = method;
 			this.Uri = ConstructUri(uri, query);
-			this.Headers = headers ?? new RequestHeaders();
+			this.Headers = new RequestHeaders();
 			this.Data = data;
+			this.Progress = new Progress();
 			this.Settings = new HttpSettings();
+		}
+
+		internal HttpRequest(Uri redirectUri, HttpRequest baseRequest)
+		{
+			this.Method = baseRequest.Method;
+			this.Uri = redirectUri;
+			this.Headers = baseRequest.Headers;
+			this.Data = baseRequest.Data;
+			this.Progress = baseRequest.Progress;
+			this.Settings = baseRequest.Settings;
 		}
 
 		internal byte[] ToBytes()

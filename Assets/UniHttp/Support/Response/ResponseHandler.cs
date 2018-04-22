@@ -23,7 +23,7 @@ namespace UniHttp
 			this.cacheHandler = cacheHandler;
 		}
 
-		internal async Task<HttpResponse> ProcessAsync(HttpRequest request, HttpStream source, Progress progress, CancellationToken cancellationToken)
+		internal async Task<HttpResponse> ProcessAsync(HttpRequest request, HttpStream source, CancellationToken cancellationToken)
 		{
 			HttpResponse response = new HttpResponse(request);
 			response.HttpVersion = (await source.ReadToAsync(cancellationToken, SPACE)).TrimEnd(SPACE);
@@ -35,20 +35,20 @@ namespace UniHttp
 				response.Headers.Append(name, valuesStr);
 				name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
 			}
-			response.MessageBody = await BuildMessageBody(response, source, progress, cancellationToken);
+			response.MessageBody = await BuildMessageBody(response, source, cancellationToken);
 			ProcessCookie(response);
 			ProcessCache(response);
 			return response;
 		}
 
-		internal async Task<HttpResponse> ProcessAsync(HttpRequest request, CacheMetadata cache, Progress progress, CancellationToken cancellationToken)
+		internal async Task<HttpResponse> ProcessAsync(HttpRequest request, CacheMetadata cache, CancellationToken cancellationToken)
 		{
 			HttpResponse response = new HttpResponse(request);
 			response.HttpVersion = "HTTP/1.1";
 			response.StatusCode = 200;
 			response.StatusPhrase = "OK (cache)";
 			response.Headers.Append(HeaderField.ContentType, cache.contentType);
-			response.MessageBody = await BuildMessageBodyFromCacheAsync(response, progress, cancellationToken);
+			response.MessageBody = await BuildMessageBodyFromCacheAsync(response, cancellationToken);
 			return response;
 		}
 
@@ -63,23 +63,24 @@ namespace UniHttp
 			return response;
 		}
 
-		Task<byte[]> BuildMessageBody(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
+		Task<byte[]> BuildMessageBody(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
 		{
 			if(response.StatusCode == StatusCode.NotModified) {
-				return BuildMessageBodyFromCacheAsync(response, progress, cancellationToken);
+				return BuildMessageBodyFromCacheAsync(response, cancellationToken);
 			}
 			if(response.Headers.Contains(HeaderField.TransferEncoding, "chunked")) {
-				return BuildMessageBodyFromChunkedAsync(response, source, progress, cancellationToken);
+				return BuildMessageBodyFromChunkedAsync(response, source, cancellationToken);
 			}
 			if(response.Headers.Contains(HeaderField.ContentLength)) {
-				return BuildMessageBodyFromContentLengthAsync(response, source, progress, cancellationToken);
+				return BuildMessageBodyFromContentLengthAsync(response, source, cancellationToken);
 			}
 			throw new Exception("Could not determine how to read message body!");
 		}
 
-		async Task<byte[]> BuildMessageBodyFromCacheAsync(HttpResponse response, Progress progress, CancellationToken cancellationToken)
+		async Task<byte[]> BuildMessageBodyFromCacheAsync(HttpResponse response, CancellationToken cancellationToken)
 		{
 			using(CacheStream source = cacheHandler.GetMessageBodyStream(response.Request)) {
+				Progress progress = response.Request.Progress;
 				MemoryStream destination = new MemoryStream();
 				if(source.CanSeek) {
 					progress?.Start(source.BytesRemaining);
@@ -94,8 +95,9 @@ namespace UniHttp
 			}
 		}
 
-		async Task<byte[]> BuildMessageBodyFromChunkedAsync(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
+		async Task<byte[]> BuildMessageBodyFromChunkedAsync(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
 		{
+			Progress progress = response.Request.Progress;
 			MemoryStream destination = new MemoryStream();
 			progress?.Start();
 			long chunkSize = await ReadChunkSizeAsync(source, cancellationToken);
@@ -109,9 +111,10 @@ namespace UniHttp
 			return await DecodeMessageBodyAsync(response, destination, cancellationToken);
 		}
 
-		async Task<byte[]> BuildMessageBodyFromContentLengthAsync(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
+		async Task<byte[]> BuildMessageBodyFromContentLengthAsync(HttpResponse response, HttpStream source, CancellationToken cancellationToken)
 		{
 			long contentLength = long.Parse(response.Headers[HeaderField.ContentLength][0]);
+			Progress progress = response.Request.Progress;
 			MemoryStream destination = new MemoryStream();
 			progress?.Start(contentLength);
 			await source.CopyToAsync(destination, contentLength, cancellationToken, progress);
