@@ -5,32 +5,29 @@ namespace UniHttp
 {
 	public class HttpSettings
 	{
-		public bool appendDefaultUserAgentToRequest = true;
-		public bool allowResponseCompression = true;
-		public bool followRedirects = true;
-		public bool tcpNoDelay = true;
-		public TimeSpan tcpReceiveTimeout = TimeSpan.FromSeconds(30);
-		public TimeSpan tcpSendTimeout = TimeSpan.FromSeconds(30);
-		public bool useCookies = true;
-		public bool useCache = true;
-
-		public int maxConcurrentRequests = 4;
-		public TimeSpan keepAliveTimeout = TimeSpan.FromSeconds(10f);
-
-		public string dataDirectory;
+		public bool? appendUserAgentToRequest;
+		public bool? allowCompressedResponse;
+		public bool? followRedirects;
 		public HttpProxy proxy;
-		public ISslVerifier sslVerifier;
-		public IFileHandler fileHandler;
-		public ILogger logger;
+		public bool? tcpNoDelay;
+		public TimeSpan? tcpReceiveTimeout;
+		public TimeSpan? tcpSendTimeout;
+		public TimeSpan? keepAliveTimeout;
+		public bool? useCookies;
+		public bool? useCache;
 
-		internal HttpSettings FillWithDefaults()
+		internal void FillWith(HttpSettings source)
 		{
-			this.dataDirectory = dataDirectory ?? Application.temporaryCachePath;
-			this.sslVerifier = sslVerifier ?? new DefaultSslVerifier();
-			this.fileHandler = fileHandler ?? new DefaultFileHandler();
-			this.logger = logger ?? Debug.unityLogger;
-
-			return this;
+			allowCompressedResponse = allowCompressedResponse ?? source.allowCompressedResponse;
+			appendUserAgentToRequest = appendUserAgentToRequest ?? source.appendUserAgentToRequest;
+			followRedirects = followRedirects ?? source.followRedirects;
+			keepAliveTimeout = keepAliveTimeout ?? source.keepAliveTimeout;
+			proxy = proxy ?? source.proxy;
+			tcpNoDelay = tcpNoDelay ?? source.tcpNoDelay;
+			tcpReceiveTimeout = tcpReceiveTimeout ?? source.tcpReceiveTimeout;
+			tcpSendTimeout = tcpSendTimeout ?? source.tcpSendTimeout;
+			useCache = useCache ?? source.useCache;
+			useCookies = useCookies ?? source.useCookies;
 		}
 	}
 }

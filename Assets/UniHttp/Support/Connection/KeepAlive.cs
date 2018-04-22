@@ -7,15 +7,26 @@ internal sealed class KeepAlive
 	internal int currentCount;
 	internal int maxCount;
 
-	internal KeepAlive(DateTime expiresAt, int maxCount = int.MaxValue)
+	internal void Reset(DateTime newExpiresAt, int newMaxCount = 0)
 	{
-		this.expiresAt = expiresAt;
+		this.expiresAt = newExpiresAt;
 		this.currentCount = 0;
-		this.maxCount = maxCount;
+		this.maxCount = newMaxCount;
 	}
 
 	internal bool Expired
 	{
-		get { return currentCount >= maxCount || DateTime.Now >= expiresAt; }
+		get
+		{
+			if(maxCount != 0 && currentCount >= maxCount) {
+				return true;
+			}
+
+			if(DateTime.Now >= expiresAt) {
+				return true;
+			}
+
+			return false;
+		}
 	}
 }

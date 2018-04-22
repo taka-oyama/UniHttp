@@ -88,9 +88,7 @@ namespace UniHttp
 				return new CacheStream(stream, mutex);
 			}
 			catch(Exception exception) {
-				if(stream != null) {
-					stream.Dispose();
-				}
+				stream?.Dispose();
 				mutex.ReleaseMutex();
 				throw exception;
 			}

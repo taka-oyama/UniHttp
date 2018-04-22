@@ -160,6 +160,16 @@ namespace UniHttp
 			}
 		}
 
+		public async Task SendToAsync(Stream source, CancellationToken cancellationToken, Progress progress = null)
+		{
+			byte[] buffer = new byte[bufferSize];
+			int writeSize = 0;
+			while((writeSize = source.Read(buffer, 0, bufferSize)) != 0) {
+				await WriteAsync(buffer, 0, writeSize, cancellationToken).ConfigureAwait(false);
+				progress?.Report(progress.Current + writeSize);
+			}
+		}
+
 		public async Task CopyToAsync(Stream destination, long count, CancellationToken cancellationToken, Progress progress = null)
 		{
 			byte[] buffer = new byte[bufferSize];
@@ -169,10 +179,7 @@ namespace UniHttp
 				readBytes = await ReadAsync(buffer, 0, (int)Math.Min(buffer.LongLength, remainingBytes), cancellationToken).ConfigureAwait(false);
 				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken).ConfigureAwait(false);
 				remainingBytes -= readBytes;
-
-				if(progress != null) {
-					progress.Report(progress.Read + readBytes);
-				}
+				progress?.Report(progress.Current + readBytes);
 			}
 		}
 

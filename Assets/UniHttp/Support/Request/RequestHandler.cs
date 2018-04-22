@@ -4,18 +4,17 @@ using System.Text;
 using System;
 using System.Threading.Tasks;
 using System.Threading;
+using System.IO;
 
 namespace UniHttp
 {
 	internal sealed class RequestHandler
 	{
-		readonly HttpSettings settings;
 		readonly CookieJar cookieJar;
 		readonly CacheHandler cacheHandler;
 
-		internal RequestHandler(HttpSettings settings, CookieJar cookieJar, CacheHandler cacheHandler)
+		internal RequestHandler(CookieJar cookieJar, CacheHandler cacheHandler)
 		{
-			this.settings = settings;
 			this.cookieJar = cookieJar;
 			this.cacheHandler = cacheHandler;
 		}
@@ -32,25 +31,23 @@ namespace UniHttp
 			 * httpManager.Send(request);
 			 */
 			lock(request) {
-				request.useProxy = settings.proxy != null;
-
 				if(request.Headers.NotContains(HeaderField.Host)) {
 					request.Headers.Add(HeaderField.Host, GenerateHost(request.Uri));
 				}
-				if(settings.allowResponseCompression && request.Headers.NotContains(HeaderField.AcceptEncoding)) {
+				if(request.Settings.allowCompressedResponse.Value && request.Headers.NotContains(HeaderField.AcceptEncoding)) {
 					request.Headers.Add(HeaderField.AcceptEncoding, "gzip");
 				}
-				if(settings.appendDefaultUserAgentToRequest && request.Headers.NotContains(HeaderField.UserAgent)) {
+				if(request.Settings.appendUserAgentToRequest.Value && request.Headers.NotContains(HeaderField.UserAgent)) {
 					request.Headers.Add(HeaderField.UserAgent, UserAgent.value);
 				}
-				if(settings.useCookies) {
+				if(request.Settings.useCookies.Value) {
 					AddCookiesToRequest(request);
 				}
-				if(!settings.useCache) {
+				if(!request.Settings.useCache.Value) {
 					request.Headers.AddOrReplace(HeaderField.CacheControl, "no-store");
 				}
 				if(cacheHandler.IsCachable(request)) {
-					request.cache = cacheHandler.FindMetadata(request);
+					request.Cache = cacheHandler.FindMetadata(request);
 					AddCacheDirectiveToRequest(request);
 				}
 				if(request.Data != null) {
@@ -66,11 +63,11 @@ namespace UniHttp
 
         internal async Task SendAsync(HttpRequest request, HttpStream stream, CancellationToken cancellationToken)
 		{
-			byte[] data;
+			MemoryStream source;
 			lock(request) {
-				data = request.ToBytes();
+				source = new MemoryStream(request.ToBytes());
 			}
-			await stream.WriteAsync(data, 0, data.Length, cancellationToken).ConfigureAwait(false);
+			await stream.SendToAsync(source, cancellationToken).ConfigureAwait(false);
 			await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
 		}
 

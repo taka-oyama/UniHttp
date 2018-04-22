@@ -21,7 +21,7 @@ namespace UniHttp
 			this.taskCompletion = new TaskCompletionSource<HttpResponse>();
 			this.cancellationTokenSource = new CancellationTokenSource();
 			this.cancellationToken = cancellationTokenSource.Token;
-			this.downloadProgress = downloadProgress ?? new Progress();
+			this.downloadProgress = downloadProgress;
 			this.IsDisposed = false;
 		}
 

@@ -6,7 +6,7 @@ namespace UniHttp
 	{
 		public ProgressState State { get; private set; }
 
-		public long Read { get; private set; }
+		public long Current { get; private set; }
 
 		public long? Total { get; private set; }
 
@@ -18,7 +18,7 @@ namespace UniHttp
 				}
 
 				if(Total.HasValue) {
-					return (float)Read / (float)Total.Value;
+					return (float)Current / (float)Total.Value;
 				}
 
 				return 0f;
@@ -38,7 +38,7 @@ namespace UniHttp
 
 		public void Report(long value)
 		{
-			this.Read = value;
+			this.Current = value;
 		}
 
 		internal void Finialize()
@@ -48,13 +48,13 @@ namespace UniHttp
 
 		internal void Reset()
 		{
-			this.Read = 0;
+			this.Current = 0;
 			this.Total = null;
 			this.State = ProgressState.Pending;
 		}
 	}
 
-	public enum ProgressState
+	public enum ProgressState : byte
 	{
 		Pending,
 		InProgress,

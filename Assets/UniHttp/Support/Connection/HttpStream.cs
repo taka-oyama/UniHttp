@@ -3,6 +3,8 @@ using System.Net.Sockets;
 using System.Net.Security;
 using UnityEngine;
 using System.Threading.Tasks;
+using System.Threading;
+using System.IO;
 
 namespace UniHttp
 {
@@ -12,20 +14,25 @@ namespace UniHttp
 		readonly internal KeepAlive keepAlive;
 		readonly Uri uri;
 		readonly TcpClient tcpClient;
-		readonly ISslVerifier sslVerifier;
+		ISslVerifier sslVerifier;
 		bool isConnected;
 
-		internal HttpStream(Uri uri, HttpSettings settings) : base(null)
+		internal HttpStream(Uri uri, ISslVerifier sslVerifier) : base(null)
 		{
 			this.baseUrl = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
-			this.keepAlive = new KeepAlive(DateTime.Now + settings.keepAliveTimeout);
+			this.keepAlive = new KeepAlive();
 			this.uri = uri;
 			this.tcpClient = new TcpClient();
-			this.sslVerifier = settings.sslVerifier;
+			this.sslVerifier = sslVerifier;
 			this.isConnected = false;
-			this.tcpClient.NoDelay = settings.tcpNoDelay;
-			this.tcpClient.SendTimeout = (int) settings.tcpSendTimeout.TotalMilliseconds;
-			this.tcpClient.ReceiveTimeout = (int) settings.tcpReceiveTimeout.TotalMilliseconds;
+		}
+
+		internal void UpdateSettings(HttpSettings settings)
+		{
+			keepAlive.Reset(DateTime.Now + settings.keepAliveTimeout.Value);
+			tcpClient.NoDelay = settings.tcpNoDelay.Value;
+			tcpClient.SendTimeout = (int)settings.tcpSendTimeout.Value.TotalMilliseconds;
+			tcpClient.ReceiveTimeout = (int)settings.tcpReceiveTimeout.Value.TotalMilliseconds;
 		}
 
 		internal void Connect()

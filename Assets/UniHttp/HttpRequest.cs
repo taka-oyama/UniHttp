@@ -6,29 +6,25 @@ namespace UniHttp
 {
 	public sealed class HttpRequest
 	{
-		public HttpMethod Method { get; private set; } 
-		public Uri Uri { get; private set; }
+		public HttpMethod Method { get; }
+		public Uri Uri { get; }
 		public string Version { get { return "1.1"; } }
-		public RequestHeaders Headers { get; private set; }
-		public IHttpData Data { get; private set; }
-
-		internal bool useProxy;
-		internal CacheMetadata cache;
+		public RequestHeaders Headers { get; }
+		public IHttpData Data { get; }
+		public HttpSettings Settings { get; }
+		internal CacheMetadata Cache;
 
 		public HttpRequest(HttpMethod method, Uri uri) : this(method, uri, null, null, null) {}
-		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query) : this(method, uri, query, null, null) {}
-		public HttpRequest(HttpMethod method, Uri uri, IHttpData data) : this(method, uri, null, null, data) {}
-		public HttpRequest(HttpMethod method, Uri uri, RequestHeaders headers) : this(method, uri, null, headers, null) {}
-		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query, IHttpData data) : this(method, uri, query, null, data) {}
-		public HttpRequest(HttpMethod method, Uri uri, RequestHeaders headers, IHttpData data) : this(method, uri, null, headers, data) {}
-		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query, RequestHeaders headers) : this(method, uri, query, headers, null) {}
-		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query, RequestHeaders headers, IHttpData data)
+		public HttpRequest(HttpMethod method, Uri uri, IHttpData data) : this(method, uri, null, data, null) {}
+		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query) : this(method, uri, query, null, null) { }
+		public HttpRequest(HttpMethod method, Uri uri, HttpQuery query, IHttpData data) : this(method, uri, query, data, null) {}
+		internal HttpRequest(HttpMethod method, Uri uri, HttpQuery query, IHttpData data, RequestHeaders headers)
 		{
 			this.Method = method;
 			this.Uri = ConstructUri(uri, query);
 			this.Headers = headers ?? new RequestHeaders();
 			this.Data = data;
-			this.useProxy = false;
+			this.Settings = new HttpSettings();
 		}
 
 		internal byte[] ToBytes()
@@ -74,7 +70,7 @@ namespace UniHttp
 			StringBuilder sb = new StringBuilder();
 			sb.Append(Method.ToString().ToUpper());
 			sb.Append(Constant.Space);
-			if(useProxy) {
+			if(Settings.proxy != null) {
 				sb.Append(Uri.Scheme + Uri.SchemeDelimiter + Uri.Authority);
 			}
 			sb.Append(Uri.PathAndQuery);

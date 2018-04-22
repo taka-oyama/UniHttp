@@ -2,23 +2,24 @@
 using System.IO;
 using System.Collections.Generic;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace UniHttp
 {
 	public sealed class HttpManager : MonoBehaviour
 	{
-		HttpSettings settings;
+		HttpContext context;
 		CookieJar cookieJar;
 		CacheHandler cacheHandler;
 		StreamPool streamPool;
 		Messenger messenger;
 
+		float deltaTimer = 0f;
+
 		List<DispatchInfo> processingRequests;
 		Queue<DispatchInfo> pendingRequests;
 
-		public static HttpManager Initalize(HttpSettings httpSettings = null, bool dontDestroyOnLoad = true)
+		public static HttpManager Initalize(HttpContext httpContext = null, bool dontDestroyOnLoad = true)
 		{
 			string name = typeof(HttpManager).FullName;
 
@@ -31,20 +32,20 @@ namespace UniHttp
 				DontDestroyOnLoad(go);
 			}
 
-			return go.AddComponent<HttpManager>().Setup(httpSettings);
+			return go.AddComponent<HttpManager>().Setup(httpContext);
 		}
 
-		HttpManager Setup(HttpSettings httpSettings = null)
+		HttpManager Setup(HttpContext httpContext = null)
 		{
-			this.settings = (httpSettings ?? new HttpSettings()).FillWithDefaults();
+			this.context = (httpContext ?? new HttpContext()).FillWithDefaults();
 
-			string dataPath = string.Concat(settings.dataDirectory, "/", GetType().Namespace);
+			string dataPath = string.Concat(context.dataDirectory, "/", GetType().Namespace);
 			Directory.CreateDirectory(dataPath);
 
-			this.streamPool = new StreamPool(settings);
-			this.cookieJar = new CookieJar(settings.fileHandler, dataPath);
-			this.cacheHandler = new CacheHandler(settings.fileHandler, dataPath);
-			this.messenger = new Messenger(settings, streamPool, cacheHandler, cookieJar);
+			this.streamPool = new StreamPool(context.sslVerifier);
+			this.cookieJar = new CookieJar(context.fileHandler, dataPath);
+			this.cacheHandler = new CacheHandler(context.fileHandler, dataPath);
+			this.messenger = new Messenger(context, streamPool, cacheHandler, cookieJar);
 
 			this.processingRequests = new List<DispatchInfo>();
 			this.pendingRequests = new Queue<DispatchInfo>();
@@ -52,6 +53,31 @@ namespace UniHttp
 			UserAgent.Build();
 
 			return this;
+		}
+
+		public async Task<HttpResponse> DeleteAsync(Uri uri, IHttpData data = null, Progress progress = null)
+		{
+			return await SendAsync(new HttpRequest(HttpMethod.DELETE, uri, data), progress);
+		}
+
+		public async Task<HttpResponse> GetAsync(Uri uri, HttpQuery query = null, Progress progress = null)
+		{
+			return await SendAsync(new HttpRequest(HttpMethod.GET, uri, query), progress);
+		}
+
+		public async Task<HttpResponse> PatchAsync(Uri uri, IHttpData data = null, Progress progress = null)
+		{
+			return await SendAsync(new HttpRequest(HttpMethod.PATCH, uri, data), progress);
+		}
+
+		public async Task<HttpResponse> PostAsync(Uri uri, IHttpData data = null, Progress progress = null)
+		{
+			return await SendAsync(new HttpRequest(HttpMethod.POST, uri, data), progress);
+		}
+
+		public async Task<HttpResponse> PutAsync(Uri uri, IHttpData data = null, Progress progress = null)
+		{
+			return await SendAsync(new HttpRequest(HttpMethod.PUT, uri, data), progress);
 		}
 
 		public async Task<HttpResponse> SendAsync(HttpRequest request, Progress progress = null)
@@ -66,7 +92,7 @@ namespace UniHttp
 
 		public void ClearCache()
 		{
-			Directory.Delete(string.Concat(settings.dataDirectory, "/", GetType().Namespace), true);
+			Directory.Delete(string.Concat(context.dataDirectory, "/", GetType().Namespace), true);
 		}
 
 		async Task TransmitIfPossibleAsync()
@@ -75,7 +101,7 @@ namespace UniHttp
 				return;
 			}
 
-			if(processingRequests.Count >= settings.maxConcurrentRequests) {
+			if(processingRequests.Count >= context.maxConcurrentRequests) {
 				return;
 			}
 
@@ -90,6 +116,16 @@ namespace UniHttp
 			#pragma warning disable CS4014
 			TransmitIfPossibleAsync();
 			#pragma warning restore CS4014
+		}
+
+		void Update()
+		{
+			// Update every second
+			deltaTimer += Time.deltaTime;
+			if(deltaTimer >= 1f) {
+				streamPool.CheckExpiredStreams();
+				deltaTimer = 0f;
+			}
 		}
 
 		void Save()

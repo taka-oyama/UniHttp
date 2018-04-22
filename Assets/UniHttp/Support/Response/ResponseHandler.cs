@@ -14,13 +14,11 @@ namespace UniHttp
 		const char CR = '\r';
 		const char LF = '\n';
 
-		readonly HttpSettings settings;
 		readonly CookieJar cookieJar;
 		readonly CacheHandler cacheHandler;
 
-		internal ResponseHandler(HttpSettings settings, CookieJar cookieJar, CacheHandler cacheHandler)
+		internal ResponseHandler(CookieJar cookieJar, CacheHandler cacheHandler)
 		{
-			this.settings = settings;
 			this.cookieJar = cookieJar;
 			this.cacheHandler = cacheHandler;
 		}
@@ -84,14 +82,14 @@ namespace UniHttp
 			using(CacheStream source = cacheHandler.GetMessageBodyStream(response.Request)) {
 				MemoryStream destination = new MemoryStream();
 				if(source.CanSeek) {
-					progress.Start(source.BytesRemaining);
+					progress?.Start(source.BytesRemaining);
 					await source.CopyToAsync(destination, source.BytesRemaining, cancellationToken, progress);
 				}
 				else {
-					progress.Start();
+					progress?.Start();
 					await source.CopyToAsync(destination, cancellationToken);
 				}
-				progress.Finialize();
+				progress?.Finialize();
 				return destination.ToArray();
 			}
 		}
@@ -99,7 +97,7 @@ namespace UniHttp
 		async Task<byte[]> BuildMessageBodyFromChunkedAsync(HttpResponse response, HttpStream source, Progress progress, CancellationToken cancellationToken)
 		{
 			MemoryStream destination = new MemoryStream();
-			progress.Start();
+			progress?.Start();
 			long chunkSize = await ReadChunkSizeAsync(source, cancellationToken);
 			while(chunkSize > 0) {
 				await source.CopyToAsync(destination, chunkSize, cancellationToken, progress);
@@ -107,7 +105,7 @@ namespace UniHttp
 				chunkSize = await ReadChunkSizeAsync(source, cancellationToken);
 			}
 			source.SkipTo(LF);
-			progress.Finialize();
+			progress?.Finialize();
 			return await DecodeMessageBodyAsync(response, destination, cancellationToken);
 		}
 
@@ -115,9 +113,9 @@ namespace UniHttp
 		{
 			long contentLength = long.Parse(response.Headers[HeaderField.ContentLength][0]);
 			MemoryStream destination = new MemoryStream();
-			progress.Start(contentLength);
+			progress?.Start(contentLength);
 			await source.CopyToAsync(destination, contentLength, cancellationToken, progress);
-			progress.Finialize();
+			progress?.Finialize();
 			return await DecodeMessageBodyAsync(response, destination, cancellationToken);
 		}
 
@@ -149,16 +147,16 @@ namespace UniHttp
 
 		void ProcessCookie(HttpResponse response)
 		{
-			if(settings.useCookies) {
+			if(response.Request.Settings.useCookies.Value) {
 				cookieJar.Update(response);
 			}
 		}
 
 		void ProcessCache(HttpResponse response)
 		{
-			if(settings.useCache) {
+			if(response.Request.Settings.useCache.Value) {
 				if(response.StatusCode == StatusCode.NotModified) {
-					response.Headers.Append(HeaderField.ContentType, response.Request.cache.contentType);
+					response.Headers.Append(HeaderField.ContentType, response.Request.Cache.contentType);
 				}
 				if(cacheHandler.IsCachable(response)) {
 					cacheHandler.CacheResponse(response);

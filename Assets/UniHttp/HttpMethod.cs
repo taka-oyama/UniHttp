@@ -1,6 +1,6 @@
 ﻿namespace UniHttp
 {
-	public enum HttpMethod
+	public enum HttpMethod : byte
 	{
 		GET,
 		HEAD,

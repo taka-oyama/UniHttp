@@ -6,11 +6,11 @@ namespace UniHttp
 {
 	public sealed class HttpResponse
 	{
-		public HttpRequest Request { get; private set; }
+		public HttpRequest Request { get; }
 		public string HttpVersion { get; internal set; }
 		public int StatusCode { get; internal set; }
 		public string StatusPhrase { get; internal set; }
-		public ResponseHeaders Headers { get; private set; }
+		public ResponseHeaders Headers { get; }
 		public List<Cookie> Cookies { get; internal set; }
 		public byte[] MessageBody { get; internal set; }
 		public TimeSpan Duration { get; internal set; }

@@ -9,7 +9,7 @@ namespace UniHttp
 {
 	internal class Messenger
 	{
-		readonly HttpSettings settings;
+		readonly HttpContext context;
 		readonly StreamPool streamPool;
 		readonly ResponseHandler responseHandler;
 		readonly RequestHandler requestHandler;
@@ -22,18 +22,20 @@ namespace UniHttp
 			StatusCode.PermanentRedirect,
 		};
 
-		internal Messenger(HttpSettings settings, StreamPool streamPool, CacheHandler cacheHandler, CookieJar cookieJar)
+		internal Messenger(HttpContext context, StreamPool streamPool, CacheHandler cacheHandler, CookieJar cookieJar)
 		{
-			this.settings = settings;
+			this.context = context;
 			this.streamPool = streamPool;
-			this.requestHandler = new RequestHandler(settings, cookieJar, cacheHandler);
-			this.responseHandler = new ResponseHandler(settings, cookieJar, cacheHandler);
+			this.requestHandler = new RequestHandler(cookieJar, cacheHandler);
+			this.responseHandler = new ResponseHandler(cookieJar, cacheHandler);
 		}
 
 		internal async Task<HttpResponse> SendAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)
 		{
 			HttpResponse response = null;
 			DateTime then = DateTime.Now;
+
+			request.Settings.FillWith(context);
 
 			return await Task.Run(async () => {
 				while(true) {
@@ -63,7 +65,7 @@ namespace UniHttp
 		async Task<HttpResponse> GetResponseFromCacheAsync(HttpRequest request, Progress progress, CancellationToken cancellationToken)
 		{
 			try {
-				return await responseHandler.ProcessAsync(request, request.cache, progress, cancellationToken);
+				return await responseHandler.ProcessAsync(request, request.Cache, progress, cancellationToken);
 			}
 			catch(IOException exception) {
 				return responseHandler.Process(request, exception);
@@ -82,11 +84,11 @@ namespace UniHttp
 			}
 			catch(SocketException exception) {
 				response = responseHandler.Process(request, exception);
-				CloseStreamIfExists(stream);
+				stream?.Close();
 			}
 			catch(IOException exception) {
 				response = responseHandler.Process(request, exception);
-				CloseStreamIfExists(stream);
+				stream?.Close();
 			}
 			finally {
 				streamPool.CheckIn(response, stream);
@@ -97,31 +99,24 @@ namespace UniHttp
 
 		bool IsCacheAvailable(HttpRequest request)
 		{
-			return request.cache != null && request.cache.IsFresh;
-		}
-
-		void CloseStreamIfExists(Stream stream)
-		{
-			if(stream != null) {
-				stream.Close();
-			}
+			return request.Cache != null && request.Cache.IsFresh;
 		}
 
 		void LogRequest(HttpRequest request)
 		{
 			lock(request) {
-				settings.logger.Log(request.Uri + Constant.CRLF + request);
+				context.logger.Log(request.Uri + Constant.CRLF + request);
 			}
 		}
 
 		void LogResponse(HttpResponse response)
 		{
-			settings.logger.Log(response.Request.Uri + Constant.CRLF + response);
+			context.logger.Log(response.Request.Uri + Constant.CRLF + response);
 		}
 
 		bool IsRedirect(HttpResponse response)
 		{
-			if(settings.followRedirects) {
+			if(response.Request.Settings.followRedirects.Value) {
 				for(int i = 0; i < statusCodesForRedirect.Length; i++) {
 					if(response.StatusCode == statusCodesForRedirect[i]) {
 						return true;
@@ -142,7 +137,7 @@ namespace UniHttp
 				}
 			}
 			request.Headers.Remove(HeaderField.Host);
-			return new HttpRequest(method, uri, null, request.Headers, request.Data);
+			return new HttpRequest(method, uri, null, request.Data, request.Headers);
 		}
 	}
 }

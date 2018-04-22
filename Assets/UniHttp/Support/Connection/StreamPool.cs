@@ -9,21 +9,22 @@ namespace UniHttp
 	internal sealed class StreamPool
 	{
 		readonly object locker;
-		readonly HttpSettings settings;
+		readonly ISslVerifier sslVerifier;
 		readonly List<HttpStream> unusedStreams;
 		readonly List<HttpStream> usedStreams;
 
-		internal StreamPool(HttpSettings settings)
+		internal StreamPool(ISslVerifier sslVerifier)
 		{
 			this.locker = new object();
-			this.settings = settings;
+			this.sslVerifier = sslVerifier;
 			this.unusedStreams = new List<HttpStream>();
 			this.usedStreams = new List<HttpStream>();
 		}
 
 		internal async Task<HttpStream> CheckOutAsync(HttpRequest request)
 		{
-			string baseUrl = request.Uri.Scheme + Uri.SchemeDelimiter + request.Uri.Authority;
+			Uri uri = request.Settings.proxy?.Uri ?? request.Uri;
+			string baseUrl = uri.Scheme + Uri.SchemeDelimiter + uri.Authority;
 
 			HttpStream stream = null;
 
@@ -38,10 +39,8 @@ namespace UniHttp
 					}
 				}
 
-				if(stream == null) {
-					Uri uri = request.useProxy ? settings.proxy.Uri : request.Uri;
-					stream = new HttpStream(uri, settings);
-				}
+				stream = stream ?? new HttpStream(uri, sslVerifier);
+				stream.UpdateSettings(request.Settings);
 
 				usedStreams.Add(stream);
 			}
