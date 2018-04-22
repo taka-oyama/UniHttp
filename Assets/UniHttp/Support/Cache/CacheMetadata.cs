@@ -15,15 +15,8 @@ namespace UniHttp
 		internal DateTime? expireAt;
 		internal DateTime? lastModified;
 
-		internal bool IsFresh
-		{
-			get { return expireAt > DateTime.Now; }
-		}
-
-		internal bool IsStale
-		{
-			get { return !IsFresh; }
-		}
+		internal bool IsFresh => expireAt > DateTime.Now;
+		internal bool IsStale => !IsFresh;
 
 		internal CacheMetadata()
 		{

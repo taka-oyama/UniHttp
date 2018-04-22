@@ -17,30 +17,17 @@ namespace UniHttp
 			this.bufferSize = bufferSize;
 		}
 
-		public override bool CanRead
-		{
-			get { return stream.CanRead; }
-		}
+		public long BytesRemaining => stream.Length - stream.Position;	
 
-		public override bool CanSeek
-		{
-			get { return stream.CanSeek; }
-		}
+		public override bool CanRead => stream.CanRead;
 
-		public override bool CanWrite
-		{
-			get { return stream.CanTimeout; }
-		}
+		public override bool CanSeek => stream.CanSeek;
 
-		public override long Length
-		{
-			get { return stream.Length; }
-		}
+		public override bool CanTimeout => stream.CanTimeout;
 
-		public long BytesRemaining
-		{
-			get { return stream.Length - stream.Position; }
-		}
+		public override bool CanWrite => stream.CanTimeout;
+
+		public override long Length => stream.Length;
 
 		public override long Position
 		{
@@ -48,44 +35,49 @@ namespace UniHttp
 			set { stream.Position = value; }
 		}
 
-		public override void SetLength(long value)
+		public override int ReadTimeout
 		{
-			stream.SetLength(value);
+			get { return stream.ReadTimeout; }
+			set { stream.ReadTimeout = value; }
 		}
 
-		public override int Read(byte[] buffer, int offset, int count)
+		public override int WriteTimeout
 		{
-			return stream.Read(buffer, offset, count);
+			get { return stream.WriteTimeout; }
+			set { stream.WriteTimeout = value; }
 		}
 
-		public override long Seek(long offset, SeekOrigin origin)
+		public override void Close()
 		{
-			return stream.Seek(offset, origin);
+			stream.Close();
+			base.Close();
 		}
 
-		public override void Write(byte[] buffer, int offset, int count)
+		public async override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
 		{
-			stream.Write(buffer, offset, count);
+			await stream.CopyToAsync(destination, bufferSize, cancellationToken).ConfigureAwait(false);
 		}
 
-		public override void Flush()
+		public async Task CopyToAsync(Stream destination, long count, CancellationToken cancellationToken, Progress progress = null)
 		{
-			stream.Flush();
+			byte[] buffer = new byte[bufferSize];
+			long remainingBytes = count;
+			int readBytes = 0;
+			while(remainingBytes > 0) {
+				readBytes = await ReadAsync(buffer, 0, (int)Math.Min(buffer.LongLength, remainingBytes), cancellationToken);
+				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken).ConfigureAwait(false);
+				remainingBytes -= readBytes;
+				progress?.Report(progress.Current + readBytes);
+			}
 		}
 
-		public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+		public async Task CopyToAsync(Stream destination, CancellationToken cancellationToken)
 		{
-			return stream.ReadAsync(buffer, offset, count, cancellationToken);
-		}
-
-		public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-		{
-			return stream.WriteAsync(buffer, offset, count, cancellationToken);
-		}
-
-		public override Task FlushAsync(CancellationToken cancellationToken)
-		{
-			return stream.FlushAsync(cancellationToken);
+			byte[] buffer = new byte[bufferSize];
+			int readBytes = 0;
+			while((readBytes = await ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0) {
+				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken).ConfigureAwait(false);
+			}
 		}
 
 		protected override void Dispose(bool disposing)
@@ -96,29 +88,29 @@ namespace UniHttp
 			base.Dispose(disposing);
 		}
 
-		public override void Close()
+		public override void Flush()
 		{
-			stream.Close();
-			base.Close();
+			stream.Flush();
 		}
 
-		public async Task<string> ReadToAsync(CancellationToken cancellationToken, params char[] stoppers)
+		public async override Task FlushAsync(CancellationToken cancellationToken)
 		{
-			return await ReadToAsync(new MemoryStream(), cancellationToken, stoppers);
+			await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public async Task<string> ReadToAsync(MemoryStream destination, CancellationToken cancellationToken, params char[] stoppers)
+		public override int Read(byte[] buffer, int offset, int count)
 		{
-			byte[] buffer = new byte[1];
-			while(true) {
-				await ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-				destination.WriteByte(buffer[0]);
-				foreach(char stopper in stoppers) {
-					if(buffer[0] == stopper) {
-						return Encoding.UTF8.GetString(destination.ToArray());
-					}
-				}
-			}
+			return stream.Read(buffer, offset, count);
+		}
+
+		public async override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+		{
+			return await stream.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
+		}
+
+		public override int ReadByte()
+		{
+			return stream.ReadByte();
 		}
 
 		public string ReadTo(params char[] stoppers)
@@ -144,6 +136,45 @@ namespace UniHttp
 			return null;
 		}
 
+		public async Task<string> ReadToAsync(CancellationToken cancellationToken, params char[] stoppers)
+		{
+			return await ReadToAsync(new MemoryStream(), cancellationToken, stoppers);
+		}
+
+		public async Task<string> ReadToAsync(MemoryStream destination, CancellationToken cancellationToken, params char[] stoppers)
+		{
+			byte[] buffer = new byte[1];
+			while(true) {
+				await ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+				destination.WriteByte(buffer[0]);
+				foreach(char stopper in stoppers) {
+					if(buffer[0] == stopper) {
+						return Encoding.UTF8.GetString(destination.ToArray());
+					}
+				}
+			}
+		}
+
+		public override long Seek(long offset, SeekOrigin origin)
+		{
+			return stream.Seek(offset, origin);
+		}
+
+		public override void SetLength(long value)
+		{
+			stream.SetLength(value);
+		}
+
+		public async Task SendToAsync(Stream source, CancellationToken cancellationToken, Progress progress = null)
+		{
+			byte[] buffer = new byte[bufferSize];
+			int writeSize = 0;
+			while((writeSize = await source.ReadAsync(buffer, 0, bufferSize).ConfigureAwait(false)) != 0) {
+				await WriteAsync(buffer, 0, writeSize, cancellationToken);
+				progress?.Report(progress.Current + writeSize);
+			}
+		}
+
 		public void SkipTo(params char[] stoppers)
 		{
 			int readByte;
@@ -160,37 +191,19 @@ namespace UniHttp
 			}
 		}
 
-		public async Task SendToAsync(Stream source, CancellationToken cancellationToken, Progress progress = null)
+		public override void Write(byte[] buffer, int offset, int count)
 		{
-			byte[] buffer = new byte[bufferSize];
-			int writeSize = 0;
-			while((writeSize = source.Read(buffer, 0, bufferSize)) != 0) {
-				await WriteAsync(buffer, 0, writeSize, cancellationToken).ConfigureAwait(false);
-				progress?.Report(progress.Current + writeSize);
-			}
+			stream.Write(buffer, offset, count);
 		}
 
-		public async Task CopyToAsync(Stream destination, long count, CancellationToken cancellationToken, Progress progress = null)
+		public async override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
-			byte[] buffer = new byte[bufferSize];
-			long remainingBytes = count;
-			int readBytes = 0;
-			while(remainingBytes > 0) {
-				readBytes = await ReadAsync(buffer, 0, (int)Math.Min(buffer.LongLength, remainingBytes), cancellationToken).ConfigureAwait(false);
-				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken).ConfigureAwait(false);
-				remainingBytes -= readBytes;
-				progress?.Report(progress.Current + readBytes);
-			}
+			await stream.WriteAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
 		}
 
-		public async Task CopyToAsync(Stream destination, CancellationToken cancellationToken)
+		public override void WriteByte(byte value)
 		{
-			byte[] buffer = new byte[bufferSize];
-			int readBytes = 0;
-			while((readBytes = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
-			{
-				await destination.WriteAsync(buffer, 0, readBytes, cancellationToken);
-			}
+			stream.WriteByte(value);
 		}
 	}
 }

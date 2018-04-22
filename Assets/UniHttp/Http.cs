@@ -6,41 +6,41 @@ namespace UniHttp
 {
 	public static class Http
 	{
-		static HttpManager defaultManager;
+		static readonly HttpManager defaultManager;
 
-		static HttpManager DefaultManager
+		static Http()
 		{
-			get { return defaultManager = defaultManager ?? HttpManager.Initalize(); }
+			defaultManager = defaultManager ?? HttpManager.Initalize();
 		}
 
-		public static Task<HttpResponse> DeleteAsync(Uri uri, IHttpData data = null)
+		public static async Task<HttpResponse> DeleteAsync(Uri uri, IHttpData data = null)
 		{
-			return DefaultManager.SendAsync(new HttpRequest(HttpMethod.DELETE, uri, data));
+			return await defaultManager.SendAsync(new HttpRequest(HttpMethod.DELETE, uri, data));
 		}
 
-		public static Task<HttpResponse> GetAsync(Uri uri, HttpQuery query = null)
+		public static async Task<HttpResponse> GetAsync(Uri uri, HttpQuery query = null)
 		{
-			return DefaultManager.SendAsync(new HttpRequest(HttpMethod.GET, uri, query));
+			return await defaultManager.SendAsync(new HttpRequest(HttpMethod.GET, uri, query));
 		}
 
-		public static Task<HttpResponse> PatchAsync(Uri uri, IHttpData data = null)
+		public static async Task<HttpResponse> PatchAsync(Uri uri, IHttpData data = null)
 		{
-			return DefaultManager.SendAsync(new HttpRequest(HttpMethod.PATCH, uri, data));
+			return await defaultManager.SendAsync(new HttpRequest(HttpMethod.PATCH, uri, data));
 		}
 
-		public static Task<HttpResponse> PostAsync(Uri uri, IHttpData data = null)
+		public static async Task<HttpResponse> PostAsync(Uri uri, IHttpData data = null)
 		{
-			return DefaultManager.SendAsync(new HttpRequest(HttpMethod.POST, uri, data));
+			return await defaultManager.SendAsync(new HttpRequest(HttpMethod.POST, uri, data));
 		}
 
-		public static Task<HttpResponse> PutAsync(Uri uri, IHttpData data = null)
+		public static async Task<HttpResponse> PutAsync(Uri uri, IHttpData data = null)
 		{
-			return DefaultManager.SendAsync(new HttpRequest(HttpMethod.PUT, uri, data));
+			return await defaultManager.SendAsync(new HttpRequest(HttpMethod.PUT, uri, data));
 		}
 
-		public static Task<HttpResponse> SendAsync(HttpRequest request)
+		public static async Task<HttpResponse> SendAsync(HttpRequest request)
 		{
-			return DefaultManager.SendAsync(request);
+			return await defaultManager.SendAsync(request);
 		}
 	}
 }

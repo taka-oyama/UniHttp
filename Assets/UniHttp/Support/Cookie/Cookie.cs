@@ -19,8 +19,8 @@ namespace UniHttp
 		/// </summary>
 		internal int size;
 
-		public bool IsSession { get { return expires == null; } }
-		public bool IsExpired { get { return expires.HasValue && expires < DateTime.Now; } }
+		public bool IsSession => expires == null;
+		public bool IsExpired => expires.HasValue && expires < DateTime.Now;
 
 		public override string ToString()
 		{

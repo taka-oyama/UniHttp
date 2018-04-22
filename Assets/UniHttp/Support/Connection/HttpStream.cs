@@ -41,11 +41,11 @@ namespace UniHttp
 			tcpClient.SendBufferSize = bufferSize;
 			tcpClient.ReceiveBufferSize = bufferSize;
 
-			this.stream = tcpClient.GetStream();
+			stream = tcpClient.GetStream();
 			if(uri.Scheme == Uri.UriSchemeHttps) {
 				SslStream sslStream = new SslStream(stream, false, sslVerifier.Verify);
 				sslStream.AuthenticateAsClient(uri.Host);
-				this.stream = sslStream;
+				stream = sslStream;
 			}
 			isConnected = true;
 		}
@@ -56,12 +56,12 @@ namespace UniHttp
 			tcpClient.SendBufferSize = bufferSize;
 			tcpClient.ReceiveBufferSize = bufferSize;
 
-			this.stream = tcpClient.GetStream();
+			stream = tcpClient.GetStream();
 
 			if(uri.Scheme == Uri.UriSchemeHttps) {
 				SslStream sslStream = new SslStream(stream, false, sslVerifier.Verify);
 				await sslStream.AuthenticateAsClientAsync(uri.Host).ConfigureAwait(false);
-				this.stream = sslStream;
+				stream = sslStream;
 			}
 			isConnected = true;
 		}

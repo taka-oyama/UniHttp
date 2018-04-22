@@ -13,15 +13,14 @@ namespace UniHttp
 		CacheHandler cacheHandler;
 		StreamPool streamPool;
 		Messenger messenger;
-
 		float deltaTimer = 0f;
 
 		List<DispatchInfo> processingRequests;
 		Queue<DispatchInfo> pendingRequests;
 
-		public static HttpManager Initalize(HttpContext httpContext = null, bool dontDestroyOnLoad = true)
+		public static HttpManager Initalize(HttpContext httpContext = null, string name = null, bool dontDestroyOnLoad = true)
 		{
-			string name = typeof(HttpManager).FullName;
+			name = name ?? typeof(HttpManager).FullName;
 
 			if(GameObject.Find(name)) {
 				throw new Exception(name + " should not be Initialized more than once");
@@ -35,49 +34,22 @@ namespace UniHttp
 			return go.AddComponent<HttpManager>().Setup(httpContext);
 		}
 
-		HttpManager Setup(HttpContext httpContext = null)
+		HttpManager Setup(HttpContext httpContext)
 		{
-			this.context = (httpContext ?? new HttpContext()).FillWithDefaults();
+			context = (httpContext ?? new HttpContext()).FillWithDefaults();
 
 			string dataPath = string.Concat(context.dataDirectory, "/", GetType().Namespace);
 			Directory.CreateDirectory(dataPath);
-
-			this.streamPool = new StreamPool(context.sslVerifier);
-			this.cookieJar = new CookieJar(context.fileHandler, dataPath);
-			this.cacheHandler = new CacheHandler(context.fileHandler, dataPath);
-			this.messenger = new Messenger(context, streamPool, cacheHandler, cookieJar);
-
-			this.processingRequests = new List<DispatchInfo>();
-			this.pendingRequests = new Queue<DispatchInfo>();
-
 			UserAgent.Build();
 
+			streamPool = new StreamPool(context.sslVerifier);
+			cookieJar = new CookieJar(context.fileHandler, dataPath);
+			cacheHandler = new CacheHandler(context.fileHandler, dataPath);
+			messenger = new Messenger(context, streamPool, cacheHandler, cookieJar);
+			processingRequests = new List<DispatchInfo>();
+			pendingRequests = new Queue<DispatchInfo>();
+
 			return this;
-		}
-
-		public async Task<HttpResponse> DeleteAsync(Uri uri, IHttpData data = null)
-		{
-			return await SendAsync(new HttpRequest(HttpMethod.DELETE, uri, data));
-		}
-
-		public async Task<HttpResponse> GetAsync(Uri uri, HttpQuery query = null)
-		{
-			return await SendAsync(new HttpRequest(HttpMethod.GET, uri, query));
-		}
-
-		public async Task<HttpResponse> PatchAsync(Uri uri, IHttpData data = null)
-		{
-			return await SendAsync(new HttpRequest(HttpMethod.PATCH, uri, data));
-		}
-
-		public async Task<HttpResponse> PostAsync(Uri uri, IHttpData data = null)
-		{
-			return await SendAsync(new HttpRequest(HttpMethod.POST, uri, data));
-		}
-
-		public async Task<HttpResponse> PutAsync(Uri uri, IHttpData data = null)
-		{
-			return await SendAsync(new HttpRequest(HttpMethod.PUT, uri, data));
 		}
 
 		public async Task<HttpResponse> SendAsync(HttpRequest request)
@@ -88,11 +60,6 @@ namespace UniHttp
 			TransmitIfPossibleAsync();
 			#pragma warning restore CS4014
 			return await info.taskCompletion.Task;
-		}
-
-		public void ClearCache()
-		{
-			Directory.Delete(string.Concat(context.dataDirectory, "/", GetType().Namespace), true);
 		}
 
 		async Task TransmitIfPossibleAsync()
@@ -118,6 +85,16 @@ namespace UniHttp
 			#pragma warning restore CS4014
 		}
 
+		void Save()
+		{
+			cookieJar.WriteToFile();
+		}
+
+		public void ClearCache()
+		{
+			Directory.Delete(string.Concat(context.dataDirectory, "/", GetType().Namespace), true);
+		}
+
 		void Update()
 		{
 			// Update every second
@@ -126,11 +103,6 @@ namespace UniHttp
 				streamPool.CheckExpiredStreams();
 				deltaTimer = 0f;
 			}
-		}
-
-		void Save()
-		{
-			cookieJar.WriteToFile();
 		}
 
 		void OnApplicationPause(bool isPaused)
