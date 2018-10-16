@@ -49,7 +49,7 @@ namespace UniHttp
 
 		public override void Close()
 		{
-			stream.Close();
+			stream?.Close();
 			base.Close();
 		}
 
@@ -83,7 +83,7 @@ namespace UniHttp
 		protected override void Dispose(bool disposing)
 		{
 			if(disposing) {
-				stream.Dispose();
+				stream?.Dispose();
 			}
 			base.Dispose(disposing);
 		}
