@@ -23,7 +23,7 @@ namespace UniHttp
 			this.KeepAlive = new KeepAlive();
 
 			this.uri = uri;
-			this.tcpClient = new TcpClient();
+			this.tcpClient = new TcpClient(AddressFamily.InterNetworkV6);
 			this.sslVerifier = sslVerifier;
 			this.Connected = false;
 		}
