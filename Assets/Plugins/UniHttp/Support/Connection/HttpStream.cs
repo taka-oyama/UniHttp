@@ -15,7 +15,7 @@ namespace UniHttp
 		internal bool Connected { get; private set; }
 		readonly Uri uri;
 		readonly TcpClient tcpClient;
-		ISslVerifier sslVerifier;
+		readonly ISslVerifier sslVerifier;
 
 		internal HttpStream(Uri uri, ISslVerifier sslVerifier) : base(null)
 		{
