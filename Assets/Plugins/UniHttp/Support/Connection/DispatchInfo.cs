@@ -7,30 +7,29 @@ namespace UniHttp
 {
 	internal class DispatchInfo : IDisposable
 	{
-		readonly internal HttpRequest request;
+		internal HttpRequest Request { get; private set; }
+		internal TaskCompletionSource<HttpResponse> TaskCompletion { get; private set; }
 		readonly CancellationTokenSource cancellationTokenSource;
-		readonly internal CancellationToken cancellationToken;
-		readonly internal TaskCompletionSource<HttpResponse> taskCompletion;
-
+		internal CancellationToken CancellationToken { get; private set; }
 		public bool IsDisposed { get; private set; }
 
 		internal DispatchInfo(HttpRequest request)
 		{
-			this.request = request;
-			this.taskCompletion = new TaskCompletionSource<HttpResponse>();
+			this.Request = request;
+			this.TaskCompletion = new TaskCompletionSource<HttpResponse>();
 			this.cancellationTokenSource = new CancellationTokenSource();
-			this.cancellationToken = cancellationTokenSource.Token;
+			this.CancellationToken = cancellationTokenSource.Token;
 			this.IsDisposed = false;
 		}
 
 		internal void SetResult(HttpResponse response)
 		{
-			taskCompletion.SetResult(response);
+			TaskCompletion.SetResult(response);
 		}
 
 		public void Dispose()
 		{
-			taskCompletion.SetCanceled();
+			TaskCompletion.SetCanceled();
 			cancellationTokenSource.Cancel();
             if(!IsDisposed) {
 				IsDisposed = true;

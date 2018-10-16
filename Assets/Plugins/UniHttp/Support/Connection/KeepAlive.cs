@@ -3,26 +3,26 @@ using System;
 
 internal sealed class KeepAlive
 {
-	internal DateTime expiresAt;
-	internal int currentCount;
-	internal int maxCount;
+	internal DateTime ExpiresAt;
+	internal int CurrentCount;
+	internal int MaxCount;
 
 	internal void Reset(DateTime newExpiresAt, int newMaxCount = 0)
 	{
-		this.expiresAt = newExpiresAt;
-		this.currentCount = 0;
-		this.maxCount = newMaxCount;
+		this.ExpiresAt = newExpiresAt;
+		this.CurrentCount = 0;
+		this.MaxCount = newMaxCount;
 	}
 
 	internal bool Expired
 	{
 		get
 		{
-			if(maxCount != 0 && currentCount >= maxCount) {
+			if(MaxCount != 0 && CurrentCount >= MaxCount) {
 				return true;
 			}
 
-			if(DateTime.Now >= expiresAt) {
+			if(DateTime.Now >= ExpiresAt) {
 				return true;
 			}
 

@@ -11,14 +11,15 @@ namespace UniHttp
 		readonly IFileHandler fileHandler;
 		readonly string filePath;
 		readonly List<Cookie> cookies;
-		internal readonly string name;
+
+		internal string Name { get; private set; }
 
 		internal CookieDomain(string baseDirectory, string domain, IFileHandler fileHandler)
 		{
 			this.filePath = BuildPath(baseDirectory, domain);
 			this.fileHandler = fileHandler;
 			this.cookies = ReadFromFile();
-			this.name = domain;
+			this.Name = domain;
 		}
 
 		internal static string BuildPath(string baseDirectory, string domain)
@@ -50,7 +51,7 @@ namespace UniHttp
 		Cookie FindMatch(Cookie matcher)
 		{
 			foreach(Cookie cookie in cookies) {
-				if(matcher.name == cookie.name) {
+				if(matcher.Name == cookie.Name) {
 					return cookie;
 				}
 			}
@@ -71,20 +72,20 @@ namespace UniHttp
 				BinaryWriter writer = new BinaryWriter(stream);
 				writer.Write(targets.Count);
 				foreach(Cookie cookie in targets) {
-					writer.Write(cookie.name);
-					writer.Write(cookie.value);
-					writer.Write(cookie.domain != null);
-					if(cookie.domain != null) {
-						writer.Write(cookie.domain);
+					writer.Write(cookie.Name);
+					writer.Write(cookie.Value);
+					writer.Write(cookie.Domain != null);
+					if(cookie.Domain != null) {
+						writer.Write(cookie.Domain);
 					}
-					writer.Write(cookie.path);
-					writer.Write(cookie.expires.HasValue);
-					if(cookie.expires.HasValue) {
-						writer.Write(cookie.expires.Value.ToBinary());
+					writer.Write(cookie.Path);
+					writer.Write(cookie.Expires.HasValue);
+					if(cookie.Expires.HasValue) {
+						writer.Write(cookie.Expires.Value.ToBinary());
 					}
-					writer.Write(cookie.secure);
-					writer.Write(cookie.httpOnly);
-					writer.Write(cookie.size);
+					writer.Write(cookie.Secure);
+					writer.Write(cookie.HttpOnly);
+					writer.Write(cookie.Size);
 				}
 			}
 		}
@@ -101,14 +102,14 @@ namespace UniHttp
 					List<Cookie> readCookies = new List<Cookie>(size);
 					for(int i = 0; i < size; i++) {
 						readCookies.Add(new Cookie {
-							name = reader.ReadString(),
-							value = reader.ReadString(),
-							domain = reader.ReadBoolean() ? reader.ReadString() : null,
-							path = reader.ReadString(),
-							expires = reader.ReadBoolean() ? (DateTime?)DateTime.FromBinary(reader.ReadInt64()) : null,
-							secure = reader.ReadBoolean(),
-							httpOnly = reader.ReadBoolean(),
-							size = reader.ReadInt32(),
+							Name = reader.ReadString(),
+							Value = reader.ReadString(),
+							Domain = reader.ReadBoolean() ? reader.ReadString() : null,
+							Path = reader.ReadString(),
+							Expires = reader.ReadBoolean() ? (DateTime?)DateTime.FromBinary(reader.ReadInt64()) : null,
+							Secure = reader.ReadBoolean(),
+							HttpOnly = reader.ReadBoolean(),
+							Size = reader.ReadInt32(),
 						});
 					}
 					return readCookies;

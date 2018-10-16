@@ -15,8 +15,8 @@ namespace UniHttp
 			if(response.Headers.Contains(HeaderField.SetCookie)) {
 				foreach(string attributesAsString in response.Headers[HeaderField.SetCookie]) {
 					Cookie cookie = ParseEach(attributesAsString);
-					if(string.IsNullOrEmpty(cookie.path)) {
-						cookie.path = response.Request.Uri.AbsolutePath;
+					if(string.IsNullOrEmpty(cookie.Path)) {
+						cookie.Path = response.Request.Uri.AbsolutePath;
 					}
 					setCookies.Add(cookie);
 				}
@@ -31,19 +31,19 @@ namespace UniHttp
 			string[] attributes = attributesAsString.Split(new[]{ "; " }, StringSplitOptions.None);
 			string[] kvPair = attributes[0].Split('=');
 
-			cookie.name = kvPair[0];
-			cookie.value = kvPair[1];
-			cookie.size = Encoding.ASCII.GetByteCount(attributesAsString);
+			cookie.Name = kvPair[0];
+			cookie.Value = kvPair[1];
+			cookie.Size = Encoding.ASCII.GetByteCount(attributesAsString);
 
 			foreach(string attr in attributes.Skip(1)) {
 				kvPair = attr.Split('=');
 				switch(kvPair[0].ToLower()) {
-				case "domain": cookie.domain = kvPair[1]; break;
-				case "path": cookie.path = kvPair[1]; break;
-				case "expires": cookie.expires = DateTime.Parse(kvPair[1]); break;
-				case "max-age": cookie.expires = DateTime.Now + TimeSpan.FromSeconds(int.Parse(kvPair[1])); break;
-				case "secure": cookie.secure = true; break;
-				case "httponly": cookie.httpOnly = true; break;
+				case "domain": cookie.Domain = kvPair[1]; break;
+				case "path": cookie.Path = kvPair[1]; break;
+				case "expires": cookie.Expires = DateTime.Parse(kvPair[1]); break;
+				case "max-age": cookie.Expires = DateTime.Now + TimeSpan.FromSeconds(int.Parse(kvPair[1])); break;
+				case "secure": cookie.Secure = true; break;
+				case "httponly": cookie.HttpOnly = true; break;
 				}
 			}
 

@@ -34,16 +34,16 @@ namespace UniHttp
 				if(request.Headers.NotContains(HeaderField.Host)) {
 					request.Headers.Add(HeaderField.Host, GenerateHost(request.Uri));
 				}
-				if(request.Settings.allowCompressedResponse.Value && request.Headers.NotContains(HeaderField.AcceptEncoding)) {
+				if(request.Settings.AllowCompressedResponse.Value && request.Headers.NotContains(HeaderField.AcceptEncoding)) {
 					request.Headers.Add(HeaderField.AcceptEncoding, "gzip");
 				}
-				if(request.Settings.appendUserAgentToRequest.Value && request.Headers.NotContains(HeaderField.UserAgent)) {
+				if(request.Settings.AppendUserAgentToRequest.Value && request.Headers.NotContains(HeaderField.UserAgent)) {
 					request.Headers.Add(HeaderField.UserAgent, UserAgent.value);
 				}
-				if(request.Settings.useCookies.Value) {
+				if(request.Settings.UseCookies.Value) {
 					AddCookiesToRequest(request);
 				}
-				if(!request.Settings.useCache.Value) {
+				if(!request.Settings.UseCache.Value) {
 					request.Headers.AddOrReplace(HeaderField.CacheControl, "no-store");
 				}
 				if(cacheHandler.IsCachable(request)) {
@@ -93,8 +93,8 @@ namespace UniHttp
 			}
 
 			foreach(Cookie cookie in cookieJar.FindMatch(request.Uri)) {
-				if(!cookies.ContainsKey(cookie.name)) {
-					cookies.Add(cookie.name, cookie.value);
+				if(!cookies.ContainsKey(cookie.Name)) {
+					cookies.Add(cookie.Name, cookie.Value);
 				}
 			}
 

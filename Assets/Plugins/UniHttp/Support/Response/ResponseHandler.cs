@@ -150,14 +150,14 @@ namespace UniHttp
 
 		void ProcessCookie(HttpResponse response)
 		{
-			if(response.Request.Settings.useCookies.Value) {
+			if(response.Request.Settings.UseCookies.Value) {
 				cookieJar.Update(response);
 			}
 		}
 
 		void ProcessCache(HttpResponse response)
 		{
-			if(response.Request.Settings.useCache.Value) {
+			if(response.Request.Settings.UseCache.Value) {
 				if(response.StatusCode == StatusCode.NotModified) {
 					response.Headers.Append(HeaderField.ContentType, response.Request.Cache.contentType);
 				}

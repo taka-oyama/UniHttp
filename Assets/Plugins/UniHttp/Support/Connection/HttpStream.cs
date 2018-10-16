@@ -10,29 +10,30 @@ namespace UniHttp
 {
 	internal sealed class HttpStream : BaseStream
 	{
-		readonly internal string baseUrl;
-		readonly internal KeepAlive keepAlive;
+		internal string BaseUrl { get; private set; }
+		internal KeepAlive KeepAlive { get; private set; }
+		internal bool Connected { get; private set; }
 		readonly Uri uri;
 		readonly TcpClient tcpClient;
 		ISslVerifier sslVerifier;
-		bool isConnected;
 
 		internal HttpStream(Uri uri, ISslVerifier sslVerifier) : base(null)
 		{
-			this.baseUrl = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
-			this.keepAlive = new KeepAlive();
+			this.BaseUrl = string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority);
+			this.KeepAlive = new KeepAlive();
+
 			this.uri = uri;
 			this.tcpClient = new TcpClient();
 			this.sslVerifier = sslVerifier;
-			this.isConnected = false;
+			this.Connected = false;
 		}
 
 		internal void UpdateSettings(HttpSettings settings)
 		{
-			keepAlive.Reset(DateTime.Now + settings.keepAliveTimeout.Value);
-			tcpClient.NoDelay = settings.tcpNoDelay.Value;
-			tcpClient.SendTimeout = (int)settings.tcpSendTimeout.Value.TotalMilliseconds;
-			tcpClient.ReceiveTimeout = (int)settings.tcpReceiveTimeout.Value.TotalMilliseconds;
+			KeepAlive.Reset(DateTime.Now + settings.KeepAliveTimeout.Value);
+			tcpClient.NoDelay = settings.TcpNoDelay.Value;
+			tcpClient.SendTimeout = (int)settings.TcpSendTimeout.Value.TotalMilliseconds;
+			tcpClient.ReceiveTimeout = (int)settings.TcpReceiveTimeout.Value.TotalMilliseconds;
 		}
 
 		internal void Connect()
@@ -47,7 +48,7 @@ namespace UniHttp
 				sslStream.AuthenticateAsClient(uri.Host);
 				stream = sslStream;
 			}
-			isConnected = true;
+			Connected = true;
 		}
 
 		internal async Task ConnectAsync()
@@ -63,18 +64,13 @@ namespace UniHttp
 				await sslStream.AuthenticateAsClientAsync(uri.Host).ConfigureAwait(false);
 				stream = sslStream;
 			}
-			isConnected = true;
-		}
-
-		internal bool Connected
-		{
-			get { return isConnected; }
+			Connected = true;
 		}
 
 		protected override void Dispose(bool disposing)
 		{
 			if(disposing) {
-				isConnected = false;
+				Connected = false;
 			}
 			base.Dispose(disposing);
 		}

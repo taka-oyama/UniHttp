@@ -6,34 +6,34 @@ namespace UniHttp
 {
 	public sealed class Cookie
 	{
-		public string name;
-		public string value;
-		public string domain;
-		public string path;
-		public DateTime? expires;
-		public bool secure;
-		public bool httpOnly;
+		public string Name;
+		public string Value;
+		public string Domain;
+		public string Path;
+		public DateTime? Expires;
+		public bool Secure;
+		public bool HttpOnly;
 
 		/// <summary>
 		/// used for calculating total size of cookies per domain (4096 bytes)
 		/// </summary>
-		internal int size;
+		internal int Size;
 
-		public bool IsSession => expires == null;
-		public bool IsExpired => expires.HasValue && expires < DateTime.Now;
+		public bool IsSession => Expires == null;
+		public bool IsExpired => Expires.HasValue && Expires < DateTime.Now;
 
 		public override string ToString()
 		{
 			List<string> list = new List<string>();
-			list.Add(name + "=" + value);
-			if(!string.IsNullOrEmpty(domain)) {
-				list.Add("Domain=" + domain);
+			list.Add(Name + "=" + Value);
+			if(!string.IsNullOrEmpty(Domain)) {
+				list.Add("Domain=" + Domain);
 			}
-			list.Add("Path=" + path);
-			if(secure) {
+			list.Add("Path=" + Path);
+			if(Secure) {
 				list.Add("Secure");
 			}
-			if(httpOnly) {
+			if(HttpOnly) {
 				list.Add("HttpOnly");
 			}
 			return string.Join("; ", list.ToArray());

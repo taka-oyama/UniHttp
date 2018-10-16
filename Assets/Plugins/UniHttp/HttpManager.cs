@@ -38,13 +38,13 @@ namespace UniHttp
 		{
 			context = (httpContext ?? new HttpContext()).FillWithDefaults();
 
-			string dataPath = string.Concat(context.dataDirectory, "/", GetType().Namespace);
+			string dataPath = string.Concat(context.DataDirectory, "/", GetType().Namespace);
 			Directory.CreateDirectory(dataPath);
 			UserAgent.Build();
 
-			streamPool = new StreamPool(context.sslVerifier);
-			cookieJar = new CookieJar(context.fileHandler, dataPath);
-			cacheHandler = new CacheHandler(context.fileHandler, dataPath);
+			streamPool = new StreamPool(context.SslVerifier);
+			cookieJar = new CookieJar(context.FileHandler, dataPath);
+			cacheHandler = new CacheHandler(context.FileHandler, dataPath);
 			messenger = new Messenger(context, streamPool, cacheHandler, cookieJar);
 			processingRequests = new List<DispatchInfo>();
 			pendingRequests = new Queue<DispatchInfo>();
@@ -59,7 +59,7 @@ namespace UniHttp
 			#pragma warning disable CS4014
 			TransmitIfPossibleAsync();
 			#pragma warning restore CS4014
-			return await info.taskCompletion.Task;
+			return await info.TaskCompletion.Task;
 		}
 
 		async Task TransmitIfPossibleAsync()
@@ -68,14 +68,14 @@ namespace UniHttp
 				return;
 			}
 
-			if(processingRequests.Count >= context.maxConcurrentRequests) {
+			if(processingRequests.Count >= context.MaxConcurrentRequests) {
 				return;
 			}
 
 			DispatchInfo info = pendingRequests.Dequeue();
 			if(!info.IsDisposed) {
 				processingRequests.Add(info);
-				HttpResponse response = await messenger.SendAsync(info.request, info.cancellationToken);
+				HttpResponse response = await messenger.SendAsync(info.Request, info.CancellationToken);
 				processingRequests.Remove(info);
 				info.SetResult(response);
 			}
@@ -92,7 +92,7 @@ namespace UniHttp
 
 		public void ClearCache()
 		{
-			Directory.Delete(string.Concat(context.dataDirectory, "/", GetType().Namespace), true);
+			Directory.Delete(string.Concat(context.DataDirectory, "/", GetType().Namespace), true);
 		}
 
 		void Update()

@@ -12,12 +12,12 @@ public class Test : MonoBehaviour
 	void Awake()
 	{
 		var context = new HttpContext();
-		context.allowCompressedResponse = false;
-//		httpSettings.fileHandler = new CryptoFileHandler("testedav", "password");
-		context.useCache = false;
-		context.tcpNoDelay = true;
-		context.useCookies = false;
-//		httpSettings.proxy = new HttpProxy("localhost", 3128);
+		context.AllowCompressedResponse = false;
+//		httpSettings.FileHandler = new CryptoFileHandler("testedav", "password");
+		context.UseCache = false;
+		context.TcpNoDelay = true;
+		context.UseCookies = false;
+//		httpSettings.Proxy = new HttpProxy("localhost", 3128);
 		httpManager = HttpManager.Initalize(context);
 
 		var uri0 = new Uri("http://localhost:3000/random");

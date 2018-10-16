@@ -13,7 +13,7 @@ namespace UniHttp
 		public IHttpData Data { get; }
 		public Progress Progress { get; }
 		public HttpSettings Settings { get; }
-		internal CacheMetadata Cache;
+		internal CacheMetadata Cache { get; set; }
 
 		public HttpRequest(HttpMethod method, Uri uri) : this(method, uri, null, null) {}
 		public HttpRequest(HttpMethod method, Uri uri, IHttpData data) : this(method, uri, null, data) {}
@@ -81,7 +81,7 @@ namespace UniHttp
 			StringBuilder sb = new StringBuilder();
 			sb.Append(Method.ToString().ToUpper());
 			sb.Append(Constant.Space);
-			if(Settings.proxy != null) {
+			if(Settings.Proxy != null) {
 				sb.Append(Uri.Scheme + Uri.SchemeDelimiter + Uri.Authority);
 			}
 			sb.Append(Uri.PathAndQuery);

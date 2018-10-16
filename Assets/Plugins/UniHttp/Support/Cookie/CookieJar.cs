@@ -51,11 +51,11 @@ namespace UniHttp
 					if(cookie.IsExpired) {
 						continue;
 					}
-					if(cookie.secure && uri.Scheme != Uri.UriSchemeHttps) {
+					if(cookie.Secure && uri.Scheme != Uri.UriSchemeHttps) {
 						continue;
 					}
 					// add to qualification only if the path matches
-					if(uri.AbsolutePath.StartsWith(cookie.path, StringComparison.Ordinal)) {
+					if(uri.AbsolutePath.StartsWith(cookie.Path, StringComparison.Ordinal)) {
 						relevants.Add(cookie);
 					}
 				}

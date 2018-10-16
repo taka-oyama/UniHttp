@@ -23,13 +23,13 @@ namespace UniHttp
 
 		internal async Task<HttpStream> CheckOutAsync(HttpRequest request)
 		{
-			Uri uri = request.Settings.proxy?.Uri ?? request.Uri;
+			Uri uri = request.Settings.Proxy?.Uri ?? request.Uri;
 			string baseUrl = uri.Scheme + Uri.SchemeDelimiter + uri.Authority;
 
 			HttpStream stream = null;
 
 			lock(locker) {
-				int index = unusedStreams.FindIndex(s => s.baseUrl == baseUrl);
+				int index = unusedStreams.FindIndex(s => s.BaseUrl == baseUrl);
 
 				if(index >= 0) {
 					HttpStream unusedStream = unusedStreams[index];
@@ -68,7 +68,7 @@ namespace UniHttp
 
 				UpdateKeepAliveInfo(response, stream);
 
-				if(stream.keepAlive.Expired) {
+				if(stream.KeepAlive.Expired) {
 					stream.Close();
 					return;
 				}
@@ -106,23 +106,23 @@ namespace UniHttp
 						} else {
 							now = DateTime.Now;
 						}
-						stream.keepAlive.expiresAt = now.AddSeconds(int.Parse(pair[1]));
+						stream.KeepAlive.ExpiresAt = now.AddSeconds(int.Parse(pair[1]));
 						continue;
 					}
 					if(pair[0] == "max") {
-						stream.keepAlive.maxCount = int.Parse(pair[1]);
+						stream.KeepAlive.MaxCount = int.Parse(pair[1]);
 						continue;
 					}
 				}
 			}
-			stream.keepAlive.currentCount += 1;
+			stream.KeepAlive.CurrentCount += 1;
 		}
 
 		internal void CheckExpiredStreams()
 		{
 			if(unusedStreams.Count > 0) {
 				foreach(HttpStream stream in unusedStreams) {
-					if(stream.keepAlive.Expired) {
+					if(stream.KeepAlive.Expired) {
 						stream.Close();
 					}
 				}

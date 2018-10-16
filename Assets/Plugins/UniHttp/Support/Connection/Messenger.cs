@@ -105,18 +105,18 @@ namespace UniHttp
 		void LogRequest(HttpRequest request)
 		{
 			lock(request) {
-				context.logger.Log(request.Uri + Constant.CRLF + request);
+				context.Logger.Log(request.Uri + Constant.CRLF + request);
 			}
 		}
 
 		void LogResponse(HttpResponse response)
 		{
-			context.logger.Log(response.Request.Uri + Constant.CRLF + response);
+			context.Logger.Log(response.Request.Uri + Constant.CRLF + response);
 		}
 
 		bool IsRedirect(HttpResponse response)
 		{
-			if(response.Request.Settings.followRedirects.Value) {
+			if(response.Request.Settings.FollowRedirects.Value) {
 				for(int i = 0; i < statusCodesForRedirect.Length; i++) {
 					if(response.StatusCode == statusCodesForRedirect[i]) {
 						return true;

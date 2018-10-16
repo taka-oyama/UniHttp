@@ -5,29 +5,29 @@ namespace UniHttp
 {
 	public class HttpSettings
 	{
-		public bool? appendUserAgentToRequest;
-		public bool? allowCompressedResponse;
-		public bool? followRedirects;
-		public HttpProxy proxy;
-		public bool? tcpNoDelay;
-		public TimeSpan? tcpReceiveTimeout;
-		public TimeSpan? tcpSendTimeout;
-		public TimeSpan? keepAliveTimeout;
-		public bool? useCookies;
-		public bool? useCache;
+		public bool? AppendUserAgentToRequest;
+		public bool? AllowCompressedResponse;
+		public bool? FollowRedirects;
+		public HttpProxy Proxy;
+		public bool? TcpNoDelay;
+		public TimeSpan? TcpReceiveTimeout;
+		public TimeSpan? TcpSendTimeout;
+		public TimeSpan? KeepAliveTimeout;
+		public bool? UseCookies;
+		public bool? UseCache;
 
 		internal void FillWith(HttpSettings source)
 		{
-			allowCompressedResponse = allowCompressedResponse ?? source.allowCompressedResponse;
-			appendUserAgentToRequest = appendUserAgentToRequest ?? source.appendUserAgentToRequest;
-			followRedirects = followRedirects ?? source.followRedirects;
-			keepAliveTimeout = keepAliveTimeout ?? source.keepAliveTimeout;
-			proxy = proxy ?? source.proxy;
-			tcpNoDelay = tcpNoDelay ?? source.tcpNoDelay;
-			tcpReceiveTimeout = tcpReceiveTimeout ?? source.tcpReceiveTimeout;
-			tcpSendTimeout = tcpSendTimeout ?? source.tcpSendTimeout;
-			useCache = useCache ?? source.useCache;
-			useCookies = useCookies ?? source.useCookies;
+			AllowCompressedResponse = AllowCompressedResponse ?? source.AllowCompressedResponse;
+			AppendUserAgentToRequest = AppendUserAgentToRequest ?? source.AppendUserAgentToRequest;
+			FollowRedirects = FollowRedirects ?? source.FollowRedirects;
+			KeepAliveTimeout = KeepAliveTimeout ?? source.KeepAliveTimeout;
+			Proxy = Proxy ?? source.Proxy;
+			TcpNoDelay = TcpNoDelay ?? source.TcpNoDelay;
+			TcpReceiveTimeout = TcpReceiveTimeout ?? source.TcpReceiveTimeout;
+			TcpSendTimeout = TcpSendTimeout ?? source.TcpSendTimeout;
+			UseCache = UseCache ?? source.UseCache;
+			UseCookies = UseCookies ?? source.UseCookies;
 		}
 	}
 }
