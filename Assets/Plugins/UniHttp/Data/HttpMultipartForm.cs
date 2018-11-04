@@ -43,7 +43,8 @@ namespace UniHttp
 			string ConstructHeader()
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.Append("--");
+				sb.Append(Constant.Hyphen);
+				sb.Append(Constant.Hyphen);
 				sb.Append(boundary);
 				sb.Append(Constant.CRLF);
 				sb.AppendFormat("Content-Disposition: form-data; name=\"{0}\"", name);
@@ -62,7 +63,8 @@ namespace UniHttp
 				StringBuilder sb = new StringBuilder();
 				sb.Append(Constant.CRLF);
 				sb.Append(boundary);
-				sb.Append("--");
+				sb.Append(Constant.Hyphen);
+				sb.Append(Constant.Hyphen);
 				sb.Append(Constant.CRLF);
 				return sb.ToString();
 			}
