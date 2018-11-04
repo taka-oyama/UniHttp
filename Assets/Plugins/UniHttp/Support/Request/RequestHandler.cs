@@ -35,7 +35,7 @@ namespace UniHttp
 					request.Headers.Add(HeaderField.Host, GenerateHost(request.Uri));
 				}
 				if(request.Settings.AllowCompressedResponse.Value && request.Headers.NotContains(HeaderField.AcceptEncoding)) {
-					request.Headers.Add(HeaderField.AcceptEncoding, "gzip");
+					request.Headers.Add(HeaderField.AcceptEncoding, HeaderValue.Gzip);
 				}
 				if(request.Settings.AppendUserAgentToRequest.Value && request.Headers.NotContains(HeaderField.UserAgent)) {
 					request.Headers.Add(HeaderField.UserAgent, UserAgent.value);
@@ -44,7 +44,7 @@ namespace UniHttp
 					AddCookiesToRequest(request);
 				}
 				if(!request.Settings.UseCache.Value) {
-					request.Headers.AddOrReplace(HeaderField.CacheControl, "no-store");
+					request.Headers.AddOrReplace(HeaderField.CacheControl, HeaderValue.NoStore);
 				}
 				if(cacheHandler.IsCachable(request)) {
 					request.Cache = cacheHandler.FindMetadata(request);

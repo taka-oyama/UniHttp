@@ -68,7 +68,7 @@ namespace UniHttp
 			if(response.StatusCode == StatusCode.NotModified) {
 				return BuildMessageBodyFromCacheAsync(response, cancellationToken);
 			}
-			if(response.Headers.Contains(HeaderField.TransferEncoding, "chunked")) {
+			if(response.Headers.Contains(HeaderField.TransferEncoding, HeaderValue.Chunked)) {
 				return BuildMessageBodyFromChunkedAsync(response, source, cancellationToken);
 			}
 			if(response.Headers.Contains(HeaderField.ContentLength)) {
@@ -124,7 +124,7 @@ namespace UniHttp
 
 		async Task<byte[]> DecodeMessageBodyAsync(HttpResponse response, MemoryStream messageStream, CancellationToken cancellationToken)
 		{
-			if(response.Headers.Contains(HeaderField.ContentEncoding, "gzip")) {
+			if(response.Headers.Contains(HeaderField.ContentEncoding, HeaderValue.Gzip)) {
 				messageStream.Seek(0, SeekOrigin.Begin);
 				return await DecodeMessageBodyAsGzipAsync(messageStream, cancellationToken);
 			}

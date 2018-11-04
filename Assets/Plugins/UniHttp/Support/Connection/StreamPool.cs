@@ -83,7 +83,7 @@ namespace UniHttp
 				return false;
 			}
 
-			if(response.Request.Headers.Contains(HeaderField.Connection, "close")) {
+			if(response.Request.Headers.Contains(HeaderField.Connection, HeaderValue.Close)) {
 				return false;
 			}
 			return true;

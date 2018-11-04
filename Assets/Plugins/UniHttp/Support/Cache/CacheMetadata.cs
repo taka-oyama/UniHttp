@@ -37,9 +37,9 @@ namespace UniHttp
 			if(response.Headers.Contains(HeaderField.Expires)) {
 				this.expireAt = DateTime.Parse(response.Headers[HeaderField.Expires][0]);
 			}
-			if(response.Headers.Contains(HeaderField.CacheControl) && response.Headers[HeaderField.CacheControl][0].Contains("max-age")) {
+			if(response.Headers.Contains(HeaderField.CacheControl) && response.Headers[HeaderField.CacheControl][0].Contains(HeaderValue.MaxAge)) {
 				foreach(string directive in response.Headers[HeaderField.CacheControl][0].Split(',')) {
-					if(directive.Contains("max-age")) {
+					if(directive.Contains(HeaderValue.MaxAge)) {
 						this.expireAt = DateTime.Now.AddSeconds(int.Parse(directive.Split('=')[1]));
 					}
 				}
