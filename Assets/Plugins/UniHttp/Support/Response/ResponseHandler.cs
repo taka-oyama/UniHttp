@@ -45,7 +45,7 @@ namespace UniHttp
 		{
 			HttpResponse response = new HttpResponse(request);
 			response.HttpVersion = "HTTP/1.1";
-			response.StatusCode = 200;
+			response.StatusCode = StatusCode.OK;
 			response.StatusPhrase = "OK (cache)";
 			response.Headers.Append(HeaderField.ContentType, cache.contentType);
 			response.MessageBody = await BuildMessageBodyFromCacheAsync(response, cancellationToken);
