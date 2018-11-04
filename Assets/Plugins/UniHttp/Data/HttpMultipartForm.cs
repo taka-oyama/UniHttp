@@ -50,7 +50,8 @@ namespace UniHttp
 				sb.AppendFormat("Content-Disposition: form-data; name=\"{0}\"", name);
 				sb.Append(Constant.CRLF);
 				if(contentType != null) {
-					sb.Append("Content-Type: ");
+					sb.Append(HeaderField.ContentType);
+					sb.Append(": ");
 					sb.Append(contentType);
 					sb.Append(Constant.CRLF);
 				}
