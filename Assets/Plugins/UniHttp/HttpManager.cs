@@ -114,6 +114,9 @@ namespace UniHttp
 
 		void OnDestroy()
 		{
+			foreach(var pendingRequest in pendingRequests) {
+				pendingRequest.Dispose();
+			}
 			streamPool.CloseAll();
 			Save();
 		}
