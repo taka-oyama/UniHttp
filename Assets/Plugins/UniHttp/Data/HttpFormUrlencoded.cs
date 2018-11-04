@@ -7,7 +7,7 @@ namespace UniHttp
 	{
 		public string GetContentType()
 		{
-			return "application/x-www-form-urlencoded";
+			return ContentType.FormUrlEncoded;
 		}
 
 		public byte[] ToBytes()

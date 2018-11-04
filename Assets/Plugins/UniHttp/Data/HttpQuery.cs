@@ -6,9 +6,6 @@ namespace UniHttp
 {
 	public class HttpQuery
 	{
-		const string SEPARATOR = "&";
-		const string DELIMITER = "=";
-
 		Dictionary<string, List<string>> query;
 
 		public HttpQuery()
@@ -29,10 +26,10 @@ namespace UniHttp
 			List<string> kv = new List<string>(query.Count);
 			foreach(string name in query.Keys) {
 				foreach(string value in query[name]) {
-					kv.Add(string.Concat(Uri.EscapeUriString(name), DELIMITER, Uri.EscapeDataString(value)));
+					kv.Add(string.Concat(Uri.EscapeUriString(name), Constant.Equal, Uri.EscapeDataString(value)));
 				}
 			}
-			return string.Join(SEPARATOR, kv.ToArray());
+			return string.Join(Constant.Ampersand, kv.ToArray());
 		}
 	}
 }

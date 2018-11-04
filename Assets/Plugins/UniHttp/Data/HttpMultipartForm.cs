@@ -85,10 +85,10 @@ namespace UniHttp
 
 		public string GetContentType()
 		{
-			return "multipart/form-data";
+			return ContentType.FormData;
 		}
 
-		public void Add(string name, byte[] value, string contentType = "application/octet-stream")
+		public void Add(string name, byte[] value, string contentType = ContentType.OctetStream)
 		{
 			data.Add(new Parameter(boundary, name, value, contentType));
 		}

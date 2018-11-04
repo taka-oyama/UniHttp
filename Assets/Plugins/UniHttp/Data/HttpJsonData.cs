@@ -5,7 +5,7 @@ namespace UniHttp
 {
 	public sealed class HttpJsonData : IHttpData
 	{
-		string json;
+		readonly string json;
 
 		public HttpJsonData(object target)
 		{
@@ -19,7 +19,7 @@ namespace UniHttp
 
 		public string GetContentType()
 		{
-			return "application/json";
+			return ContentType.Json;
 		}
 
 		public override string ToString()
@@ -33,4 +33,3 @@ namespace UniHttp
 		}
 	}
 }
-	

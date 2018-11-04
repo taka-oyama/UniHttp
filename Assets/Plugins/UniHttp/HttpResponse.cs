@@ -48,8 +48,8 @@ namespace UniHttp
 		{
 			if(Headers.Contains(HeaderField.ContentType)) {
 				if(Headers[HeaderField.ContentType][0].Contains("text/")) return true;
-				if(Headers[HeaderField.ContentType][0].Contains("application/json")) return true;
-				if(Headers[HeaderField.ContentType][0].Contains("application/xml")) return true;
+				if(Headers[HeaderField.ContentType][0].Contains(ContentType.Json)) return true;
+				if(Headers[HeaderField.ContentType][0].Contains(ContentType.Xml)) return true;
 			}
 			return false;
 		}
