@@ -3,8 +3,6 @@ using System.Net.Sockets;
 using System.Net.Security;
 using UnityEngine;
 using System.Threading.Tasks;
-using System.Threading;
-using System.IO;
 
 namespace UniHttp
 {

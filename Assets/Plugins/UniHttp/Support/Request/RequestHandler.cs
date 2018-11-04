@@ -67,8 +67,8 @@ namespace UniHttp
 			lock(request) {
 				source = new MemoryStream(request.ToBytes());
 			}
-			await stream.SendToAsync(source, cancellationToken).ConfigureAwait(false);
-			await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+			await stream.SendToAsync(source, cancellationToken);
+			await stream.FlushAsync(cancellationToken);
 		}
 
 		string GenerateHost(Uri uri)
