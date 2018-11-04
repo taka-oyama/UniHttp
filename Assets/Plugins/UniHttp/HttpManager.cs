@@ -38,7 +38,7 @@ namespace UniHttp
 		{
 			context = (httpContext ?? new HttpContext()).FillWithDefaults();
 
-			string dataPath = string.Concat(context.DataDirectory, Path.PathSeparator, GetType().Namespace);
+			string dataPath = string.Concat(context.DataDirectory, Path.DirectorySeparatorChar, GetType().Namespace);
 			Directory.CreateDirectory(dataPath);
 			UserAgent.Build();
 
@@ -92,7 +92,7 @@ namespace UniHttp
 
 		public void ClearCache()
 		{
-			Directory.Delete(string.Concat(context.DataDirectory, Path.PathSeparator, GetType().Namespace), true);
+			Directory.Delete(string.Concat(context.DataDirectory, Path.DirectorySeparatorChar, GetType().Namespace), true);
 		}
 
 		void Update()
