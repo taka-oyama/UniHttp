@@ -188,7 +188,7 @@ namespace UniHttp
 			return string.Concat(
 				baseDirectory.FullName,
 				Path.DirectorySeparatorChar,
-				uri.Authority.Replace(":", "_"),
+				uri.Authority.Replace(Constant.Colon, Constant.Underscore),
 			    Path.DirectorySeparatorChar,
 				uri.AbsolutePath,
 				".cache"

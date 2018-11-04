@@ -9,7 +9,7 @@ namespace UniHttp
 
 		public HttpProxy(string host, int port)
 		{
-			this.Uri = new Uri("tcp://" + host + ":" + port);
+			this.Uri = new Uri("tcp://" + host + Constant.Colon + port);
 		}
 	}
 }

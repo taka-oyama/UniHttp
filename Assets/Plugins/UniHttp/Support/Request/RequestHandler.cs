@@ -41,7 +41,7 @@ namespace UniHttp
 					request.Headers.Add(HeaderField.AcceptEncoding, HeaderValue.Gzip);
 				}
 				if(request.Settings.AppendUserAgentToRequest.Value && request.Headers.NotContains(HeaderField.UserAgent)) {
-					request.Headers.Add(HeaderField.UserAgent, UserAgent.value);
+					request.Headers.Add(HeaderField.UserAgent, UserAgent.Value);
 				}
 				if(request.Settings.UseCookies.Value) {
 					AddCookiesToRequest(request);
@@ -79,7 +79,7 @@ namespace UniHttp
 			string host = uri.Host;
 			if(uri.Scheme == Uri.UriSchemeHttp  && uri.Port != DefaultHttpPort || 
 			   uri.Scheme == Uri.UriSchemeHttps && uri.Port != DefaultHttpsPort) {
-				host += ":" + uri.Port;
+				host = string.Concat(host, Constant.Colon, uri.Port);
 			}
 			return host;
 		}
