@@ -10,6 +10,9 @@ namespace UniHttp
 {
 	internal sealed class RequestHandler
 	{
+		const int DefaultHttpPort = 80;
+		const int DefaultHttpsPort = 443;
+
 		readonly CookieJar cookieJar;
 		readonly CacheHandler cacheHandler;
 
@@ -74,7 +77,8 @@ namespace UniHttp
 		string GenerateHost(Uri uri)
 		{
 			string host = uri.Host;
-			if(uri.Scheme == Uri.UriSchemeHttp && uri.Port != 80 || uri.Scheme == Uri.UriSchemeHttps && uri.Port != 443) {
+			if(uri.Scheme == Uri.UriSchemeHttp  && uri.Port != DefaultHttpPort || 
+			   uri.Scheme == Uri.UriSchemeHttps && uri.Port != DefaultHttpsPort) {
 				host += ":" + uri.Port;
 			}
 			return host;
