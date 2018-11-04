@@ -9,24 +9,24 @@ namespace UniHttp
 	{
 		public class Parameter
 		{
-			public string boundary;
-			public string name;
-			public byte[] value;
-			public string contentType;
+			public string Boundary;
+			public string Name;
+			public byte[] Value;
+			public string ContentType;
 
 			public Parameter(string boundary, string name, byte[] value, string contentType)
 			{
-				this.boundary = boundary;
-				this.name = name;
-				this.value = value;
-				this.contentType = contentType;
+				this.Boundary = boundary;
+				this.Name = name;
+				this.Value = value;
+				this.ContentType = contentType;
 			}
 
 			public byte[] ToBytes()
 			{
 				List<byte> list = new List<byte>();
 				list.AddRange(Encoding.UTF8.GetBytes(ConstructHeader()));
-				list.AddRange(value);
+				list.AddRange(Value);
 				list.AddRange(Encoding.UTF8.GetBytes(ConstructFooter()));
 				return list.ToArray();
 			}
@@ -35,7 +35,7 @@ namespace UniHttp
 			{
 				StringBuilder sb = new StringBuilder();
 				sb.Append(ConstructHeader());
-				sb.Append(contentType == null ? Encoding.UTF8.GetString(value) : "<Binary Data>");
+				sb.Append(ContentType == null ? Encoding.UTF8.GetString(Value) : "<Binary Data>");
 				sb.Append(ConstructFooter());
 				return sb.ToString();
 			}
@@ -45,14 +45,14 @@ namespace UniHttp
 				StringBuilder sb = new StringBuilder();
 				sb.Append(Constant.Hyphen);
 				sb.Append(Constant.Hyphen);
-				sb.Append(boundary);
+				sb.Append(Boundary);
 				sb.Append(Constant.CRLF);
-				sb.AppendFormat("Content-Disposition: form-data; name=\"{0}\"", name);
+				sb.AppendFormat("Content-Disposition: form-data; name=\"{0}\"", Name);
 				sb.Append(Constant.CRLF);
-				if(contentType != null) {
+				if(ContentType != null) {
 					sb.Append(HeaderField.ContentType);
 					sb.Append(": ");
-					sb.Append(contentType);
+					sb.Append(ContentType);
 					sb.Append(Constant.CRLF);
 				}
 				sb.Append(Constant.CRLF);
@@ -63,7 +63,7 @@ namespace UniHttp
 			{
 				StringBuilder sb = new StringBuilder();
 				sb.Append(Constant.CRLF);
-				sb.Append(boundary);
+				sb.Append(Boundary);
 				sb.Append(Constant.Hyphen);
 				sb.Append(Constant.Hyphen);
 				sb.Append(Constant.CRLF);
@@ -71,8 +71,8 @@ namespace UniHttp
 			}
 		}
 
-		string boundary;
-		List<Parameter> data;
+		readonly string boundary;
+		readonly List<Parameter> data;
 
 		public HttpMultipartForm(string boundary)
 		{
