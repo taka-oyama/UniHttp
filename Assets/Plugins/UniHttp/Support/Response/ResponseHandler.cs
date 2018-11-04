@@ -56,7 +56,7 @@ namespace UniHttp
 		{
 			HttpResponse response = new HttpResponse(request);
 			response.HttpVersion = "HTTP/1.1";
-			response.StatusCode = 0;
+			response.StatusCode = StatusCode.TimedOut;
 			response.StatusPhrase = exception.Message.Trim();
 			response.Headers.Append(HeaderField.ContentType, "text/plain");
 			response.MessageBody = Encoding.UTF8.GetBytes(string.Concat(exception.GetType(), CR, LF, exception.StackTrace));

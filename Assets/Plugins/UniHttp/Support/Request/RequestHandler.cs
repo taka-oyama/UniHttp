@@ -86,7 +86,7 @@ namespace UniHttp
 
 			if(request.Headers.Contains(HeaderField.Cookie)) {
 				string cookieString = request.Headers[HeaderField.Cookie];
-				string[] presets = cookieString.Split(new string[] { "=", "; " }, StringSplitOptions.None);
+				string[] presets = cookieString.Split(new string[] { Constant.Equal, "; " }, StringSplitOptions.None);
 				for(int i = 0; presets.Length > i; i += 2) {
 					cookies.Add(presets[i], presets[i + 1]);
 				}
@@ -102,7 +102,7 @@ namespace UniHttp
 				StringBuilder sb = new StringBuilder();
 				foreach(KeyValuePair<string, string> kv in cookies) {
 					sb.Append(kv.Key);
-					sb.Append("=");
+					sb.Append(Constant.Equal);
 					sb.Append(kv.Value);
 					sb.Append("; ");
 				}

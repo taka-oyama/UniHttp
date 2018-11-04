@@ -94,7 +94,6 @@ namespace UniHttp
 			if(response.Headers.Contains(HeaderField.KeepAlive)) {
 				foreach(string parameter in response.Headers[HeaderField.KeepAlive][0].Split(',')) {
 					string[] pair = parameter.Trim().Split('=');
-
 					if(pair[0] == "timeout") {
 						DateTime now;
 						if(response.Headers.Contains(HeaderField.Date)) {

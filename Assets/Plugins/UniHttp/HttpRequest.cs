@@ -67,10 +67,10 @@ namespace UniHttp
 			StringBuilder sb = new StringBuilder();
 			sb.Append(uri.AbsoluteUri);
 			sb.Append(uri.AbsolutePath);
-			sb.Append("?");
+			sb.Append(Constant.QuestionMark);
 			if(uri.Query.Length > 0) {
 				sb.Append(uri.Query.Substring(1));
-				sb.Append("&");
+				sb.Append(Constant.Ampersand);
 			}
 			sb.Append(query.ToString());
 			return new Uri(sb.ToString());

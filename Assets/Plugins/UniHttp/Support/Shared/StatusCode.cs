@@ -3,6 +3,11 @@
 	public static class StatusCode
 	{
 		// ---------------------------------
+		// Non-standard Codes
+		// ---------------------------------
+		public const int TimedOut                      =   0;
+
+		// ---------------------------------
 		// 1xx Informational responses
 		// ---------------------------------
 		public const int Continue                      = 100;

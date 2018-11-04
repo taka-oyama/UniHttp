@@ -6,6 +6,8 @@ namespace UniHttp
 {
 	public sealed class RequestHeaders
 	{
+		const string Delimiter = ": ";
+
 		readonly Dictionary<string, string> fields;
 
 		public RequestHeaders()
@@ -66,8 +68,8 @@ namespace UniHttp
 		{
 			List<string> fieldLines = new List<string>();
 			foreach(string key in fields.Keys) {
-				string name = string.Join("-", key.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
-				fieldLines.Add(name + ": " + fields[key]);
+				string name = string.Join(Constant.Hyphen, key.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
+				fieldLines.Add(name + Delimiter + fields[key]);
 			}
 			return string.Join(Constant.CRLF, fieldLines.ToArray());
 		}

@@ -6,6 +6,8 @@ namespace UniHttp
 {
 	public sealed class ResponseHeaders
 	{
+		const string Delimiter = ": ";
+
 		readonly Dictionary<string, List<string>> fields;
 
 		public ResponseHeaders()
@@ -53,7 +55,7 @@ namespace UniHttp
 			List<string> fieldLines = new List<string>();
 			foreach(KeyValuePair<string, List<string>> kvPair in fields) {
 				foreach(string line in kvPair.Value) {
-					fieldLines.Add(Titleize(kvPair.Key) + ": " + line);
+					fieldLines.Add(Titleize(kvPair.Key) + Delimiter + line);
 				}
 			}
 			return string.Join(Constant.CRLF, fieldLines.ToArray());
@@ -61,7 +63,7 @@ namespace UniHttp
 
 		static string Titleize(string str)
 		{
-			return string.Join("-", str.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
+			return string.Join(Constant.Hyphen, str.Split('-').Select(s => s.Substring(0, 1).ToUpper() + s.Substring(1)).ToArray());
 		}
 	}
 }

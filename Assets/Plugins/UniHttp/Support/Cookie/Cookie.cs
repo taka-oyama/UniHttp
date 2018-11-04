@@ -25,7 +25,7 @@ namespace UniHttp
 		public override string ToString()
 		{
 			List<string> list = new List<string>();
-			list.Add(Name + "=" + Value);
+			list.Add(Name + Constant.Equal + Value);
 			if(!string.IsNullOrEmpty(Domain)) {
 				list.Add("Domain=" + Domain);
 			}
