@@ -94,7 +94,7 @@ namespace UniHttp
 			if(response.Headers.Contains(HeaderField.KeepAlive)) {
 				foreach(string parameter in response.Headers[HeaderField.KeepAlive][0].Split(',')) {
 					string[] pair = parameter.Trim().Split('=');
-					if(pair[0] == "timeout") {
+					if(pair[0] == HeaderValue.Timeout) {
 						DateTime now;
 						if(response.Headers.Contains(HeaderField.Date)) {
 							now = DateTime.ParseExact(
@@ -108,7 +108,7 @@ namespace UniHttp
 						stream.KeepAlive.ExpiresAt = now.AddSeconds(int.Parse(pair[1]));
 						continue;
 					}
-					if(pair[0] == "max") {
+					if(pair[0] == HeaderValue.Max) {
 						stream.KeepAlive.MaxCount = int.Parse(pair[1]);
 						continue;
 					}
