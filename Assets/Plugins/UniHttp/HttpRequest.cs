@@ -66,7 +66,6 @@ namespace UniHttp
 			}
 			StringBuilder sb = new StringBuilder();
 			sb.Append(uri.AbsoluteUri);
-			sb.Append(uri.AbsolutePath);
 			sb.Append(Constant.QuestionMark);
 			if(uri.Query.Length > 0) {
 				sb.Append(uri.Query.Substring(1));

@@ -29,7 +29,7 @@ namespace UniHttp
 			List<string> kv = new List<string>(query.Count);
 			foreach(string name in query.Keys) {
 				foreach(string value in query[name]) {
-					kv.Add(string.Concat(Uri.EscapeUriString(name), DELIMITER, Uri.EscapeUriString(value)));
+					kv.Add(string.Concat(Uri.EscapeUriString(name), DELIMITER, Uri.EscapeDataString(value)));
 				}
 			}
 			return string.Join(SEPARATOR, kv.ToArray());
