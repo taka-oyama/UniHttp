@@ -113,12 +113,12 @@ namespace UniHttp
 			return stream.ReadByte();
 		}
 
-		public string ReadTo(params char[] stoppers)
+		public string ReadTo(char stopper1, char? stopper2 = null)
 		{
-			return ReadTo(new MemoryStream(), stoppers);
+			return ReadTo(new MemoryStream(), stopper1, stopper2);
 		}
 
-		public string ReadTo(MemoryStream destination, params char[] stoppers)
+		public string ReadTo(MemoryStream destination, char stopper1, char? stopper2 = null)
 		{
 			int readByte;
 			while(true) {
@@ -127,30 +127,26 @@ namespace UniHttp
 					break;
 				}
 				destination.WriteByte((byte)readByte);
-				foreach(char stopper in stoppers) {
-					if(readByte == stopper) {
-						return Encoding.UTF8.GetString(destination.ToArray());
-					}
+				if(readByte == stopper1 || readByte == stopper2) {
+					return Encoding.UTF8.GetString(destination.ToArray());
 				}
 			}
 			return null;
 		}
 
-		public async Task<string> ReadToAsync(CancellationToken cancellationToken, params char[] stoppers)
+		public async Task<string> ReadToAsync(CancellationToken cancellationToken, char stopper1, char? stopper2 = null)
 		{
-			return await ReadToAsync(new MemoryStream(), cancellationToken, stoppers);
+			return await ReadToAsync(new MemoryStream(), cancellationToken, stopper1, stopper2);
 		}
 
-		public async Task<string> ReadToAsync(MemoryStream destination, CancellationToken cancellationToken, params char[] stoppers)
+		public async Task<string> ReadToAsync(MemoryStream destination, CancellationToken cancellationToken, char stopper1, char? stopper2 = null)
 		{
 			byte[] buffer = new byte[1];
 			while(true) {
 				await ReadAsync(buffer, 0, buffer.Length, cancellationToken);
 				destination.WriteByte(buffer[0]);
-				foreach(char stopper in stoppers) {
-					if(buffer[0] == stopper) {
-						return Encoding.UTF8.GetString(destination.ToArray());
-					}
+				if(buffer[0] == stopper1 || buffer[0] == stopper2) {
+					return Encoding.UTF8.GetString(destination.ToArray());
 				}
 			}
 		}
@@ -175,7 +171,7 @@ namespace UniHttp
 			}
 		}
 
-		public void SkipTo(params char[] stoppers)
+		public void SkipTo(char stopper)
 		{
 			int readByte;
 			while(true) {
@@ -183,10 +179,8 @@ namespace UniHttp
 				if(readByte == -1) {
 					break;
 				}
-				foreach(char stopper in stoppers) {
-					if(readByte == stopper) {
-						return;
-					}
+				if(readByte == stopper) {
+					return;
 				}
 			}
 		}
