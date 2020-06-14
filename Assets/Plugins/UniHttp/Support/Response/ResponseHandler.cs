@@ -30,7 +30,7 @@ namespace UniHttp
 			response.StatusCode = int.Parse(source.ReadTo(SPACE).TrimEnd(SPACE));
 			response.StatusPhrase = source.ReadTo(LF).TrimEnd();
 			string name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);
-			while(name != String.Empty) {
+			while(name != string.Empty) {
 				string valuesStr = source.ReadTo(LF).TrimStart(SPACE).TrimEnd(CR, LF);
 				response.Headers.Append(name, valuesStr);
 				name = source.ReadTo(COLON, LF).TrimEnd(COLON, CR, LF);

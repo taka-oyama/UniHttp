@@ -177,7 +177,7 @@ namespace UniHttp
 			while(true) {
 				readByte = ReadByte();
 				if(readByte == -1) {
-					break;
+					return;
 				}
 				if(readByte == stopper) {
 					return;
